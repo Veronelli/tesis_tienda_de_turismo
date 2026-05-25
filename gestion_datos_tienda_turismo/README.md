@@ -7,7 +7,7 @@ Modulo PHP preparado con arquitectura hexagonal para aislar la logica de negocio
 - `Domain/Models`: modelos del dominio definidos por requerimiento explicito.
 - `Domain/Repositories`: interfaces de repositorios que necesita el dominio.
 - `Application/Input`: datos de entrada para los casos de uso.
-- `Application/UseCases`: puntos de control de la logica de negocio.
+- `Application/UseCases`: puntos de control de la logica de negocio, incluyendo casos de uso de `Destino`.
 - `Application/Ports/External`: contratos para servicios externos.
 - `Infrastructure/Repositories`: implementaciones concretas de repositorios.
 - `Infrastructure/Repositories/ExternalServices`: repositorios/adaptadores que interactuan con servicios externos.
@@ -50,6 +50,40 @@ $entityManager = \TiendaTurismo\GestionDatos\Infrastructure\Persistence\Doctrine
 Requiere tener habilitada la extension PHP `pdo_mysql` para abrir la conexion real con MariaDB.
 
 Los repositorios que extiendan `Infrastructure\Repositories\BaseRepository` leen `.env` por defecto desde su constructor si no reciben un `EntityManager` inyectado.
+
+## Casos De Uso Destino
+
+- `CrearDestinoUseCase`: crea y persiste un destino desde `CrearDestinoInput`.
+- `ObtenerDestinoPorIdUseCase`: obtiene un destino por `id`.
+- `ListarDestinosUseCase`: lista todos los destinos.
+
+Los destinos no se pueden eliminar bajo ningun caso. No agregar casos de uso, metodos de repositorio, scripts ni endpoints de eliminacion para `Destino`.
+
+## Punto De Acceso Destino
+
+`Application\Services\DestinoService` centraliza los casos de uso de `Destino` para ser consumido desde CLI, HTTP u otros adaptadores.
+
+```php
+$service = new \TiendaTurismo\GestionDatos\Application\Services\DestinoService(
+    new \TiendaTurismo\GestionDatos\Infrastructure\Repositories\DestinoDoctrineRepository()
+);
+
+$destinos = $service->listar();
+$destino = $service->obtenerPorId(1);
+$nuevo = $service->crear([
+    'ciudad' => 'Bariloche',
+    'estado_provincia' => 'Rio Negro',
+    'pais' => 'Argentina',
+]);
+```
+
+Pruebas desde terminal:
+
+```bash
+php bin/probar_destino_service.php listar
+php bin/probar_destino_service.php obtener 1
+php bin/probar_destino_service.php crear "Bariloche" "Rio Negro" "Argentina"
+```
 
 ## Crear Tabla Destinos
 

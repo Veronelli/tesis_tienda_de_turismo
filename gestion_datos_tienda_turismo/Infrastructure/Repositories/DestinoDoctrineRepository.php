@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace TiendaTurismo\GestionDatos\Infrastructure\Repositories;
 
 use TiendaTurismo\GestionDatos\Domain\Models\Destino;
+use TiendaTurismo\GestionDatos\Domain\Repositories\DestinoRepositoryInterface;
 
-final class DestinoDoctrineRepository extends BaseRepository
+final class DestinoDoctrineRepository extends BaseRepository implements DestinoRepositoryInterface
 {
     public function save(Destino $destino): void
     {

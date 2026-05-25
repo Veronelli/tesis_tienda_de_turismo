@@ -7,3 +7,4 @@ Este modulo no debe contener entidades.
 - Mantener la arquitectura hexagonal con contratos, datos de entrada, casos de uso, adaptadores e infraestructura.
 - Si se necesita transportar datos, usar DTOs de entrada/salida o arrays tipados segun el estilo existente.
 - Antes de agregar una clase nueva, verificar que no sea una entidad encubierta.
+- No crear metodos, casos de uso, scripts ni endpoints que eliminen destinos. Los destinos no se pueden eliminar bajo ningun caso.
