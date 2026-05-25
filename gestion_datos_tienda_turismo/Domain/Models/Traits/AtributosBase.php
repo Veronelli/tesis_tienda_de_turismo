@@ -13,10 +13,10 @@ trait AtributosBase
     #[ORM\Column(type: 'integer')]
     private ?int $id;
 
-    #[ORM\Column(name: 'fecha_creacion', type: 'datetime_immutable', options: ['default' => 'CURRENT_TIMESTAMP'])]
+    #[ORM\Column(name: 'fecha_creacion', type: 'datetime_immutable', columnDefinition: 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP')]
     private \DateTimeImmutable $fechaCreacion;
 
-    #[ORM\Column(name: 'fecha_actualizacion', type: 'datetime_immutable', options: ['default' => 'CURRENT_TIMESTAMP'])]
+    #[ORM\Column(name: 'fecha_actualizacion', type: 'datetime_immutable', columnDefinition: 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP')]
     private \DateTimeImmutable $fechaActualizacion;
 
     public function id(): ?int

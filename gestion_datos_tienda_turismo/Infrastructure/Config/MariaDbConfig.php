@@ -9,15 +9,30 @@ final class MariaDbConfig
     /** @return array<string, mixed> */
     public static function connectionParams(): array
     {
-        return [
+        $params = [
             'driver' => self::env('DB_DRIVER', 'pdo_mysql'),
-            'host' => self::env('DB_HOST', '127.0.0.1'),
-            'port' => (int) self::env('DB_PORT', '3306'),
             'dbname' => self::env('DB_DATABASE'),
             'user' => self::env('DB_USERNAME'),
             'password' => self::env('DB_PASSWORD', ''),
             'charset' => self::env('DB_CHARSET', 'utf8mb4'),
+            'serverVersion' => self::env('DB_SERVER_VERSION', 'mariadb-10.11.0'),
+            'driverOptions' => [
+                \PDO::ATTR_TIMEOUT => (int) self::env('DB_CONNECTION_TIMEOUT', '5'),
+            ],
         ];
+
+        $unixSocket = self::env('DB_UNIX_SOCKET', '');
+
+        if ($unixSocket !== '') {
+            $params['unix_socket'] = $unixSocket;
+
+            return $params;
+        }
+
+        $params['host'] = self::env('DB_HOST', '127.0.0.1');
+        $params['port'] = (int) self::env('DB_PORT', '3306');
+
+        return $params;
     }
 
     public static function destinosTable(): string

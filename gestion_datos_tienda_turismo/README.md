@@ -32,11 +32,14 @@ La conexion se configura en `.env`:
 
 - `DB_HOST`: host de MariaDB.
 - `DB_PORT`: puerto de MariaDB.
+- `DB_UNIX_SOCKET`: socket Unix opcional; si esta definido, se usa en lugar de host/puerto.
 - `DB_DATABASE`: base de datos.
 - `DB_TABLE_DESTINOS`: tabla de destinos.
 - `DB_USERNAME`: usuario.
 - `DB_PASSWORD`: contrasena.
 - `DB_CHARSET`: charset de conexion.
+- `DB_SERVER_VERSION`: version de MariaDB usada por Doctrine para generar SQL.
+- `DB_CONNECTION_TIMEOUT`: timeout de conexion en segundos.
 
 Para obtener un `EntityManager` configurado:
 
@@ -47,3 +50,29 @@ $entityManager = \TiendaTurismo\GestionDatos\Infrastructure\Persistence\Doctrine
 Requiere tener habilitada la extension PHP `pdo_mysql` para abrir la conexion real con MariaDB.
 
 Los repositorios que extiendan `Infrastructure\Repositories\BaseRepository` leen `.env` por defecto desde su constructor si no reciben un `EntityManager` inyectado.
+
+## Crear Tabla Destinos
+
+Para ver el SQL generado desde Doctrine:
+
+```bash
+php bin/crear_tabla_destinos.php --dump-sql
+```
+
+Para crear la tabla `destinos` en MariaDB:
+
+```bash
+php bin/crear_tabla_destinos.php
+```
+
+Tambien se puede ejecutar mediante Composer:
+
+```bash
+php /tmp/opencode/composer.phar db:create-destinos
+```
+
+Para probar la conexion configurada en `.env` sin mostrar la contrasena:
+
+```bash
+php bin/probar_conexion_db.php
+```

@@ -18,4 +18,10 @@ final class DestinoDoctrineRepository extends BaseRepository
     {
         return $this->entityManager->find(Destino::class, $id);
     }
+
+    /** @return list<Destino> */
+    public function findAll(): array
+    {
+        return $this->entityManager->getRepository(Destino::class)->findAll();
+    }
 }

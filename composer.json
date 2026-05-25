@@ -11,5 +11,10 @@
         "psr-4": {
             "TiendaTurismo\\GestionDatos\\": "gestion_datos_tienda_turismo/"
         }
+    },
+    "scripts": {
+        "db:create-destinos": "php bin/crear_tabla_destinos.php",
+        "db:dump-sql-destinos": "php bin/crear_tabla_destinos.php --dump-sql",
+        "db:test-connection": "php bin/probar_conexion_db.php"
     }
 }
