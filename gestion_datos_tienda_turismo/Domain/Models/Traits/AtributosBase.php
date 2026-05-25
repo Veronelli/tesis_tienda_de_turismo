@@ -2,11 +2,21 @@
 
 declare(strict_types=1);
 
+namespace TiendaTurismo\GestionDatos\Domain\Models\Traits;
+
+use Doctrine\ORM\Mapping as ORM;
 
 trait AtributosBase
 {
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private ?int $id;
+
+    #[ORM\Column(name: 'fecha_creacion', type: 'datetime_immutable', options: ['default' => 'CURRENT_TIMESTAMP'])]
     private \DateTimeImmutable $fechaCreacion;
+
+    #[ORM\Column(name: 'fecha_actualizacion', type: 'datetime_immutable', options: ['default' => 'CURRENT_TIMESTAMP'])]
     private \DateTimeImmutable $fechaActualizacion;
 
     public function id(): ?int

@@ -1,0 +1,15 @@
+{
+    "name": "tienda-turismo/gestion-datos",
+    "description": "Gestion de datos para tienda de turismo con Doctrine ORM.",
+    "type": "project",
+    "require": {
+        "php": "^8.2",
+        "doctrine/orm": "^3.3",
+        "symfony/cache": "^7.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "TiendaTurismo\\GestionDatos\\": "gestion_datos_tienda_turismo/"
+        }
+    }
+}

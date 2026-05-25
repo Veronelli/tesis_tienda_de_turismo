@@ -4,15 +4,21 @@ declare(strict_types=1);
 
 namespace TiendaTurismo\GestionDatos\Domain\Models;
 
-require_once __DIR__ . '/Traits/AtributosBase.php';
+use Doctrine\ORM\Mapping as ORM;
+use TiendaTurismo\GestionDatos\Domain\Models\Traits\AtributosBase;
 
+#[ORM\Entity]
+#[ORM\Table(name: 'destinos')]
 final class Destino
 {
     use AtributosBase;
 
     public function __construct(
+        #[ORM\Column(type: 'string', length: 150)]
         private string $ciudad,
+        #[ORM\Column(name: 'estado_provincia', type: 'string', length: 150)]
         private string $estadoProvincia,
+        #[ORM\Column(type: 'string', length: 150)]
         private string $pais,
         ?int $id = null,
         ?\DateTimeImmutable $fechaCreacion = null,
