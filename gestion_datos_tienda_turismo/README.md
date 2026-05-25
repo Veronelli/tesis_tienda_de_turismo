@@ -11,7 +11,7 @@ Modulo PHP preparado con arquitectura hexagonal para aislar la logica de negocio
 - `Application/Ports/External`: contratos para servicios externos.
 - `Infrastructure/Repositories`: implementaciones concretas de repositorios.
 - `Infrastructure/Repositories/ExternalServices`: repositorios/adaptadores que interactuan con servicios externos.
-- `Infrastructure/Config`: carga y normalizacion de configuracion desde `.env.develop`.
+- `Infrastructure/Config`: carga y normalizacion de configuracion desde `.env`.
 - `Infrastructure/Persistence/Doctrine`: fabrica de `EntityManager` para MariaDB con Doctrine ORM.
 - `Interfaces/Http/Controllers`: puntos de entrada desde HTTP u otras capas de presentacion.
 
@@ -28,7 +28,7 @@ No crear entidades dentro de este modulo salvo pedido explicito del usuario. Man
 
 ## Conexion MariaDB
 
-La conexion de desarrollo se configura en `.env.develop`:
+La conexion se configura en `.env`:
 
 - `DB_HOST`: host de MariaDB.
 - `DB_PORT`: puerto de MariaDB.
@@ -41,7 +41,9 @@ La conexion de desarrollo se configura en `.env.develop`:
 Para obtener un `EntityManager` configurado:
 
 ```php
-$entityManager = \TiendaTurismo\GestionDatos\Infrastructure\Persistence\Doctrine\EntityManagerFactory::createFromDevelopEnv();
+$entityManager = \TiendaTurismo\GestionDatos\Infrastructure\Persistence\Doctrine\EntityManagerFactory::createFromEnv();
 ```
 
 Requiere tener habilitada la extension PHP `pdo_mysql` para abrir la conexion real con MariaDB.
+
+Los repositorios que extiendan `Infrastructure\Repositories\BaseRepository` leen `.env` por defecto desde su constructor si no reciben un `EntityManager` inyectado.
