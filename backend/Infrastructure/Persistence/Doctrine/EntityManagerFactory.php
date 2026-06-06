@@ -28,7 +28,7 @@ final class EntityManagerFactory
             dirname(__DIR__, 3) . '/Domain/Models',
         ], $isDevMode);
         $config->setProxyDir($rootPath . '/var/doctrine/proxies');
-        $config->setProxyNamespace('TiendaTurismo\\GestionDatos\\Infrastructure\\Persistence\\Doctrine\\Proxies');
+        $config->setProxyNamespace('backend\\GestionDatos\\Infrastructure\\Persistence\\Doctrine\\Proxies');
 
         $connection = DriverManager::getConnection($connectionParams, $config);
 

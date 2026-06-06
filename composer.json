@@ -9,7 +9,7 @@
     },
     "autoload": {
         "psr-4": {
-            "TiendaTurismo\\GestionDatos\\": "gestion_datos_tienda_turismo/"
+            "TiendaTurismo\\GestionDatos\\": "backend/"
         }
     },
     "scripts": {

@@ -44,7 +44,7 @@ La conexion se configura en `.env`:
 Para obtener un `EntityManager` configurado:
 
 ```php
-$entityManager = \TiendaTurismo\GestionDatos\Infrastructure\Persistence\Doctrine\EntityManagerFactory::createFromEnv();
+$entityManager = \backend\GestionDatos\Infrastructure\Persistence\Doctrine\EntityManagerFactory::createFromEnv();
 ```
 
 Requiere tener habilitada la extension PHP `pdo_mysql` para abrir la conexion real con MariaDB.
@@ -64,8 +64,8 @@ Los destinos no se pueden eliminar bajo ningun caso. No agregar casos de uso, me
 `Application\Services\DestinoService` centraliza los casos de uso de `Destino` para ser consumido desde CLI, HTTP u otros adaptadores.
 
 ```php
-$service = new \TiendaTurismo\GestionDatos\Application\Services\DestinoService(
-    new \TiendaTurismo\GestionDatos\Infrastructure\Repositories\DestinoDoctrineRepository()
+$service = new \backend\GestionDatos\Application\Services\DestinoService(
+    new \backend\GestionDatos\Infrastructure\Repositories\DestinoDoctrineRepository()
 );
 
 $destinos = $service->listar();
