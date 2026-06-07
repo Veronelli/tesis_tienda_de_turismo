@@ -16,6 +16,9 @@
         "db:create-destinos": "php bin/crear_tabla_destinos.php",
         "db:dump-sql-destinos": "php bin/crear_tabla_destinos.php --dump-sql",
         "db:test-connection": "php bin/probar_conexion_db.php",
-        "destinos:test-service": "php bin/probar_destino_service.php"
+        "destinos:test-service": "php bin/probar_destino_service.php",
+        "test": "php vendor/bin/phpunit",
+        "test:coverage-text": "php -d xdebug.mode=coverage vendor/bin/phpunit --coverage-text",
+        "test:coverage-html": "php -d xdebug.mode=coverage vendor/bin/phpunit --coverage-html coverage"
     }
 }
