@@ -19,6 +19,8 @@ final class Usuario
         private string $nombre,
         #[ORM\Column(type: 'string', length: 100)]
         private string $apellido,
+        #[ORM\Column(name: 'numero_documento', type: 'string', length: 20, unique: true)]
+        private string $numeroDocumento,
         #[ORM\Column(type: 'string', length: 255, unique: true)]
         private string $email,
         #[ORM\Column(type: 'string', length: 255)]
@@ -31,6 +33,7 @@ final class Usuario
     ) {
         $this->validarTextoObligatorio($nombre, 'nombre');
         $this->validarTextoObligatorio($apellido, 'apellido');
+        $this->validarTextoObligatorio($numeroDocumento, 'numero_documento');
         $this->validarEmail($email);
         $this->validarTextoObligatorio($contrasena, 'contrasena');
         $this->validarTextoObligatorio($rol, 'rol');
@@ -45,6 +48,11 @@ final class Usuario
     public function apellido(): string
     {
         return $this->apellido;
+    }
+
+    public function numeroDocumento(): string
+    {
+        return $this->numeroDocumento;
     }
 
     public function email(): string
@@ -68,6 +76,7 @@ final class Usuario
             'id' => $this->id(),
             'nombre' => $this->nombre,
             'apellido' => $this->apellido,
+            'numero_documento' => $this->numeroDocumento,
             'email' => $this->email,
             'rol' => $this->rol,
             'fecha_creacion' => $this->fechaCreacion()->format('Y-m-d H:i:s'),
