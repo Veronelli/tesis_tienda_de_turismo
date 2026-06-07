@@ -86,6 +86,49 @@ final class UsuarioDoctrineRepositoryTest extends TestCase
         $this->assertNull($this->repo->findByNumeroDocumento('INEXISTENTE'));
     }
 
+    public function test_findByEmail_delega_en_repository(): void
+    {
+        $this->entityRepository
+            ->expects($this->once())
+            ->method('findOneBy')
+            ->with(['email' => 'juan@example.com'])
+            ->willReturn($this->usuario);
+
+        $resultado = $this->repo->findByEmail('juan@example.com');
+
+        $this->assertSame($this->usuario, $resultado);
+    }
+
+    public function test_findByEmail_retorna_null_si_no_existe(): void
+    {
+        $this->entityRepository
+            ->method('findOneBy')
+            ->with(['email' => 'no@existe.com'])
+            ->willReturn(null);
+
+        $this->assertNull($this->repo->findByEmail('no@existe.com'));
+    }
+
+    public function test_save_hashea_contrasena_antes_de_persistir(): void
+    {
+        $usuario = new Usuario(
+            nombre: 'Test',
+            apellido: 'User',
+            numeroDocumento: 'DNI00000000',
+            email: 'test@test.com',
+            contrasena: 'mi_password_plano',
+            rol: 'admin',
+        );
+
+        $this->entityManager->expects($this->once())->method('persist')->with($usuario);
+        $this->entityManager->expects($this->once())->method('flush');
+
+        $this->repo->save($usuario);
+
+        $this->assertTrue(password_verify('mi_password_plano', $usuario->contrasena()));
+        $this->assertStringStartsWith('$2y$', $usuario->contrasena());
+    }
+
     public function test_findAll_retorna_lista_de_usuarios(): void
     {
         $usuarios = [$this->usuario];
@@ -160,7 +203,7 @@ final class UsuarioDoctrineRepositoryTest extends TestCase
         $this->assertSame('Nuevo', $original->apellido());
         $this->assertSame('DNI99999999', $original->numeroDocumento());
         $this->assertSame('nuevo@example.com', $original->email());
-        $this->assertSame('new_hash', $original->contrasena());
+        $this->assertTrue(password_verify('new_hash', $original->contrasena()));
         $this->assertSame('admin', $original->rol());
         $this->assertSame(1, $original->id());
         $this->assertEquals(new \DateTimeImmutable('2024-01-01'), $original->fechaCreacion());

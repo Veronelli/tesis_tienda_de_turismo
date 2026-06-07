@@ -48,6 +48,13 @@ final class UsuarioDoctrineRepository extends BaseRepository implements UsuarioR
         ]);
     }
 
+    public function findByEmail(string $email): ?Usuario
+    {
+        return $this->entityManager->getRepository(Usuario::class)->findOneBy([
+            'email' => $email,
+        ]);
+    }
+
     /** @return list<Usuario> */
     public function findAll(): array
     {

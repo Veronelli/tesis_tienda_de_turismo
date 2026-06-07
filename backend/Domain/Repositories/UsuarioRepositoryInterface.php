@@ -16,6 +16,8 @@ interface UsuarioRepositoryInterface
 
     public function findByNumeroDocumento(string $numeroDocumento): ?Usuario;
 
+    public function findByEmail(string $email): ?Usuario;
+
     /** @return list<Usuario> */
     public function findAll(): array;
 }

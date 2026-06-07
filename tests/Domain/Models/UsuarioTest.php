@@ -29,7 +29,7 @@ final class UsuarioTest extends TestCase
         $this->assertSame('Pérez', $this->usuario->apellido());
         $this->assertSame('DNI12345678', $this->usuario->numeroDocumento());
         $this->assertSame('juan@example.com', $this->usuario->email());
-        $this->assertSame('securePass123', $this->usuario->contrasena());
+        $this->assertTrue(password_verify('securePass123', $this->usuario->contrasena()));
         $this->assertSame('admin', $this->usuario->rol());
     }
 
@@ -246,7 +246,7 @@ final class UsuarioTest extends TestCase
         $this->assertSame('López', $usuario->apellido());
         $this->assertSame('DNI99887766', $usuario->numeroDocumento());
         $this->assertSame('maria@example.com', $usuario->email());
-        $this->assertSame('hashed_password', $usuario->contrasena());
+        $this->assertTrue(password_verify('hashed_password', $usuario->contrasena()));
         $this->assertSame('superadmin', $usuario->rol());
 
         $arr = $usuario->toArray();

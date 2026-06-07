@@ -37,6 +37,7 @@ final class Usuario
         $this->validarEmail($email);
         $this->validarTextoObligatorio($contrasena, 'contrasena');
         $this->validarTextoObligatorio($rol, 'rol');
+        $this->contrasena = $this->hashPassword($contrasena);
         $this->inicializarAtributosBase($id, $fechaCreacion, $fechaActualizacion);
     }
 
@@ -97,5 +98,14 @@ final class Usuario
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             throw new \InvalidArgumentException('El email no tiene un formato válido.');
         }
+    }
+
+    private function hashPassword(string $password): string
+    {
+        if (password_needs_rehash($password, PASSWORD_BCRYPT)) {
+            return password_hash($password, PASSWORD_BCRYPT);
+        }
+
+        return $password;
     }
 }
