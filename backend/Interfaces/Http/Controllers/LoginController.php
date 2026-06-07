@@ -15,6 +15,16 @@ use TiendaTurismo\GestionDatos\Infrastructure\Security\JwtService;
 
 final class LoginController
 {
+    private LoginUseCase $loginUseCase;
+
+    public function __construct(?LoginUseCase $loginUseCase = null)
+    {
+        $this->loginUseCase = $loginUseCase ?? new LoginUseCase(
+            new UsuarioDoctrineRepository(),
+            new JwtService(),
+        );
+    }
+
     public function login(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
@@ -22,13 +32,8 @@ final class LoginController
         $email = (string) ($data['email'] ?? '');
         $password = (string) ($data['password'] ?? '');
 
-        $useCase = new LoginUseCase(
-            new UsuarioDoctrineRepository(),
-            new JwtService(),
-        );
-
         try {
-            $token = $useCase->execute($email, $password);
+            $token = $this->loginUseCase->execute($email, $password);
 
             return new JsonResponse(['token' => $token]);
         } catch (CredencialesInvalidasException) {

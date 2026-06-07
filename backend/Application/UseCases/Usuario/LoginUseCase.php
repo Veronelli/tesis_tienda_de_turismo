@@ -8,7 +8,7 @@ use TiendaTurismo\GestionDatos\Domain\Exceptions\CredencialesInvalidasException;
 use TiendaTurismo\GestionDatos\Domain\Repositories\UsuarioRepositoryInterface;
 use TiendaTurismo\GestionDatos\Infrastructure\Security\JwtService;
 
-final class LoginUseCase
+class LoginUseCase
 {
     public function __construct(
         private readonly UsuarioRepositoryInterface $usuarios,
