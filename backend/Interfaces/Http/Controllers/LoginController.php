@@ -30,7 +30,7 @@ final class LoginController
         $data = json_decode($request->getContent(), true);
 
         $email = (string) ($data['email'] ?? '');
-        $password = (string) ($data['password'] ?? '');
+        $password = (string) ($data['contrasena'] ?? $data['password'] ?? '');
 
         try {
             $token = $this->loginUseCase->execute($email, $password);

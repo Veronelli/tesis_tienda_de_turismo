@@ -25,7 +25,7 @@ final class UsuarioDoctrineRepository extends BaseRepository implements UsuarioR
 
         $reflection = new \ReflectionClass($existente);
 
-        foreach (['nombre', 'apellido', 'numeroDocumento', 'email', 'contrasena', 'rol'] as $propiedad) {
+        foreach (['nombre', 'apellido', 'email', 'contrasena', 'rol'] as $propiedad) {
             $prop = $reflection->getProperty($propiedad);
             $prop->setValue($existente, $prop->getValue($usuario));
         }
@@ -39,13 +39,6 @@ final class UsuarioDoctrineRepository extends BaseRepository implements UsuarioR
     public function findById(int $id): ?Usuario
     {
         return $this->entityManager->find(Usuario::class, $id);
-    }
-
-    public function findByNumeroDocumento(string $numeroDocumento): ?Usuario
-    {
-        return $this->entityManager->getRepository(Usuario::class)->findOneBy([
-            'numeroDocumento' => $numeroDocumento,
-        ]);
     }
 
     public function findByEmail(string $email): ?Usuario

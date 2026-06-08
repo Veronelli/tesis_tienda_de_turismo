@@ -16,7 +16,6 @@ final class UsuarioTest extends TestCase
         $this->usuario = new Usuario(
             nombre: 'Juan',
             apellido: 'Pérez',
-            numeroDocumento: 'DNI12345678',
             email: 'juan@example.com',
             contrasena: 'securePass123',
             rol: 'admin',
@@ -27,7 +26,6 @@ final class UsuarioTest extends TestCase
     {
         $this->assertSame('Juan', $this->usuario->nombre());
         $this->assertSame('Pérez', $this->usuario->apellido());
-        $this->assertSame('DNI12345678', $this->usuario->numeroDocumento());
         $this->assertSame('juan@example.com', $this->usuario->email());
         $this->assertTrue(password_verify('securePass123', $this->usuario->contrasena()));
         $this->assertSame('admin', $this->usuario->rol());
@@ -49,7 +47,6 @@ final class UsuarioTest extends TestCase
         $usuario = new Usuario(
             nombre: 'Ana',
             apellido: 'García',
-            numeroDocumento: 'DNI87654321',
             email: 'ana@example.com',
             contrasena: 'pass456',
             rol: 'editor',
@@ -67,7 +64,6 @@ final class UsuarioTest extends TestCase
         $usuario = new Usuario(
             nombre: 'Luis',
             apellido: 'Martínez',
-            numeroDocumento: 'DNI11223344',
             email: 'luis@example.com',
             contrasena: 'pass789',
             rol: 'lector',
@@ -87,7 +83,6 @@ final class UsuarioTest extends TestCase
         $this->assertArrayHasKey('id', $arr);
         $this->assertArrayHasKey('nombre', $arr);
         $this->assertArrayHasKey('apellido', $arr);
-        $this->assertArrayHasKey('numero_documento', $arr);
         $this->assertArrayHasKey('email', $arr);
         $this->assertArrayHasKey('rol', $arr);
         $this->assertArrayHasKey('fecha_creacion', $arr);
@@ -102,7 +97,6 @@ final class UsuarioTest extends TestCase
         $this->assertNull($arr['id']);
         $this->assertSame('Juan', $arr['nombre']);
         $this->assertSame('Pérez', $arr['apellido']);
-        $this->assertSame('DNI12345678', $arr['numero_documento']);
         $this->assertSame('juan@example.com', $arr['email']);
         $this->assertSame('admin', $arr['rol']);
     }
@@ -115,7 +109,6 @@ final class UsuarioTest extends TestCase
         new Usuario(
             nombre: '',
             apellido: 'Pérez',
-            numeroDocumento: 'DNI12345678',
             email: 'juan@example.com',
             contrasena: 'pass',
             rol: 'admin',
@@ -130,27 +123,12 @@ final class UsuarioTest extends TestCase
         new Usuario(
             nombre: 'Juan',
             apellido: '',
-            numeroDocumento: 'DNI12345678',
             email: 'juan@example.com',
             contrasena: 'pass',
             rol: 'admin',
         );
     }
 
-    public function test_constructor_lanza_excepcion_si_numero_documento_esta_vacio(): void
-    {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('numero_documento es obligatorio');
-
-        new Usuario(
-            nombre: 'Juan',
-            apellido: 'Pérez',
-            numeroDocumento: '',
-            email: 'juan@example.com',
-            contrasena: 'pass',
-            rol: 'admin',
-        );
-    }
 
     public function test_constructor_lanza_excepcion_si_contrasena_esta_vacia(): void
     {
@@ -160,7 +138,6 @@ final class UsuarioTest extends TestCase
         new Usuario(
             nombre: 'Juan',
             apellido: 'Pérez',
-            numeroDocumento: 'DNI12345678',
             email: 'juan@example.com',
             contrasena: '',
             rol: 'admin',
@@ -175,7 +152,6 @@ final class UsuarioTest extends TestCase
         new Usuario(
             nombre: 'Juan',
             apellido: 'Pérez',
-            numeroDocumento: 'DNI12345678',
             email: 'juan@example.com',
             contrasena: 'pass',
             rol: '',
@@ -190,7 +166,6 @@ final class UsuarioTest extends TestCase
         new Usuario(
             nombre: 'Juan',
             apellido: 'Pérez',
-            numeroDocumento: 'DNI12345678',
             email: '',
             contrasena: 'pass',
             rol: 'admin',
@@ -205,23 +180,7 @@ final class UsuarioTest extends TestCase
         new Usuario(
             nombre: 'Juan',
             apellido: 'Pérez',
-            numeroDocumento: 'DNI12345678',
             email: 'no-es-un-email',
-            contrasena: 'pass',
-            rol: 'admin',
-        );
-    }
-
-    public function test_constructor_limpia_espacios_para_validacion(): void
-    {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('numero_documento es obligatorio');
-
-        new Usuario(
-            nombre: 'Juan',
-            apellido: 'Pérez',
-            numeroDocumento: '   ',
-            email: 'juan@example.com',
             contrasena: 'pass',
             rol: 'admin',
         );
@@ -232,7 +191,6 @@ final class UsuarioTest extends TestCase
         $usuario = new Usuario(
             nombre: 'María',
             apellido: 'López',
-            numeroDocumento: 'DNI99887766',
             email: 'maria@example.com',
             contrasena: 'hashed_password',
             rol: 'superadmin',
@@ -244,14 +202,12 @@ final class UsuarioTest extends TestCase
         $this->assertSame(99, $usuario->id());
         $this->assertSame('María', $usuario->nombre());
         $this->assertSame('López', $usuario->apellido());
-        $this->assertSame('DNI99887766', $usuario->numeroDocumento());
         $this->assertSame('maria@example.com', $usuario->email());
         $this->assertTrue(password_verify('hashed_password', $usuario->contrasena()));
         $this->assertSame('superadmin', $usuario->rol());
 
         $arr = $usuario->toArray();
         $this->assertSame(99, $arr['id']);
-        $this->assertSame('DNI99887766', $arr['numero_documento']);
         $this->assertSame('superadmin', $arr['rol']);
     }
 }

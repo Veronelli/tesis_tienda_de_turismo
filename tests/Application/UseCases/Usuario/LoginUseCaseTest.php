@@ -34,7 +34,6 @@ final class LoginUseCaseTest extends TestCase
         $usuario = new Usuario(
             nombre: 'Juan',
             apellido: 'Pérez',
-            numeroDocumento: 'DNI12345678',
             email: 'juan@example.com',
             contrasena: $hash,
             rol: 'admin',
@@ -68,7 +67,6 @@ final class LoginUseCaseTest extends TestCase
         $usuario = new Usuario(
             nombre: 'Lector',
             apellido: 'Test',
-            numeroDocumento: 'DNI11111111',
             email: 'lector@test.com',
             contrasena: $hash,
             rol: 'lector',
@@ -93,7 +91,6 @@ final class LoginUseCaseTest extends TestCase
         $usuario = new Usuario(
             nombre: 'Editor',
             apellido: 'Test',
-            numeroDocumento: 'DNI22222222',
             email: 'editor@test.com',
             contrasena: $hash,
             rol: 'editor',
@@ -118,7 +115,6 @@ final class LoginUseCaseTest extends TestCase
         $usuario = new Usuario(
             nombre: 'N',
             apellido: 'M',
-            numeroDocumento: 'DNI33333333',
             email: 'id@test.com',
             contrasena: $hash,
             rol: 'admin',
@@ -156,7 +152,6 @@ final class LoginUseCaseTest extends TestCase
         $usuario = new Usuario(
             nombre: 'A',
             apellido: 'B',
-            numeroDocumento: 'DNI99999999',
             email: 'a@b.com',
             contrasena: $hash,
             rol: 'lector',
@@ -193,7 +188,6 @@ final class LoginUseCaseTest extends TestCase
         $usuario = new Usuario(
             nombre: 'Firma',
             apellido: 'Test',
-            numeroDocumento: 'DNI44444444',
             email: 'firma@test.com',
             contrasena: $hash,
             rol: 'admin',
