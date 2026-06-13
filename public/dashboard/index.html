@@ -10,7 +10,7 @@
         var t = localStorage.getItem('tdt_token');
         if (t) {
           var p = JSON.parse(atob(t.split('.')[1]));
-          if (p.exp * 1000 > Date.now()) { window.location.replace('admin.html'); return; }
+          if (p.exp * 1000 > Date.now()) { window.location.replace('admin.php'); return; }
         }
       } catch(e) {}
       window.location.replace('login.html');
