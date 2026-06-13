@@ -32,8 +32,44 @@ final class JwtService
         return "{$header}.{$payloadEncoded}.{$signature}";
     }
 
+    /** @return array<string, mixed>|null */
+    public function decode(string $token): ?array
+    {
+        $parts = explode('.', $token);
+        if (count($parts) !== 3) {
+            return null;
+        }
+
+        [$header, $payload, $signature] = $parts;
+
+        $expectedSignature = self::base64urlEncode(
+            hash_hmac('sha256', "{$header}.{$payload}", $this->secret, true),
+        );
+
+        if (!hash_equals($expectedSignature, $signature)) {
+            return null;
+        }
+
+        $data = json_decode(self::base64urlDecode($payload), true);
+
+        if (!is_array($data) || !isset($data['exp'])) {
+            return null;
+        }
+
+        if ($data['exp'] < time()) {
+            return null;
+        }
+
+        return $data;
+    }
+
     private static function base64urlEncode(string $data): string
     {
         return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+    }
+
+    private static function base64urlDecode(string $data): string
+    {
+        return base64_decode(strtr($data, '-_', '+/'));
     }
 }

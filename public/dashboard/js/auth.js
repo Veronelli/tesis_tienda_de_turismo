@@ -15,21 +15,11 @@ function getToken() { return localStorage.getItem(TOKEN_KEY); }
 /* Recupera y parsea los datos del usuario guardados al iniciar sesion */
 function getUser() { try { return JSON.parse(localStorage.getItem(USER_KEY)); } catch { return null; } }
 
-/* Verifica si hay un token valido (existente y no expirado) */
-function isAuth() {
-  const t = getToken();
-  if (!t) return false;
-  try { return JSON.parse(atob(t.split('.')[1])).exp * 1000 > Date.now(); }
-  catch { return false; }
-}
-
-/* Redirige al login si el token no es valido. Se usa en paginas protegidas */
-function requireAuth() { if (!isAuth()) window.location.href = 'login.html'; }
-
-/* Elimina token y datos del usuario, redirige al login */
+/* Elimina token (cookie + localStorage) y datos del usuario, redirige al login */
 function logout() {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(USER_KEY);
+  document.cookie = 'tdt_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=Lax';
   window.location.href = 'login.html';
 }
 
