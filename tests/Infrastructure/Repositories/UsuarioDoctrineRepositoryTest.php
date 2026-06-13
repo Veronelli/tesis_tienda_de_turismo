@@ -25,7 +25,6 @@ final class UsuarioDoctrineRepositoryTest extends TestCase
         $this->usuario = new Usuario(
             nombre: 'Juan',
             apellido: 'Pérez',
-            numeroDocumento: 'DNI12345678',
             email: 'juan@example.com',
             contrasena: 'hash',
             rol: 'admin',
@@ -63,29 +62,6 @@ final class UsuarioDoctrineRepositoryTest extends TestCase
         $this->assertNull($this->repo->findById(999));
     }
 
-    public function test_findByNumeroDocumento_delega_en_repository(): void
-    {
-        $this->entityRepository
-            ->expects($this->once())
-            ->method('findOneBy')
-            ->with(['numeroDocumento' => 'DNI12345678'])
-            ->willReturn($this->usuario);
-
-        $resultado = $this->repo->findByNumeroDocumento('DNI12345678');
-
-        $this->assertSame($this->usuario, $resultado);
-    }
-
-    public function test_findByNumeroDocumento_retorna_null_si_no_existe(): void
-    {
-        $this->entityRepository
-            ->method('findOneBy')
-            ->with(['numeroDocumento' => 'INEXISTENTE'])
-            ->willReturn(null);
-
-        $this->assertNull($this->repo->findByNumeroDocumento('INEXISTENTE'));
-    }
-
     public function test_findByEmail_delega_en_repository(): void
     {
         $this->entityRepository
@@ -114,7 +90,6 @@ final class UsuarioDoctrineRepositoryTest extends TestCase
         $usuario = new Usuario(
             nombre: 'Test',
             apellido: 'User',
-            numeroDocumento: 'DNI00000000',
             email: 'test@test.com',
             contrasena: 'mi_password_plano',
             rol: 'admin',
@@ -148,7 +123,6 @@ final class UsuarioDoctrineRepositoryTest extends TestCase
         $noExiste = new Usuario(
             nombre: 'X',
             apellido: 'Y',
-            numeroDocumento: 'NOP',
             email: 'x@y.com',
             contrasena: 'h',
             rol: 'lector',
@@ -171,7 +145,6 @@ final class UsuarioDoctrineRepositoryTest extends TestCase
         $original = new Usuario(
             nombre: 'Original',
             apellido: 'Viejo',
-            numeroDocumento: 'DNI00000001',
             email: 'original@example.com',
             contrasena: 'old_hash',
             rol: 'lector',
@@ -183,7 +156,6 @@ final class UsuarioDoctrineRepositoryTest extends TestCase
         $nuevosDatos = new Usuario(
             nombre: 'Actualizado',
             apellido: 'Nuevo',
-            numeroDocumento: 'DNI99999999',
             email: 'nuevo@example.com',
             contrasena: 'new_hash',
             rol: 'admin',
@@ -201,7 +173,6 @@ final class UsuarioDoctrineRepositoryTest extends TestCase
 
         $this->assertSame('Actualizado', $original->nombre());
         $this->assertSame('Nuevo', $original->apellido());
-        $this->assertSame('DNI99999999', $original->numeroDocumento());
         $this->assertSame('nuevo@example.com', $original->email());
         $this->assertTrue(password_verify('new_hash', $original->contrasena()));
         $this->assertSame('admin', $original->rol());
@@ -215,7 +186,6 @@ final class UsuarioDoctrineRepositoryTest extends TestCase
         $original = new Usuario(
             nombre: 'A',
             apellido: 'B',
-            numeroDocumento: 'DNI00000002',
             email: 'a@b.com',
             contrasena: 'h',
             rol: 'lector',
@@ -227,7 +197,6 @@ final class UsuarioDoctrineRepositoryTest extends TestCase
         $nuevosDatos = new Usuario(
             nombre: 'A',
             apellido: 'B',
-            numeroDocumento: 'DNI00000002',
             email: 'a@b.com',
             contrasena: 'h',
             rol: 'lector',

@@ -1,0 +1,9 @@
+RewriteEngine On
+
+# If the file exists in public/, serve it from there
+RewriteCond %{DOCUMENT_ROOT}/tienda_de_turismo_php_my_admin/public/$1 -f [OR]
+RewriteCond %{DOCUMENT_ROOT}/tienda_de_turismo_php_my_admin/public/$1 -d
+RewriteRule ^(.*)$ public/$1 [QSA,L]
+
+# Route everything else to public/index.php
+RewriteRule ^(.*)$ public/index.php [QSA,L]

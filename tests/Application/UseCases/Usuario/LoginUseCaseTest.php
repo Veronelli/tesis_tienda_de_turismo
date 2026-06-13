@@ -27,14 +27,13 @@ final class LoginUseCaseTest extends TestCase
         $this->loginUseCase = new LoginUseCase($this->usuarios, $this->jwt);
     }
 
-    public function test_login_exitoso_retorna_jwt(): void
+    public function test_login_exitoso_retorna_jwt_con_datos_del_usuario(): void
     {
         $hash = password_hash('password123', PASSWORD_BCRYPT);
 
         $usuario = new Usuario(
             nombre: 'Juan',
             apellido: 'Pérez',
-            numeroDocumento: 'DNI12345678',
             email: 'juan@example.com',
             contrasena: $hash,
             rol: 'admin',
@@ -57,6 +56,80 @@ final class LoginUseCaseTest extends TestCase
         $this->assertSame(1, $payload['sub']);
         $this->assertSame('juan@example.com', $payload['email']);
         $this->assertSame('admin', $payload['rol']);
+        $this->assertArrayHasKey('iat', $payload);
+        $this->assertArrayHasKey('exp', $payload);
+    }
+
+    public function test_token_generado_para_rol_lector(): void
+    {
+        $hash = password_hash('pass', PASSWORD_BCRYPT);
+
+        $usuario = new Usuario(
+            nombre: 'Lector',
+            apellido: 'Test',
+            email: 'lector@test.com',
+            contrasena: $hash,
+            rol: 'lector',
+            id: 2,
+        );
+
+        $this->usuarios
+            ->method('findByEmail')
+            ->willReturn($usuario);
+
+        $token = $this->loginUseCase->execute('lector@test.com', 'pass');
+        $parts = explode('.', $token);
+        $payload = json_decode(base64_decode(strtr($parts[1], '-_', '+/')), true);
+
+        $this->assertSame('lector', $payload['rol']);
+    }
+
+    public function test_token_generado_para_rol_editor(): void
+    {
+        $hash = password_hash('pass', PASSWORD_BCRYPT);
+
+        $usuario = new Usuario(
+            nombre: 'Editor',
+            apellido: 'Test',
+            email: 'editor@test.com',
+            contrasena: $hash,
+            rol: 'editor',
+            id: 3,
+        );
+
+        $this->usuarios
+            ->method('findByEmail')
+            ->willReturn($usuario);
+
+        $token = $this->loginUseCase->execute('editor@test.com', 'pass');
+        $parts = explode('.', $token);
+        $payload = json_decode(base64_decode(strtr($parts[1], '-_', '+/')), true);
+
+        $this->assertSame('editor', $payload['rol']);
+    }
+
+    public function test_token_incluye_id_correcto_del_usuario(): void
+    {
+        $hash = password_hash('pass', PASSWORD_BCRYPT);
+
+        $usuario = new Usuario(
+            nombre: 'N',
+            apellido: 'M',
+            email: 'id@test.com',
+            contrasena: $hash,
+            rol: 'admin',
+            id: 99,
+        );
+
+        $this->usuarios
+            ->method('findByEmail')
+            ->willReturn($usuario);
+
+        $token = $this->loginUseCase->execute('id@test.com', 'pass');
+        $parts = explode('.', $token);
+        $payload = json_decode(base64_decode(strtr($parts[1], '-_', '+/')), true);
+
+        $this->assertSame(99, $payload['sub']);
     }
 
     public function test_login_con_email_incorrecto_lanza_excepcion(): void
@@ -79,7 +152,6 @@ final class LoginUseCaseTest extends TestCase
         $usuario = new Usuario(
             nombre: 'A',
             apellido: 'B',
-            numeroDocumento: 'DNI99999999',
             email: 'a@b.com',
             contrasena: $hash,
             rol: 'lector',
@@ -107,5 +179,32 @@ final class LoginUseCaseTest extends TestCase
         $this->expectException(CredencialesInvalidasException::class);
 
         $this->loginUseCase->execute('', 'pass');
+    }
+
+    public function test_login_exitoso_genera_token_con_firma_valida(): void
+    {
+        $hash = password_hash('segura', PASSWORD_BCRYPT);
+
+        $usuario = new Usuario(
+            nombre: 'Firma',
+            apellido: 'Test',
+            email: 'firma@test.com',
+            contrasena: $hash,
+            rol: 'admin',
+            id: 10,
+        );
+
+        $this->usuarios
+            ->method('findByEmail')
+            ->willReturn($usuario);
+
+        $token = $this->loginUseCase->execute('firma@test.com', 'segura');
+        $parts = explode('.', $token);
+
+        $firmaEsperada = rtrim(strtr(base64_encode(
+            hash_hmac('sha256', "{$parts[0]}.{$parts[1]}", 'test_secret', true),
+        ), '+/', '-_'), '=');
+
+        $this->assertSame($firmaEsperada, $parts[2]);
     }
 }
