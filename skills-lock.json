@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "material-3": {
+      "source": "hamen/material-3-skill",
+      "sourceType": "github",
+      "skillPath": "skills/material-3/SKILL.md",
+      "computedHash": "04bc70440f7edf4f8f76affca0013de7764e7cf0cea981c860b0ca5e321d4962"
+    }
+  }
+}
