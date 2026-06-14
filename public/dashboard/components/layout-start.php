@@ -1,13 +1,21 @@
 <?php
+/**
+ * Base layout for dashboard pages
+ *
+ * Usage: require __DIR__ . '/components/layout.php';
+ *
+ * @param string $title Page title
+ * @param string $currentPage Current page identifier for sidebar
+ */
 
 declare(strict_types=1);
 
 use TiendaTurismo\GestionDatos\Infrastructure\Config\EnvLoader;
 use TiendaTurismo\GestionDatos\Infrastructure\Security\JwtService;
 
-require_once __DIR__ . '/../../vendor/autoload.php';
+require_once __DIR__ . '/../../../vendor/autoload.php';
 
-EnvLoader::load(__DIR__ . '/../../.env');
+EnvLoader::load(__DIR__ . '/../../../.env');
 
 $token = $_COOKIE['tdt_token'] ?? '';
 $payload = $token !== '' ? (new JwtService())->decode($token) : null;
@@ -25,7 +33,7 @@ $rol = $payload['rol'] ?? 'admin';
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tienda De Turismo Admin</title>
+  <title><?= htmlspecialchars($title ?? 'Dashboard', ENT_QUOTES) ?> - Tienda De Turismo Admin</title>
   <link rel="stylesheet" href="css/style.css">
   <style>
     .dashboard-topbar {
@@ -95,14 +103,6 @@ $rol = $payload['rol'] ?? 'admin';
       padding-top: 52px;
     }
 
-    .app.sidebar-collapsed .md3-sidebar {
-      transform: translateX(-100%);
-    }
-
-    .app.sidebar-collapsed .md3-sidebar ~ .main {
-      margin-left: 0;
-    }
-
     @media (max-width: 420px) {
       .dashboard-topbar__title { font-size: 1.05rem; }
       .dashboard-topbar__left { gap: 12px; }
@@ -113,82 +113,13 @@ $rol = $payload['rol'] ?? 'admin';
 <div class="app">
   <header class="dashboard-topbar">
     <div class="dashboard-topbar__left">
-      <button id="menuHamburger" class="dashboard-topbar__menu" type="button" aria-label="Desplegar u ocultar menú" aria-expanded="true">
+      <button id="menuHamburger" class="dashboard-topbar__menu" type="button" aria-label="Desplegar u ocultar menú" aria-expanded="false">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
       </button>
       <h1 class="dashboard-topbar__title">Tienda De Turismo Admin</h1>
     </div>
     <div class="dashboard-topbar__logo" aria-hidden="true">Tienda<br>Turismo</div>
   </header>
-  <?php require __DIR__ . '/components/sidebar.php'; ?>
+  <?php require __DIR__ . '/sidebar.php'; ?>
   <main class="main">
-    <div class="content" id="section-content">
-      <h2 id="section-title" style="margin-bottom:16px">Consultas</h2>
-      <div class="card">
-        <div class="card-header">
-          <h3>Listado de Consultas</h3>
-          <button class="btn btn-primary btn-sm">Nueva consulta</button>
-        </div>
-        <div class="card-body">
-          <div class="search-bar">
-            <div class="field">
-              <label>Buscar</label>
-              <input type="text" placeholder="Destino, hotel o título...">
-            </div>
-          </div>
-          <div class="inquiry-grid" id="consultas-list"></div>
-        </div>
-      </div>
-    </div>
-  </main>
-</div>
-
-<script src="js/auth.js"></script>
-<script src="js/app.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  const app = document.querySelector('.app');
-  const sidebar = document.querySelector('.md3-sidebar');
-  const navLinks = document.querySelectorAll('.md3-sidebar__link[data-section]');
-  const sectionTitle = document.getElementById('section-title');
-  const menuBtn = document.getElementById('menuHamburger');
-  const overlay = document.getElementById('sidebarOverlay');
-
-  const sections = {
-    consultas: { title: 'Consultas' },
-    paquetes:  { title: 'Paquetes' },
-    clientes:  { title: 'Clientes' },
-    hoteles:   { title: 'Hoteles' },
-    destinos:  { title: 'Destinos' },
-  };
-
-  function activateSection(name) {
-    navLinks.forEach(l => l.classList.toggle('md3-sidebar__link--active', l.dataset.section === name));
-    sectionTitle.textContent = (sections[name] || {}).title || name;
-    if (window.innerWidth <= 768 && app) {
-      app.classList.add('sidebar-collapsed');
-      menuBtn?.setAttribute('aria-expanded', 'false');
-    }
-  }
-
-  navLinks.forEach(link => {
-    link.addEventListener('click', () => activateSection(link.dataset.section));
-  });
-
-  if (menuBtn && sidebar) {
-    menuBtn.addEventListener('click', () => {
-      app.classList.toggle('sidebar-collapsed');
-      menuBtn.setAttribute('aria-expanded', app.classList.contains('sidebar-collapsed') ? 'false' : 'true');
-    });
-  }
-
-  if (overlay && app) {
-    overlay.addEventListener('click', () => {
-      app.classList.add('sidebar-collapsed');
-      menuBtn?.setAttribute('aria-expanded', 'false');
-    });
-  }
-});
-</script>
-</body>
-</html>
+    <div class="content">
