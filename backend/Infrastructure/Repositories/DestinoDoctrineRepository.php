@@ -20,6 +20,11 @@ final class DestinoDoctrineRepository extends BaseRepository implements DestinoR
         return $this->entityManager->find(Destino::class, $id);
     }
 
+    public function update(Destino $destino): void
+    {
+        $this->flush();
+    }
+
     /** @return list<Destino> */
     public function findAll(): array
     {

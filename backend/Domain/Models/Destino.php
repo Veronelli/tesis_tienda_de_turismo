@@ -45,6 +45,16 @@ final class Destino
         return $this->pais;
     }
 
+    public function update(string $ciudad, string $estadoProvincia, string $pais): void
+    {
+        $this->validarTextoObligatorio($ciudad, 'ciudad');
+        $this->validarTextoObligatorio($estadoProvincia, 'estado_provincia');
+        $this->validarTextoObligatorio($pais, 'pais');
+        $this->ciudad = $ciudad;
+        $this->estadoProvincia = $estadoProvincia;
+        $this->pais = $pais;
+    }
+
     public function toArray(): array
     {
         return [
