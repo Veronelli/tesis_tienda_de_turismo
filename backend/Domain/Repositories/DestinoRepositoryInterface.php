@@ -12,6 +12,8 @@ interface DestinoRepositoryInterface
 
     public function findById(int $id): ?Destino;
 
+    public function update(Destino $destino): void;
+
     /** @return list<Destino> */
     public function findAll(): array;
 }
