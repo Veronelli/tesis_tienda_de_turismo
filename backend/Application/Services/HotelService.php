@@ -14,7 +14,7 @@ use TiendaTurismo\GestionDatos\Domain\Models\Hotel;
 use TiendaTurismo\GestionDatos\Domain\Repositories\DestinoRepositoryInterface;
 use TiendaTurismo\GestionDatos\Domain\Repositories\HotelRepositoryInterface;
 
-final class HotelService
+class HotelService
 {
     private CrearHotelUseCase $crearHotel;
     private ObtenerHotelPorIdUseCase $obtenerHotelPorId;
