@@ -1,0 +1,34 @@
+{
+    "name": "tienda-turismo/gestion-datos",
+    "description": "Gestion de datos para tienda de turismo con Doctrine ORM.",
+    "type": "project",
+    "require": {
+        "php": "^8.2",
+        "doctrine/orm": "^3.3",
+        "symfony/cache": "^7.0",
+        "symfony/http-foundation": "^6.4",
+        "symfony/routing": "^6.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "TiendaTurismo\\GestionDatos\\": "backend/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "TiendaTurismo\\GestionDatos\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "db:create-destinos": "php bin/crear_tabla_destinos.php",
+        "db:dump-sql-destinos": "php bin/crear_tabla_destinos.php --dump-sql",
+        "db:test-connection": "php bin/probar_conexion_db.php",
+        "destinos:test-service": "php bin/probar_destino_service.php",
+        "test": "php vendor/bin/phpunit",
+        "test:coverage-text": "php -d xdebug.mode=coverage vendor/bin/phpunit --coverage-text",
+        "test:coverage-html": "php -d xdebug.mode=coverage vendor/bin/phpunit --coverage-html coverage"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0"
+    }
+}

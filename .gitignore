@@ -1,0 +1,7 @@
+vendor
+.env
+.phpunit.cache
+coverage
+composer.phar
+var/
+.agents

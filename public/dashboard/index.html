@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tienda De Turismo Admin</title>
+  <script>
+    (function() {
+      try {
+        var t = localStorage.getItem('tdt_token');
+        if (t) {
+          var p = JSON.parse(atob(t.split('.')[1]));
+          if (p.exp * 1000 > Date.now()) { window.location.replace('admin.php'); return; }
+        }
+      } catch(e) {}
+      window.location.replace('login.html');
+    })();
+  </script>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    body { margin: 0; background: #f0ebe5; color: #78716c; font-family: -apple-system, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+  </style>
+</head>
+<body><p>Redirigiendo...</p></body>
+</html>
