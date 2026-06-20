@@ -67,10 +67,9 @@ final class Paquete
     #[ORM\JoinColumn(name: 'actualizado_por', referencedColumnName: 'id', nullable: false)]
     private Usuario $actualizadoPor;
 
-    /** @var Collection<int, Hotel> */
-    #[ORM\ManyToMany(targetEntity: Hotel::class)]
-    #[ORM\JoinTable(name: 'paquete_hotel')]
-    private Collection $hoteles;
+    /** @var Collection<int, PaquetesHoteles> */
+    #[ORM\OneToMany(targetEntity: PaquetesHoteles::class, mappedBy: 'paquete', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $paquetesHoteles;
 
     public function __construct(
         string $nombrePaquete,
@@ -109,7 +108,7 @@ final class Paquete
         $this->cantidad = $cantidad;
         $this->creadoPor = $creadoPor;
         $this->actualizadoPor = $actualizadoPor;
-        $this->hoteles = new ArrayCollection();
+        $this->paquetesHoteles = new ArrayCollection();
 
         $ahora = new \DateTimeImmutable();
         $this->id = $id;
@@ -205,7 +204,13 @@ final class Paquete
     /** @return Collection<int, Hotel> */
     public function hoteles(): Collection
     {
-        return $this->hoteles;
+        return $this->paquetesHoteles->map(fn (PaquetesHoteles $ph) => $ph->hotel());
+    }
+
+    /** @return Collection<int, PaquetesHoteles> */
+    public function paquetesHoteles(): Collection
+    {
+        return $this->paquetesHoteles;
     }
 
     public function update(
@@ -245,16 +250,17 @@ final class Paquete
     /** @param list<Hotel> $hoteles */
     public function syncHoteles(array $hoteles): void
     {
-        $this->hoteles->clear();
+        $this->paquetesHoteles->clear();
         foreach ($hoteles as $hotel) {
-            $this->hoteles->add($hotel);
+            $this->paquetesHoteles->add(new PaquetesHoteles($this, $hotel));
         }
     }
 
     public function toArray(): array
     {
         $hotelesArray = [];
-        foreach ($this->hoteles as $hotel) {
+        foreach ($this->paquetesHoteles as $ph) {
+            $hotel = $ph->hotel();
             $hotelesArray[] = [
                 'id' => $hotel->id(),
                 'nombre' => $hotel->nombre(),

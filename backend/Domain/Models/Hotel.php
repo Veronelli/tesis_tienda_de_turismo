@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace TiendaTurismo\GestionDatos\Domain\Models;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use TiendaTurismo\GestionDatos\Domain\Models\Traits\AtributosBase;
 
@@ -12,6 +14,10 @@ use TiendaTurismo\GestionDatos\Domain\Models\Traits\AtributosBase;
 final class Hotel
 {
     use AtributosBase;
+
+    /** @var Collection<int, PaquetesHoteles> */
+    #[ORM\OneToMany(targetEntity: PaquetesHoteles::class, mappedBy: 'hotel')]
+    private Collection $paquetesHoteles;
 
     public function __construct(
         #[ORM\Column(type: 'string', length: 150)]
@@ -34,6 +40,7 @@ final class Hotel
         $this->validarTextoObligatorio($nombre, 'nombre');
         $this->validarTextoObligatorio($ubicacion, 'ubicacion');
         $this->validarTextoObligatorio($descripcion, 'descripcion');
+        $this->paquetesHoteles = new ArrayCollection();
         $this->inicializarAtributosBase($id, $fechaCreacion, $fechaActualizacion);
     }
 
@@ -55,6 +62,12 @@ final class Hotel
     public function destino(): Destino
     {
         return $this->destino;
+    }
+
+    /** @return Collection<int, PaquetesHoteles> */
+    public function paquetesHoteles(): Collection
+    {
+        return $this->paquetesHoteles;
     }
 
     public function update(string $nombre, string $ubicacion, string $descripcion, Destino $destino): void
