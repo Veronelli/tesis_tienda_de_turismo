@@ -50,6 +50,8 @@ final class CrearPaqueteUseCaseTest extends TestCase
             ->willReturn($hotel);
 
         $this->paqueteRepo->expects($this->once())->method('save');
+        $this->usuarioRepo->expects($this->never())->method('save');
+        $this->hotelRepo->expects($this->never())->method('save');
 
         $input = new CrearPaqueteInput(
             nombre: 'Paquete Test',
@@ -151,6 +153,8 @@ final class CrearPaqueteUseCaseTest extends TestCase
             ]);
 
         $this->paqueteRepo->expects($this->once())->method('save');
+        $this->usuarioRepo->expects($this->never())->method('save');
+        $this->hotelRepo->expects($this->never())->method('save');
 
         $input = new CrearPaqueteInput(
             nombre: 'Paquete Multi Hotel',
@@ -169,6 +173,141 @@ final class CrearPaqueteUseCaseTest extends TestCase
         $this->assertSame($usuario, $paquete->creadoPor());
     }
 
+    public function test_execute_no_crea_usuario_nuevo(): void
+    {
+        $usuario = PaqueteFixtures::usuarioAdmin();
+        $hotel = PaqueteFixtures::hotelUno();
+
+        $this->usuarioRepo
+            ->method('findById')
+            ->with(1)
+            ->willReturn($usuario);
+
+        $this->hotelRepo
+            ->method('findById')
+            ->with(1)
+            ->willReturn($hotel);
+
+        $this->usuarioRepo->expects($this->never())->method('save');
+        $this->paqueteRepo->expects($this->once())->method('save');
+
+        $input = new CrearPaqueteInput(
+            nombre: 'Paquete Test',
+            descripcion: null,
+            fechaPartida: new \DateTimeImmutable('2026-07-15'),
+            fechaVuelta: null,
+            precio: '1500.00',
+            disponible: true,
+            usuarioResponsableId: 1,
+            hotelesIds: [1],
+        );
+
+        $this->useCase->execute($input);
+    }
+
+    public function test_execute_no_crea_hotel_nuevo(): void
+    {
+        $usuario = PaqueteFixtures::usuarioAdmin();
+        $hotel = PaqueteFixtures::hotelUno();
+
+        $this->usuarioRepo
+            ->method('findById')
+            ->with(1)
+            ->willReturn($usuario);
+
+        $this->hotelRepo
+            ->method('findById')
+            ->with(1)
+            ->willReturn($hotel);
+
+        $this->hotelRepo->expects($this->never())->method('save');
+        $this->paqueteRepo->expects($this->once())->method('save');
+
+        $input = new CrearPaqueteInput(
+            nombre: 'Paquete Test',
+            descripcion: null,
+            fechaPartida: new \DateTimeImmutable('2026-07-15'),
+            fechaVuelta: null,
+            precio: '1500.00',
+            disponible: true,
+            usuarioResponsableId: 1,
+            hotelesIds: [1],
+        );
+
+        $this->useCase->execute($input);
+    }
+
+    public function test_execute_crea_paquete_con_imagen(): void
+    {
+        $usuario = PaqueteFixtures::usuarioAdmin();
+        $hotel = PaqueteFixtures::hotelUno();
+
+        $this->usuarioRepo
+            ->method('findById')
+            ->with(1)
+            ->willReturn($usuario);
+
+        $this->hotelRepo
+            ->method('findById')
+            ->with(1)
+            ->willReturn($hotel);
+
+        $this->paqueteRepo->expects($this->once())->method('save');
+        $this->usuarioRepo->expects($this->never())->method('save');
+        $this->hotelRepo->expects($this->never())->method('save');
+
+        $input = new CrearPaqueteInput(
+            nombre: 'Paquete Con Imagen',
+            descripcion: 'Con imagen',
+            fechaPartida: new \DateTimeImmutable('2026-07-15'),
+            fechaVuelta: new \DateTimeImmutable('2026-07-22'),
+            precio: '2000.00',
+            disponible: true,
+            usuarioResponsableId: 1,
+            hotelesIds: [1],
+            imagenPrincipal: 'uploads/paquetes/imagen.jpg',
+        );
+
+        $paquete = $this->useCase->execute($input);
+
+        $this->assertSame('uploads/paquetes/imagen.jpg', $paquete->imagenPrincipal());
+    }
+
+    public function test_execute_crea_paquete_sin_imagen(): void
+    {
+        $usuario = PaqueteFixtures::usuarioAdmin();
+        $hotel = PaqueteFixtures::hotelUno();
+
+        $this->usuarioRepo
+            ->method('findById')
+            ->with(1)
+            ->willReturn($usuario);
+
+        $this->hotelRepo
+            ->method('findById')
+            ->with(1)
+            ->willReturn($hotel);
+
+        $this->paqueteRepo->expects($this->once())->method('save');
+        $this->usuarioRepo->expects($this->never())->method('save');
+        $this->hotelRepo->expects($this->never())->method('save');
+
+        $input = new CrearPaqueteInput(
+            nombre: 'Paquete Sin Imagen',
+            descripcion: null,
+            fechaPartida: new \DateTimeImmutable('2026-07-15'),
+            fechaVuelta: null,
+            precio: '1000.00',
+            disponible: true,
+            usuarioResponsableId: 1,
+            hotelesIds: [1],
+        );
+
+        $paquete = $this->useCase->execute($input);
+
+        $this->assertNull($paquete->imagenPrincipal());
+    }
+
     public function test_execute_verifica_destino_a_traves_del_hotel(): void
     {
         $usuario = PaqueteFixtures::usuarioAdmin();
@@ -185,6 +324,8 @@ final class CrearPaqueteUseCaseTest extends TestCase
             ->willReturn($hotel);
 
         $this->paqueteRepo->expects($this->once())->method('save');
+        $this->usuarioRepo->expects($this->never())->method('save');
+        $this->hotelRepo->expects($this->never())->method('save');
 
         $input = new CrearPaqueteInput(
             nombre: 'Paquete Destino',

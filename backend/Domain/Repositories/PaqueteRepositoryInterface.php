@@ -14,6 +14,8 @@ interface PaqueteRepositoryInterface
 
     public function update(Paquete $paquete): void;
 
-    /** @param array{nombre?:string, mes_partida?:int, destino_id?:int, orden_precio?:string} $filtros */
+    public function delete(Paquete $paquete): void;
+
+    /** @param array{nombre?:string, mes_partida?:string, destino_id?:int, orden_precio?:string} $filtros */
     public function findAll(array $filtros = []): array;
 }

@@ -8,6 +8,7 @@ use TiendaTurismo\GestionDatos\Application\Input\ActualizarPaqueteInput;
 use TiendaTurismo\GestionDatos\Application\Input\CrearPaqueteInput;
 use TiendaTurismo\GestionDatos\Application\UseCases\Paquete\ActualizarPaqueteUseCase;
 use TiendaTurismo\GestionDatos\Application\UseCases\Paquete\CrearPaqueteUseCase;
+use TiendaTurismo\GestionDatos\Application\UseCases\Paquete\EliminarPaqueteUseCase;
 use TiendaTurismo\GestionDatos\Application\UseCases\Paquete\ListarPaquetesUseCase;
 use TiendaTurismo\GestionDatos\Application\UseCases\Paquete\ObtenerPaquetePorIdUseCase;
 use TiendaTurismo\GestionDatos\Domain\Models\Paquete;
@@ -21,6 +22,7 @@ class PaqueteService
     private ObtenerPaquetePorIdUseCase $obtenerPaquetePorId;
     private ListarPaquetesUseCase $listarPaquetes;
     private ActualizarPaqueteUseCase $actualizarPaquete;
+    private EliminarPaqueteUseCase $eliminarPaquete;
 
     public function __construct(
         PaqueteRepositoryInterface $paquetes,
@@ -31,6 +33,7 @@ class PaqueteService
         $this->obtenerPaquetePorId = new ObtenerPaquetePorIdUseCase($paquetes);
         $this->listarPaquetes = new ListarPaquetesUseCase($paquetes);
         $this->actualizarPaquete = new ActualizarPaqueteUseCase($paquetes, $hoteles, $usuarios);
+        $this->eliminarPaquete = new EliminarPaqueteUseCase($paquetes, $usuarios);
     }
 
     /** @param array{nombre:string,descripcion?:string,imagen_principal?:string|null,fecha_partida:string,fecha_vuelta?:string,precio:string|float,disponible:bool,usuario_responsable_id:int,hoteles_ids:list<int>} $datos */
@@ -79,6 +82,11 @@ class PaqueteService
         ));
 
         return $this->serializarPaquete($paquete);
+    }
+
+    public function eliminar(int $id, int $usuarioResponsableId): void
+    {
+        $this->eliminarPaquete->execute($id, $usuarioResponsableId);
     }
 
     /** @param array<string, mixed> $filtros */
