@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
 use TiendaTurismo\GestionDatos\Application\Services\PaqueteService;
+use TiendaTurismo\GestionDatos\Infrastructure\Persistence\Doctrine\EntityManagerFactory;
 use TiendaTurismo\GestionDatos\Infrastructure\Repositories\HotelDoctrineRepository;
 use TiendaTurismo\GestionDatos\Infrastructure\Repositories\PaqueteDoctrineRepository;
 use TiendaTurismo\GestionDatos\Infrastructure\Repositories\UsuarioDoctrineRepository;
@@ -26,11 +27,16 @@ final class PaqueteController
         ?JwtService $jwt = null,
         ?SubirImagenService $subirImagen = null,
     ) {
-        $this->paqueteService = $paqueteService ?? new PaqueteService(
-            new PaqueteDoctrineRepository(),
-            new HotelDoctrineRepository(),
-            new UsuarioDoctrineRepository(),
-        );
+        if ($paqueteService === null) {
+            $entityManager = EntityManagerFactory::createFromEnv();
+            $this->paqueteService = new PaqueteService(
+                new PaqueteDoctrineRepository($entityManager),
+                new HotelDoctrineRepository($entityManager),
+                new UsuarioDoctrineRepository($entityManager),
+            );
+        } else {
+            $this->paqueteService = $paqueteService;
+        }
         $this->jwt = $jwt ?? new JwtService();
         $this->subirImagen = $subirImagen ?? new SubirImagenService();
     }
@@ -47,7 +53,7 @@ final class PaqueteController
 
             $mesPartida = $request->query->get('mes_partida');
             if ($mesPartida !== null && $mesPartida !== '') {
-                $filtros['mes_partida'] = (int) $mesPartida;
+                $filtros['mes_partida'] = $mesPartida;
             }
 
             $destinoId = $request->query->get('destino_id');
@@ -130,6 +136,23 @@ final class PaqueteController
             return new JsonResponse($paquete);
         } catch (\InvalidArgumentException $e) {
             return new JsonResponse(['error' => $e->getMessage()], 422);
+        } catch (\RuntimeException $e) {
+            return new JsonResponse(['error' => $e->getMessage()], 404);
+        } catch (\Throwable $e) {
+            return new JsonResponse(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function eliminar(Request $request, array $params): JsonResponse
+    {
+        try {
+            $id = (int) $params['id'];
+
+            $usuarioId = $this->obtenerUsuarioDesdeToken($request);
+
+            $this->paqueteService->eliminar($id, $usuarioId);
+
+            return new JsonResponse(['mensaje' => 'Paquete eliminado correctamente.']);
         } catch (\RuntimeException $e) {
             return new JsonResponse(['error' => $e->getMessage()], 404);
         } catch (\Throwable $e) {
@@ -256,7 +279,12 @@ final class PaqueteController
         $routes->add('paquetes.actualizar', new Route('/api/paquetes/{id}', [
             '_controller' => self::class,
             '_action' => 'actualizar',
-        ], methods: ['PUT'], requirements: ['id' => '\d+']));
+        ], methods: ['PUT', 'POST'], requirements: ['id' => '\d+']));
+
+        $routes->add('paquetes.eliminar', new Route('/api/paquetes/{id}', [
+            '_controller' => self::class,
+            '_action' => 'eliminar',
+        ], methods: ['DELETE'], requirements: ['id' => '\d+']));
 
         return $routes;
     }

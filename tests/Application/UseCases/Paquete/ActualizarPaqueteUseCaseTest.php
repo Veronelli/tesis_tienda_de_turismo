@@ -60,6 +60,8 @@ final class ActualizarPaqueteUseCaseTest extends TestCase
             ]);
 
         $this->paqueteRepo->expects($this->once())->method('update')->with($paquete);
+        $this->usuarioRepo->expects($this->never())->method('save');
+        $this->hotelRepo->expects($this->never())->method('save');
 
         $input = new ActualizarPaqueteInput(
             id: 1,
@@ -179,6 +181,8 @@ final class ActualizarPaqueteUseCaseTest extends TestCase
             ]);
 
         $this->paqueteRepo->expects($this->once())->method('update');
+        $this->usuarioRepo->expects($this->never())->method('save');
+        $this->hotelRepo->expects($this->never())->method('save');
 
         $input = new ActualizarPaqueteInput(
             id: 1, nombre: 'Multi Hotel', descripcion: null,
@@ -189,6 +193,44 @@ final class ActualizarPaqueteUseCaseTest extends TestCase
         $resultado = $this->useCase->execute($input);
 
         $this->assertCount(2, $resultado->hoteles());
+        $this->assertSame($editor, $resultado->actualizadoPor());
+    }
+
+    public function test_execute_actualiza_paquete_sin_imagen_mantiene_anterior(): void
+    {
+        $paquete = PaqueteFixtures::paqueteValido();
+        $editor = PaqueteFixtures::usuarioEditor();
+        $hotel1 = PaqueteFixtures::hotelUno();
+
+        $this->paqueteRepo
+            ->method('findById')
+            ->with(1)
+            ->willReturn($paquete);
+
+        $this->usuarioRepo
+            ->method('findById')
+            ->with(2)
+            ->willReturn($editor);
+
+        $this->hotelRepo
+            ->method('findById')
+            ->with(1)
+            ->willReturn($hotel1);
+
+        $this->paqueteRepo->expects($this->once())->method('update');
+        $this->usuarioRepo->expects($this->never())->method('save');
+        $this->hotelRepo->expects($this->never())->method('save');
+
+        $input = new ActualizarPaqueteInput(
+            id: 1, nombre: 'Sin Imagen', descripcion: null,
+            fechaPartida: new \DateTimeImmutable('2026-10-01'), fechaVuelta: null,
+            precio: '1200.00', disponible: true, usuarioResponsableId: 2, hotelesIds: [1],
+            imagenPrincipal: null,
+        );
+
+        $resultado = $this->useCase->execute($input);
+
+        $this->assertNull($resultado->imagenPrincipal());
         $this->assertSame($editor, $resultado->actualizadoPor());
     }
 }
