@@ -155,6 +155,97 @@ final class PaqueteTest extends TestCase
         $this->assertCount(1, $arr['destinos']);
     }
 
+    public function test_constructor_con_imagen_principal(): void
+    {
+        $paquete = new Paquete(
+            nombre: 'Paquete con Imagen',
+            descripcion: null,
+            fechaPartida: new \DateTimeImmutable('2026-07-15'),
+            fechaVuelta: null,
+            precio: '100',
+            disponible: true,
+            creadoPor: $this->usuario,
+            imagenPrincipal: '/uploads/paquetes/paq_test.jpg',
+        );
+
+        $this->assertSame('/uploads/paquetes/paq_test.jpg', $paquete->imagenPrincipal());
+    }
+
+    public function test_constructor_sin_imagen_principal_por_defecto(): void
+    {
+        $this->assertNull($this->paquete->imagenPrincipal());
+    }
+
+    public function test_update_actualiza_imagen_principal(): void
+    {
+        $this->paquete->update(
+            nombre: 'Paquete Modificado',
+            descripcion: 'Nueva descripción',
+            fechaPartida: new \DateTimeImmutable('2026-08-01'),
+            fechaVuelta: new \DateTimeImmutable('2026-08-10'),
+            precio: '2000.00',
+            disponible: false,
+            actualizadoPor: $this->usuario,
+            imagenPrincipal: '/uploads/paquetes/nueva.jpg',
+        );
+
+        $this->assertSame('/uploads/paquetes/nueva.jpg', $this->paquete->imagenPrincipal());
+    }
+
+    public function test_update_puede_poner_imagen_principal_null(): void
+    {
+        $paquete = new Paquete(
+            nombre: 'Test',
+            descripcion: null,
+            fechaPartida: new \DateTimeImmutable('2026-07-15'),
+            fechaVuelta: null,
+            precio: '100',
+            disponible: true,
+            creadoPor: $this->usuario,
+            imagenPrincipal: '/uploads/paquetes/vieja.jpg',
+        );
+
+        $paquete->update(
+            nombre: 'Test',
+            descripcion: null,
+            fechaPartida: new \DateTimeImmutable('2026-07-15'),
+            fechaVuelta: null,
+            precio: '100',
+            disponible: true,
+            actualizadoPor: $this->usuario,
+            imagenPrincipal: null,
+        );
+
+        $this->assertNull($paquete->imagenPrincipal());
+    }
+
+    public function test_toArray_incluye_imagen_principal(): void
+    {
+        $paquete = new Paquete(
+            nombre: 'Test',
+            descripcion: null,
+            fechaPartida: new \DateTimeImmutable('2026-07-15'),
+            fechaVuelta: null,
+            precio: '100',
+            disponible: true,
+            creadoPor: $this->usuario,
+            imagenPrincipal: '/uploads/paquetes/test.jpg',
+        );
+
+        $arr = $paquete->toArray();
+
+        $this->assertArrayHasKey('imagen_principal', $arr);
+        $this->assertSame('/uploads/paquetes/test.jpg', $arr['imagen_principal']);
+    }
+
+    public function test_toArray_imagen_principal_null_cuando_no_hay_imagen(): void
+    {
+        $arr = $this->paquete->toArray();
+
+        $this->assertArrayHasKey('imagen_principal', $arr);
+        $this->assertNull($arr['imagen_principal']);
+    }
+
     public function test_constructor_lanza_excepcion_si_nombre_vacio(): void
     {
         $this->expectException(\InvalidArgumentException::class);
