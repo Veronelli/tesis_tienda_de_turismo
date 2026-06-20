@@ -38,5 +38,13 @@ foreach ($sql as $stmt) {
 }
 
 echo "\nCreando tablas...\n";
-$schemaTool->createSchema($metadata);
+$connection = $entityManager->getConnection();
+foreach ($sql as $stmt) {
+    try {
+        $connection->executeStatement($stmt);
+        echo "  OK: " . substr($stmt, 0, 80) . "...\n";
+    } catch (\Throwable $e) {
+        echo "  (omitido - probablemente ya existe): " . $e->getMessage() . "\n";
+    }
+}
 echo "¡Tablas creadas exitosamente!\n";

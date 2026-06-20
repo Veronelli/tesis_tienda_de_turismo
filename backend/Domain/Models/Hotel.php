@@ -14,19 +14,26 @@ final class Hotel
     use AtributosBase;
 
     public function __construct(
-        #[ORM\Column(type: 'string', length: 200)]
+        #[ORM\Column(type: 'string', length: 150)]
         private string $nombre,
-        #[ORM\Column(type: 'string', length: 255)]
+
+        #[ORM\Column(type: 'string', length: 150)]
         private string $ubicacion,
+
+        #[ORM\Column(type: 'text')]
+        private string $descripcion,
+
         #[ORM\ManyToOne(targetEntity: Destino::class, fetch: 'EAGER')]
         #[ORM\JoinColumn(name: 'destino_id', referencedColumnName: 'id', nullable: false)]
         private Destino $destino,
+
         ?int $id = null,
         ?\DateTimeImmutable $fechaCreacion = null,
         ?\DateTimeImmutable $fechaActualizacion = null,
     ) {
         $this->validarTextoObligatorio($nombre, 'nombre');
         $this->validarTextoObligatorio($ubicacion, 'ubicacion');
+        $this->validarTextoObligatorio($descripcion, 'descripcion');
         $this->inicializarAtributosBase($id, $fechaCreacion, $fechaActualizacion);
     }
 
@@ -40,17 +47,24 @@ final class Hotel
         return $this->ubicacion;
     }
 
+    public function descripcion(): string
+    {
+        return $this->descripcion;
+    }
+
     public function destino(): Destino
     {
         return $this->destino;
     }
 
-    public function update(string $nombre, string $ubicacion, Destino $destino): void
+    public function update(string $nombre, string $ubicacion, string $descripcion, Destino $destino): void
     {
         $this->validarTextoObligatorio($nombre, 'nombre');
         $this->validarTextoObligatorio($ubicacion, 'ubicacion');
+        $this->validarTextoObligatorio($descripcion, 'descripcion');
         $this->nombre = $nombre;
         $this->ubicacion = $ubicacion;
+        $this->descripcion = $descripcion;
         $this->destino = $destino;
     }
 
@@ -60,6 +74,7 @@ final class Hotel
             'id' => $this->id(),
             'nombre' => $this->nombre,
             'ubicacion' => $this->ubicacion,
+            'descripcion' => $this->descripcion,
             'destino_id' => $this->destino->id(),
             'destino' => $this->destino->toArray(),
             'fecha_creacion' => $this->fechaCreacion()->format('Y-m-d H:i:s'),
@@ -73,12 +88,8 @@ final class Hotel
             throw new \InvalidArgumentException("El campo {$campo} es obligatorio.");
         }
 
-        if ($campo === 'nombre' && mb_strlen($valor) > 200) {
-            throw new \InvalidArgumentException("El campo {$campo} no puede superar 200 caracteres.");
-        }
-
-        if ($campo === 'ubicacion' && mb_strlen($valor) > 255) {
-            throw new \InvalidArgumentException("El campo {$campo} no puede superar 255 caracteres.");
+        if (in_array($campo, ['nombre', 'ubicacion'], true) && mb_strlen($valor) > 150) {
+            throw new \InvalidArgumentException("El campo {$campo} no puede superar 150 caracteres.");
         }
     }
 }
