@@ -17,6 +17,7 @@ final class ActualizarPaqueteInput
         public readonly bool $disponible,
         public readonly int $usuarioResponsableId,
         public readonly array $hotelesIds,
+        public readonly ?string $imagenPrincipal = null,
     ) {
     }
 }

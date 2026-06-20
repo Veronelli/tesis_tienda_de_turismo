@@ -54,6 +54,7 @@ final class ActualizarPaqueteUseCase
             precio: $input->precio,
             disponible: $input->disponible,
             actualizadoPor: $usuario,
+            imagenPrincipal: $input->imagenPrincipal,
         );
 
         $paquete->syncHoteles($hoteles);

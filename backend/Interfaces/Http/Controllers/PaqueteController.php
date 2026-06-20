@@ -13,20 +13,26 @@ use TiendaTurismo\GestionDatos\Infrastructure\Repositories\HotelDoctrineReposito
 use TiendaTurismo\GestionDatos\Infrastructure\Repositories\PaqueteDoctrineRepository;
 use TiendaTurismo\GestionDatos\Infrastructure\Repositories\UsuarioDoctrineRepository;
 use TiendaTurismo\GestionDatos\Infrastructure\Security\JwtService;
+use TiendaTurismo\GestionDatos\Infrastructure\Services\SubirImagenService;
 
 final class PaqueteController
 {
     private PaqueteService $paqueteService;
     private JwtService $jwt;
+    private SubirImagenService $subirImagen;
 
-    public function __construct(?PaqueteService $paqueteService = null, ?JwtService $jwt = null)
-    {
+    public function __construct(
+        ?PaqueteService $paqueteService = null,
+        ?JwtService $jwt = null,
+        ?SubirImagenService $subirImagen = null,
+    ) {
         $this->paqueteService = $paqueteService ?? new PaqueteService(
             new PaqueteDoctrineRepository(),
             new HotelDoctrineRepository(),
             new UsuarioDoctrineRepository(),
         );
         $this->jwt = $jwt ?? new JwtService();
+        $this->subirImagen = $subirImagen ?? new SubirImagenService();
     }
 
     public function listar(Request $request): JsonResponse
@@ -79,13 +85,13 @@ final class PaqueteController
 
     public function crear(Request $request): JsonResponse
     {
-        $data = json_decode((string) $request->getContent(), true);
-
-        if (!is_array($data)) {
-            return new JsonResponse(['error' => 'Datos inválidos.'], 400);
-        }
-
         try {
+            $data = $this->extraerDatos($request, 'crear');
+
+            if (!is_array($data)) {
+                return new JsonResponse(['error' => 'Datos inválidos.'], 400);
+            }
+
             $this->validarDatosCrear($data);
 
             $usuarioId = $this->obtenerUsuarioDesdeToken($request);
@@ -105,15 +111,15 @@ final class PaqueteController
 
     public function actualizar(Request $request, array $params): JsonResponse
     {
-        $data = json_decode((string) $request->getContent(), true);
-
-        if (!is_array($data)) {
-            return new JsonResponse(['error' => 'Datos inválidos.'], 400);
-        }
-
-        $data['id'] = (int) $params['id'];
-
         try {
+            $data = $this->extraerDatos($request, 'actualizar');
+
+            if (!is_array($data)) {
+                return new JsonResponse(['error' => 'Datos inválidos.'], 400);
+            }
+
+            $data['id'] = (int) $params['id'];
+
             $this->validarDatosActualizar($data);
 
             $usuarioId = $this->obtenerUsuarioDesdeToken($request);
@@ -159,6 +165,55 @@ final class PaqueteController
         if (!isset($data[$campo]) || (is_string($data[$campo]) && trim($data[$campo]) === '')) {
             throw new \InvalidArgumentException($mensaje);
         }
+    }
+
+    /** @return array<string, mixed>|null */
+    private function extraerDatos(Request $request, string $modo): ?array
+    {
+        if ($this->esMultipart($request)) {
+            return $this->extraerDatosMultipart($request, $modo);
+        }
+
+        return json_decode((string) $request->getContent(), true);
+    }
+
+    private function esMultipart(Request $request): bool
+    {
+        $contentType = $request->headers->get('Content-Type', '');
+        return str_starts_with($contentType, 'multipart/form-data');
+    }
+
+    /** @return array<string, mixed> */
+    private function extraerDatosMultipart(Request $request, string $modo): array
+    {
+        $data = $request->request->all();
+
+        $camposBooleano = ['disponible'];
+        foreach ($camposBooleano as $campo) {
+            if (isset($data[$campo])) {
+                $data[$campo] = filter_var($data[$campo], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
+            }
+        }
+
+        if (isset($data['hoteles_ids']) && is_string($data['hoteles_ids'])) {
+            $data['hoteles_ids'] = json_decode($data['hoteles_ids'], true) ?? [];
+        }
+
+        $archivo = $request->files->get('imagen_principal');
+        if ($archivo !== null) {
+            $ruta = $this->subirImagen->guardar($archivo);
+            if ($ruta !== null) {
+                if ($modo === 'actualizar') {
+                    $paqueteExistente = $this->paqueteService->obtenerPorId((int) ($data['id'] ?? 0));
+                    if ($paqueteExistente !== null && isset($paqueteExistente['imagen_principal'])) {
+                        $this->subirImagen->eliminar($paqueteExistente['imagen_principal']);
+                    }
+                }
+                $data['imagen_principal'] = $ruta;
+            }
+        }
+
+        return $data;
     }
 
     private function obtenerUsuarioDesdeToken(Request $request): int

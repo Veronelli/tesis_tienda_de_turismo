@@ -48,6 +48,7 @@ final class CrearPaqueteUseCase
             precio: $input->precio,
             disponible: $input->disponible,
             creadoPor: $usuario,
+            imagenPrincipal: $input->imagenPrincipal,
         );
 
         $paquete->syncHoteles($hoteles);

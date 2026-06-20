@@ -33,6 +33,9 @@ final class Paquete
     #[ORM\Column(type: 'boolean')]
     private bool $disponible;
 
+    #[ORM\Column(name: 'imagen_principal', type: 'string', length: 255, nullable: true)]
+    private ?string $imagenPrincipal = null;
+
     #[ORM\ManyToOne(targetEntity: Usuario::class)]
     #[ORM\JoinColumn(name: 'creado_por_usuario_id', referencedColumnName: 'id', nullable: false)]
     private Usuario $creadoPor;
@@ -54,6 +57,7 @@ final class Paquete
         string $precio,
         bool $disponible,
         Usuario $creadoPor,
+        ?string $imagenPrincipal = null,
         ?int $id = null,
         ?\DateTimeImmutable $fechaCreacion = null,
         ?\DateTimeImmutable $fechaActualizacion = null,
@@ -67,6 +71,7 @@ final class Paquete
         $this->fechaVuelta = $fechaVuelta;
         $this->precio = $precio;
         $this->disponible = $disponible;
+        $this->imagenPrincipal = $imagenPrincipal;
         $this->creadoPor = $creadoPor;
         $this->actualizadoPor = null;
         $this->hoteles = new ArrayCollection();
@@ -103,6 +108,11 @@ final class Paquete
         return $this->disponible;
     }
 
+    public function imagenPrincipal(): ?string
+    {
+        return $this->imagenPrincipal;
+    }
+
     public function creadoPor(): Usuario
     {
         return $this->creadoPor;
@@ -127,6 +137,7 @@ final class Paquete
         string $precio,
         bool $disponible,
         Usuario $actualizadoPor,
+        ?string $imagenPrincipal = null,
     ): void {
         $this->validarTextoObligatorio($nombre, 'nombre');
         $this->validarPrecio($precio);
@@ -137,6 +148,7 @@ final class Paquete
         $this->fechaVuelta = $fechaVuelta;
         $this->precio = $precio;
         $this->disponible = $disponible;
+        $this->imagenPrincipal = $imagenPrincipal;
         $this->actualizadoPor = $actualizadoPor;
     }
 
@@ -172,6 +184,7 @@ final class Paquete
             'id' => $this->id(),
             'nombre' => $this->nombre,
             'descripcion' => $this->descripcion,
+            'imagen_principal' => $this->imagenPrincipal,
             'fecha_partida' => $this->fechaPartida->format('Y-m-d'),
             'fecha_vuelta' => $this->fechaVuelta?->format('Y-m-d'),
             'precio' => $this->precio,
