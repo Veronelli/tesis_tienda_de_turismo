@@ -164,21 +164,28 @@ final class Paquete
     public function toArray(): array
     {
         $destinosArray = [];
+        $destinoNombres = [];
+        $hotelesArray = [];
         foreach ($this->hoteles as $hotel) {
             $destino = $hotel->destino();
             $key = $destino->id();
             $destinosArray[$key] = $destino->toArray();
-        }
 
-        $hotelesArray = [];
-        foreach ($this->hoteles as $hotel) {
             $hotelesArray[] = [
                 'id' => $hotel->id(),
                 'nombre' => $hotel->nombre(),
                 'ubicacion' => $hotel->ubicacion(),
-                'destino' => $hotel->destino()->toArray(),
+                'ciudad' => $destino->ciudad(),
+                'provincia' => $destino->estadoProvincia(),
+                'pais' => $destino->pais(),
+                'destino' => $destino->toArray(),
             ];
+
+            $partesDestino = array_filter([$destino->ciudad(), $destino->estadoProvincia(), $destino->pais()]);
+            $destinoNombres[] = implode(', ', $partesDestino);
         }
+
+        $destinoNombres = array_unique($destinoNombres);
 
         return [
             'id' => $this->id(),
@@ -203,6 +210,7 @@ final class Paquete
             ] : null,
             'destinos' => array_values($destinosArray),
             'hoteles' => $hotelesArray,
+            'destino_nombre' => implode(' / ', $destinoNombres),
             'fecha_creacion' => $this->fechaCreacion()->format('Y-m-d H:i:s'),
             'fecha_actualizacion' => $this->fechaActualizacion()->format('Y-m-d H:i:s'),
         ];
