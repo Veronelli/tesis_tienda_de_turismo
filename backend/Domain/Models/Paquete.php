@@ -7,153 +7,85 @@ namespace TiendaTurismo\GestionDatos\Domain\Models;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use TiendaTurismo\GestionDatos\Domain\Models\Traits\AtributosBase;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'paquetes')]
 final class Paquete
 {
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
-    private ?int $id = null;
+    use AtributosBase;
 
-    #[ORM\Column(name: 'fecha_creacion', type: 'datetime_immutable', columnDefinition: 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP')]
-    private \DateTimeImmutable $fechaCreacion;
+    #[ORM\Column(type: 'string', length: 200)]
+    private string $nombre;
 
-    #[ORM\Column(name: 'fecha_actualizacion', type: 'datetime_immutable', columnDefinition: 'DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP', nullable: true)]
-    private ?\DateTimeImmutable $fechaActualizacion = null;
-
-    #[ORM\Column(name: 'nombre_paquete', type: 'string', length: 150)]
-    private string $nombrePaquete;
-
-    #[ORM\Column(type: 'text')]
-    private string $descripcion;
-
-    #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
-    private string $precio;
-
-    #[ORM\Column(name: 'imagen_primaria', type: 'text', columnDefinition: 'MEDIUMTEXT NOT NULL')]
-    private string $imagenPrimaria;
-
-    #[ORM\Column(name: 'imagen_secundaria', type: 'text', columnDefinition: 'MEDIUMTEXT DEFAULT NULL', nullable: true)]
-    private ?string $imagenSecundaria = null;
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $descripcion;
 
     #[ORM\Column(name: 'fecha_partida', type: 'date_immutable')]
     private \DateTimeImmutable $fechaPartida;
 
-    #[ORM\Column(name: 'fecha_vuelta', type: 'date_immutable')]
-    private \DateTimeImmutable $fechaVuelta;
+    #[ORM\Column(name: 'fecha_vuelta', type: 'date_immutable', nullable: true)]
+    private ?\DateTimeImmutable $fechaVuelta;
 
-    #[ORM\Column(name: 'incluye_desayuno', type: 'boolean')]
-    private bool $incluyeDesayuno;
-
-    #[ORM\Column(name: 'all_inclusive', type: 'boolean')]
-    private bool $allInclusive;
+    #[ORM\Column(type: 'decimal', precision: 11, scale: 2)]
+    private string $precio;
 
     #[ORM\Column(type: 'boolean')]
-    private bool $pileta;
+    private bool $disponible;
 
-    #[ORM\Column(type: 'boolean')]
-    private bool $publico;
-
-    #[ORM\Column(type: 'integer')]
-    private int $cantidad;
+    #[ORM\Column(name: 'imagen_principal', type: 'string', length: 255, nullable: true)]
+    private ?string $imagenPrincipal = null;
 
     #[ORM\ManyToOne(targetEntity: Usuario::class)]
-    #[ORM\JoinColumn(name: 'creado_por', referencedColumnName: 'id', nullable: false)]
+    #[ORM\JoinColumn(name: 'creado_por_usuario_id', referencedColumnName: 'id', nullable: false)]
     private Usuario $creadoPor;
 
     #[ORM\ManyToOne(targetEntity: Usuario::class)]
-    #[ORM\JoinColumn(name: 'actualizado_por', referencedColumnName: 'id', nullable: false)]
-    private Usuario $actualizadoPor;
+    #[ORM\JoinColumn(name: 'actualizado_por_usuario_id', referencedColumnName: 'id', nullable: true)]
+    private ?Usuario $actualizadoPor;
 
-    /** @var Collection<int, PaquetesHoteles> */
-    #[ORM\OneToMany(targetEntity: PaquetesHoteles::class, mappedBy: 'paquete', cascade: ['persist', 'remove'], orphanRemoval: true)]
-    private Collection $paquetesHoteles;
+    /** @var Collection<int, Hotel> */
+    #[ORM\ManyToMany(targetEntity: Hotel::class)]
+    #[ORM\JoinTable(name: 'paquete_hotel')]
+    private Collection $hoteles;
 
     public function __construct(
-        string $nombrePaquete,
-        string $descripcion,
-        string $precio,
-        string $imagenPrimaria,
+        string $nombre,
+        ?string $descripcion,
         \DateTimeImmutable $fechaPartida,
-        \DateTimeImmutable $fechaVuelta,
-        bool $incluyeDesayuno,
-        bool $allInclusive,
-        bool $pileta,
-        bool $publico,
-        int $cantidad,
+        ?\DateTimeImmutable $fechaVuelta,
+        string $precio,
+        bool $disponible,
         Usuario $creadoPor,
-        Usuario $actualizadoPor,
-        ?string $imagenSecundaria = null,
+        ?string $imagenPrincipal = null,
         ?int $id = null,
         ?\DateTimeImmutable $fechaCreacion = null,
         ?\DateTimeImmutable $fechaActualizacion = null,
     ) {
-        $this->validarTextoObligatorio($nombrePaquete, 'nombre_paquete');
-        $this->validarTextoObligatorio($descripcion, 'descripcion');
+        $this->validarTextoObligatorio($nombre, 'nombre');
         $this->validarPrecio($precio);
 
-        $this->nombrePaquete = $nombrePaquete;
+        $this->nombre = $nombre;
         $this->descripcion = $descripcion;
-        $this->precio = $precio;
-        $this->imagenPrimaria = $imagenPrimaria;
-        $this->imagenSecundaria = $imagenSecundaria;
         $this->fechaPartida = $fechaPartida;
         $this->fechaVuelta = $fechaVuelta;
-        $this->incluyeDesayuno = $incluyeDesayuno;
-        $this->allInclusive = $allInclusive;
-        $this->pileta = $pileta;
-        $this->publico = $publico;
-        $this->cantidad = $cantidad;
+        $this->precio = $precio;
+        $this->disponible = $disponible;
+        $this->imagenPrincipal = $imagenPrincipal;
         $this->creadoPor = $creadoPor;
-        $this->actualizadoPor = $actualizadoPor;
-        $this->paquetesHoteles = new ArrayCollection();
-
-        $ahora = new \DateTimeImmutable();
-        $this->id = $id;
-        $this->fechaCreacion = $fechaCreacion ?? $ahora;
-        $this->fechaActualizacion = $fechaActualizacion;
+        $this->actualizadoPor = null;
+        $this->hoteles = new ArrayCollection();
+        $this->inicializarAtributosBase($id, $fechaCreacion, $fechaActualizacion);
     }
 
-    public function id(): ?int
+    public function nombre(): string
     {
-        return $this->id;
+        return $this->nombre;
     }
 
-    public function fechaCreacion(): \DateTimeImmutable
-    {
-        return $this->fechaCreacion;
-    }
-
-    public function fechaActualizacion(): ?\DateTimeImmutable
-    {
-        return $this->fechaActualizacion;
-    }
-
-    public function nombrePaquete(): string
-    {
-        return $this->nombrePaquete;
-    }
-
-    public function descripcion(): string
+    public function descripcion(): ?string
     {
         return $this->descripcion;
-    }
-
-    public function precio(): string
-    {
-        return $this->precio;
-    }
-
-    public function imagenPrimaria(): string
-    {
-        return $this->imagenPrimaria;
-    }
-
-    public function imagenSecundaria(): ?string
-    {
-        return $this->imagenSecundaria;
     }
 
     public function fechaPartida(): \DateTimeImmutable
@@ -161,34 +93,24 @@ final class Paquete
         return $this->fechaPartida;
     }
 
-    public function fechaVuelta(): \DateTimeImmutable
+    public function fechaVuelta(): ?\DateTimeImmutable
     {
         return $this->fechaVuelta;
     }
 
-    public function incluyeDesayuno(): bool
+    public function precio(): string
     {
-        return $this->incluyeDesayuno;
+        return $this->precio;
     }
 
-    public function allInclusive(): bool
+    public function disponible(): bool
     {
-        return $this->allInclusive;
+        return $this->disponible;
     }
 
-    public function pileta(): bool
+    public function imagenPrincipal(): ?string
     {
-        return $this->pileta;
-    }
-
-    public function publico(): bool
-    {
-        return $this->publico;
-    }
-
-    public function cantidad(): int
-    {
-        return $this->cantidad;
+        return $this->imagenPrincipal;
     }
 
     public function creadoPor(): Usuario
@@ -196,7 +118,7 @@ final class Paquete
         return $this->creadoPor;
     }
 
-    public function actualizadoPor(): Usuario
+    public function actualizadoPor(): ?Usuario
     {
         return $this->actualizadoPor;
     }
@@ -204,100 +126,93 @@ final class Paquete
     /** @return Collection<int, Hotel> */
     public function hoteles(): Collection
     {
-        return $this->paquetesHoteles->map(fn (PaquetesHoteles $ph) => $ph->hotel());
-    }
-
-    /** @return Collection<int, PaquetesHoteles> */
-    public function paquetesHoteles(): Collection
-    {
-        return $this->paquetesHoteles;
+        return $this->hoteles;
     }
 
     public function update(
-        string $nombrePaquete,
-        string $descripcion,
-        string $precio,
-        string $imagenPrimaria,
+        string $nombre,
+        ?string $descripcion,
         \DateTimeImmutable $fechaPartida,
-        \DateTimeImmutable $fechaVuelta,
-        bool $incluyeDesayuno,
-        bool $allInclusive,
-        bool $pileta,
-        bool $publico,
-        int $cantidad,
+        ?\DateTimeImmutable $fechaVuelta,
+        string $precio,
+        bool $disponible,
         Usuario $actualizadoPor,
-        ?string $imagenSecundaria = null,
+        ?string $imagenPrincipal = null,
     ): void {
-        $this->validarTextoObligatorio($nombrePaquete, 'nombre_paquete');
-        $this->validarTextoObligatorio($descripcion, 'descripcion');
+        $this->validarTextoObligatorio($nombre, 'nombre');
         $this->validarPrecio($precio);
 
-        $this->nombrePaquete = $nombrePaquete;
+        $this->nombre = $nombre;
         $this->descripcion = $descripcion;
-        $this->precio = $precio;
-        $this->imagenPrimaria = $imagenPrimaria;
-        $this->imagenSecundaria = $imagenSecundaria;
         $this->fechaPartida = $fechaPartida;
         $this->fechaVuelta = $fechaVuelta;
-        $this->incluyeDesayuno = $incluyeDesayuno;
-        $this->allInclusive = $allInclusive;
-        $this->pileta = $pileta;
-        $this->publico = $publico;
-        $this->cantidad = $cantidad;
+        $this->precio = $precio;
+        $this->disponible = $disponible;
+        $this->imagenPrincipal = $imagenPrincipal;
         $this->actualizadoPor = $actualizadoPor;
     }
 
     /** @param list<Hotel> $hoteles */
     public function syncHoteles(array $hoteles): void
     {
-        $this->paquetesHoteles->clear();
+        $this->hoteles->clear();
         foreach ($hoteles as $hotel) {
-            $this->paquetesHoteles->add(new PaquetesHoteles($this, $hotel));
+            $this->hoteles->add($hotel);
         }
     }
 
     public function toArray(): array
     {
+        $destinosArray = [];
+        $destinoNombres = [];
         $hotelesArray = [];
-        foreach ($this->paquetesHoteles as $ph) {
-            $hotel = $ph->hotel();
+        foreach ($this->hoteles as $hotel) {
+            $destino = $hotel->destino();
+            $key = $destino->id();
+            $destinosArray[$key] = $destino->toArray();
+
             $hotelesArray[] = [
                 'id' => $hotel->id(),
                 'nombre' => $hotel->nombre(),
                 'ubicacion' => $hotel->ubicacion(),
-                'destino' => $hotel->destino()->toArray(),
+                'ciudad' => $destino->ciudad(),
+                'provincia' => $destino->estadoProvincia(),
+                'pais' => $destino->pais(),
+                'destino' => $destino->toArray(),
             ];
+
+            $partesDestino = array_filter([$destino->ciudad(), $destino->estadoProvincia(), $destino->pais()]);
+            $destinoNombres[] = implode(', ', $partesDestino);
         }
 
+        $destinoNombres = array_unique($destinoNombres);
+
         return [
-            'id' => $this->id,
-            'nombre_paquete' => $this->nombrePaquete,
+            'id' => $this->id(),
+            'nombre' => $this->nombre,
             'descripcion' => $this->descripcion,
-            'precio' => $this->precio,
-            'imagen_primaria' => $this->imagenPrimaria,
-            'imagen_secundaria' => $this->imagenSecundaria,
+            'imagen_principal' => $this->imagenPrincipal,
             'fecha_partida' => $this->fechaPartida->format('Y-m-d'),
-            'fecha_vuelta' => $this->fechaVuelta->format('Y-m-d'),
-            'incluye_desayuno' => $this->incluyeDesayuno,
-            'all_inclusive' => $this->allInclusive,
-            'pileta' => $this->pileta,
-            'publico' => $this->publico,
-            'cantidad' => $this->cantidad,
+            'fecha_vuelta' => $this->fechaVuelta?->format('Y-m-d'),
+            'precio' => $this->precio,
+            'disponible' => $this->disponible,
             'creado_por' => [
                 'id' => $this->creadoPor->id(),
                 'nombre' => $this->creadoPor->nombre(),
                 'apellido' => $this->creadoPor->apellido(),
                 'email' => $this->creadoPor->email(),
             ],
-            'actualizado_por' => [
+            'actualizado_por' => $this->actualizadoPor !== null ? [
                 'id' => $this->actualizadoPor->id(),
                 'nombre' => $this->actualizadoPor->nombre(),
                 'apellido' => $this->actualizadoPor->apellido(),
                 'email' => $this->actualizadoPor->email(),
-            ],
+            ] : null,
+            'destinos' => array_values($destinosArray),
             'hoteles' => $hotelesArray,
-            'fecha_creacion' => $this->fechaCreacion->format('Y-m-d H:i:s'),
-            'fecha_actualizacion' => $this->fechaActualizacion?->format('Y-m-d H:i:s'),
+            'destino_nombre' => implode(' / ', $destinoNombres),
+            'fecha_creacion' => $this->fechaCreacion()->format('Y-m-d H:i:s'),
+            'fecha_actualizacion' => $this->fechaActualizacion()->format('Y-m-d H:i:s'),
         ];
     }
 
@@ -307,8 +222,8 @@ final class Paquete
             throw new \InvalidArgumentException("El campo {$campo} es obligatorio.");
         }
 
-        if ($campo === 'nombre_paquete' && mb_strlen($valor) > 150) {
-            throw new \InvalidArgumentException("El campo {$campo} no puede superar 150 caracteres.");
+        if (mb_strlen($valor) > 200) {
+            throw new \InvalidArgumentException("El campo {$campo} no puede superar 200 caracteres.");
         }
     }
 
