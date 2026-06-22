@@ -169,6 +169,77 @@ final class CrearPaqueteUseCaseTest extends TestCase
         $this->assertSame($usuario, $paquete->creadoPor());
     }
 
+    public function test_execute_crea_paquete_con_imagen_secundaria(): void
+    {
+        $usuario = PaqueteFixtures::usuarioAdmin();
+        $hotel = PaqueteFixtures::hotelUno();
+
+        $this->usuarioRepo
+            ->method('findById')
+            ->with(1)
+            ->willReturn($usuario);
+
+        $this->hotelRepo
+            ->method('findById')
+            ->with(1)
+            ->willReturn($hotel);
+
+        $this->paqueteRepo->expects($this->once())->method('save');
+
+        $input = new CrearPaqueteInput(
+            nombre: 'Paquete con Imagen Secundaria',
+            descripcion: 'Descripción',
+            fechaPartida: new \DateTimeImmutable('2026-07-15'),
+            fechaVuelta: new \DateTimeImmutable('2026-07-22'),
+            precio: '1500.00',
+            disponible: true,
+            usuarioResponsableId: 1,
+            hotelesIds: [1],
+            imagenSecundaria: '/uploads/paquetes/secundaria.jpg',
+        );
+
+        $paquete = $this->useCase->execute($input);
+
+        $this->assertSame('/uploads/paquetes/secundaria.jpg', $paquete->imagenSecundaria());
+        $this->assertSame($usuario, $paquete->creadoPor());
+        $this->assertCount(1, $paquete->hoteles());
+    }
+
+    public function test_execute_crea_paquete_sin_imagen_secundaria(): void
+    {
+        $usuario = PaqueteFixtures::usuarioAdmin();
+        $hotel = PaqueteFixtures::hotelUno();
+
+        $this->usuarioRepo
+            ->method('findById')
+            ->with(1)
+            ->willReturn($usuario);
+
+        $this->hotelRepo
+            ->method('findById')
+            ->with(1)
+            ->willReturn($hotel);
+
+        $this->paqueteRepo->expects($this->once())->method('save');
+
+        $input = new CrearPaqueteInput(
+            nombre: 'Paquete sin Imagen Secundaria',
+            descripcion: 'Descripción',
+            fechaPartida: new \DateTimeImmutable('2026-07-15'),
+            fechaVuelta: new \DateTimeImmutable('2026-07-22'),
+            precio: '1500.00',
+            disponible: true,
+            usuarioResponsableId: 1,
+            hotelesIds: [1],
+        );
+
+        $paquete = $this->useCase->execute($input);
+
+        $this->assertNull($paquete->imagenSecundaria());
+        $this->assertSame($usuario, $paquete->creadoPor());
+        $this->assertCount(1, $paquete->hoteles());
+    }
+
     public function test_execute_verifica_destino_a_traves_del_hotel(): void
     {
         $usuario = PaqueteFixtures::usuarioAdmin();

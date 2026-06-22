@@ -49,6 +49,7 @@ final class CrearPaqueteUseCase
             disponible: $input->disponible,
             creadoPor: $usuario,
             imagenPrincipal: $input->imagenPrincipal,
+            imagenSecundaria: $input->imagenSecundaria,
         );
 
         $paquete->syncHoteles($hoteles);

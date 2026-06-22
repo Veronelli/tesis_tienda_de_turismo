@@ -33,7 +33,7 @@ class PaqueteService
         $this->actualizarPaquete = new ActualizarPaqueteUseCase($paquetes, $hoteles, $usuarios);
     }
 
-    /** @param array{nombre:string,descripcion?:string,imagen_principal?:string|null,fecha_partida:string,fecha_vuelta?:string,precio:string|float,disponible:bool,usuario_responsable_id:int,hoteles_ids:list<int>} $datos */
+    /** @param array{nombre:string,descripcion?:string,imagen_principal?:string|null,imagen_secundaria?:string|null,fecha_partida:string,fecha_vuelta?:string,precio:string|float,disponible:bool,usuario_responsable_id:int,hoteles_ids:list<int>} $datos */
     public function crear(array $datos): array
     {
         $paquete = $this->crearPaquete->execute(new CrearPaqueteInput(
@@ -46,6 +46,7 @@ class PaqueteService
             usuarioResponsableId: (int) $datos['usuario_responsable_id'],
             hotelesIds: $this->parseHotelesIds($datos['hoteles_ids'] ?? []),
             imagenPrincipal: $datos['imagen_principal'] ?? null,
+            imagenSecundaria: $datos['imagen_secundaria'] ?? null,
         ));
 
         return $this->serializarPaquete($paquete);
@@ -62,7 +63,7 @@ class PaqueteService
         return $this->serializarPaquete($paquete);
     }
 
-    /** @param array{id:int,nombre:string,descripcion?:string,imagen_principal?:string|null,fecha_partida:string,fecha_vuelta?:string,precio:string|float,disponible:bool,usuario_responsable_id:int,hoteles_ids:list<int>} $datos */
+    /** @param array{id:int,nombre:string,descripcion?:string,imagen_principal?:string|null,imagen_secundaria?:string|null,fecha_partida:string,fecha_vuelta?:string,precio:string|float,disponible:bool,usuario_responsable_id:int,hoteles_ids:list<int>} $datos */
     public function actualizar(array $datos): array
     {
         $paquete = $this->actualizarPaquete->execute(new ActualizarPaqueteInput(
@@ -76,6 +77,7 @@ class PaqueteService
             usuarioResponsableId: (int) $datos['usuario_responsable_id'],
             hotelesIds: $this->parseHotelesIds($datos['hoteles_ids'] ?? []),
             imagenPrincipal: $datos['imagen_principal'] ?? null,
+            imagenSecundaria: $datos['imagen_secundaria'] ?? null,
         ));
 
         return $this->serializarPaquete($paquete);
