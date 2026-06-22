@@ -55,6 +55,7 @@ final class ActualizarPaqueteUseCase
             disponible: $input->disponible,
             actualizadoPor: $usuario,
             imagenPrincipal: $input->imagenPrincipal,
+            imagenSecundaria: $input->imagenSecundaria,
         );
 
         $paquete->syncHoteles($hoteles);

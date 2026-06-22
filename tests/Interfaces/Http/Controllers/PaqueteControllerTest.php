@@ -37,7 +37,7 @@ final class PaqueteControllerTest extends TestCase
         $this->paqueteService
             ->method('listar')
             ->with([])
-            ->willReturn([['id' => 1, 'nombre' => 'Paquete Test']]);
+            ->willReturn([['id' => 1, 'nombre' => 'Paquete Test', 'imagen_secundaria' => null]]);
 
         $request = new Request();
         $response = $this->controller->listar($request);
@@ -46,6 +46,7 @@ final class PaqueteControllerTest extends TestCase
         $content = json_decode((string) $response->getContent(), true);
         $this->assertCount(1, $content);
         $this->assertSame('Paquete Test', $content[0]['nombre']);
+        $this->assertArrayHasKey('imagen_secundaria', $content[0]);
     }
 
     public function test_listar_con_filtro_nombre(): void
@@ -123,7 +124,7 @@ final class PaqueteControllerTest extends TestCase
         $this->paqueteService
             ->method('obtenerPorId')
             ->with(1)
-            ->willReturn(['id' => 1, 'nombre' => 'Paquete Test']);
+            ->willReturn(['id' => 1, 'nombre' => 'Paquete Test', 'imagen_secundaria' => null]);
 
         $request = new Request();
         $response = $this->controller->obtenerPorId($request, ['id' => '1']);
@@ -131,6 +132,7 @@ final class PaqueteControllerTest extends TestCase
         $this->assertSame(200, $response->getStatusCode());
         $content = json_decode((string) $response->getContent(), true);
         $this->assertSame('Paquete Test', $content['nombre']);
+        $this->assertArrayHasKey('imagen_secundaria', $content);
     }
 
     public function test_obtenerPorId_retorna_404_si_no_existe(): void
@@ -152,7 +154,7 @@ final class PaqueteControllerTest extends TestCase
     {
         $this->paqueteService
             ->method('crear')
-            ->willReturn(['id' => 1, 'nombre' => 'Paquete Nuevo']);
+            ->willReturn(['id' => 1, 'nombre' => 'Paquete Nuevo', 'imagen_secundaria' => null]);
 
         $request = new Request(
             [],
@@ -180,6 +182,7 @@ final class PaqueteControllerTest extends TestCase
         $this->assertSame(201, $response->getStatusCode());
         $content = json_decode((string) $response->getContent(), true);
         $this->assertSame('Paquete Nuevo', $content['nombre']);
+        $this->assertArrayHasKey('imagen_secundaria', $content);
     }
 
     public function test_crear_con_datos_invalidos_retorna_400(): void
@@ -384,6 +387,7 @@ final class PaqueteControllerTest extends TestCase
         $this->assertSame(400, $response->getStatusCode());
     }
 
+<<<<<<< HEAD
     public function test_eliminar_retorna_200(): void
     {
         $this->paqueteService
@@ -413,6 +417,60 @@ final class PaqueteControllerTest extends TestCase
             ->method('eliminar')
             ->with(999, 1)
             ->willThrowException(new \RuntimeException('Paquete no encontrado.'));
+=======
+    public function test_listar_retorna_paquetes_con_imagen_secundaria(): void
+    {
+        $this->paqueteService
+            ->method('listar')
+            ->with([])
+            ->willReturn([[
+                'id' => 1,
+                'nombre' => 'Paquete Test',
+                'imagen_principal' => '/uploads/paquetes/principal.jpg',
+                'imagen_secundaria' => '/uploads/paquetes/secundaria.jpg',
+            ]]);
+
+        $request = new Request();
+        $response = $this->controller->listar($request);
+
+        $this->assertSame(200, $response->getStatusCode());
+        $content = json_decode((string) $response->getContent(), true);
+        $this->assertSame('/uploads/paquetes/secundaria.jpg', $content[0]['imagen_secundaria']);
+        $this->assertSame('/uploads/paquetes/principal.jpg', $content[0]['imagen_principal']);
+    }
+
+    public function test_obtenerPorId_retorna_paquete_con_imagen_secundaria(): void
+    {
+        $this->paqueteService
+            ->method('obtenerPorId')
+            ->with(1)
+            ->willReturn([
+                'id' => 1,
+                'nombre' => 'Paquete Test',
+                'imagen_principal' => '/uploads/paquetes/principal.jpg',
+                'imagen_secundaria' => '/uploads/paquetes/secundaria.jpg',
+            ]);
+
+        $request = new Request();
+        $response = $this->controller->obtenerPorId($request, ['id' => '1']);
+
+        $this->assertSame(200, $response->getStatusCode());
+        $content = json_decode((string) $response->getContent(), true);
+        $this->assertSame('/uploads/paquetes/secundaria.jpg', $content['imagen_secundaria']);
+        $this->assertSame('/uploads/paquetes/principal.jpg', $content['imagen_principal']);
+    }
+
+    public function test_crear_retorna_paquete_con_imagen_secundaria(): void
+    {
+        $this->paqueteService
+            ->method('crear')
+            ->willReturn([
+                'id' => 1,
+                'nombre' => 'Paquete Nuevo',
+                'imagen_principal' => '/uploads/paquetes/principal.jpg',
+                'imagen_secundaria' => '/uploads/paquetes/secundaria.jpg',
+            ]);
+>>>>>>> back_dashboard_paquetes
 
         $request = new Request(
             [],
@@ -420,6 +478,7 @@ final class PaqueteControllerTest extends TestCase
             [],
             [],
             [],
+<<<<<<< HEAD
             ['HTTP_AUTHORIZATION' => 'Bearer ' . $this->tokenValido],
         );
 
@@ -428,5 +487,67 @@ final class PaqueteControllerTest extends TestCase
         $this->assertSame(404, $response->getStatusCode());
         $content = json_decode((string) $response->getContent(), true);
         $this->assertSame('Paquete no encontrado.', $content['error']);
+=======
+            [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_AUTHORIZATION' => 'Bearer ' . $this->tokenValido,
+            ],
+            json_encode([
+                'nombre' => 'Paquete Nuevo',
+                'descripcion' => 'Descripción',
+                'fecha_partida' => '2026-07-15',
+                'fecha_vuelta' => '2026-07-22',
+                'precio' => 1500.00,
+                'disponible' => true,
+                'hoteles_ids' => [1],
+                'imagen_secundaria' => '/uploads/paquetes/secundaria.jpg',
+            ]),
+        );
+
+        $response = $this->controller->crear($request);
+
+        $this->assertSame(201, $response->getStatusCode());
+        $content = json_decode((string) $response->getContent(), true);
+        $this->assertSame('/uploads/paquetes/secundaria.jpg', $content['imagen_secundaria']);
+        $this->assertSame('/uploads/paquetes/principal.jpg', $content['imagen_principal']);
+    }
+
+    public function test_actualizar_retorna_paquete_con_imagen_secundaria(): void
+    {
+        $this->paqueteService
+            ->method('actualizar')
+            ->willReturn([
+                'id' => 1,
+                'nombre' => 'Paquete Actualizado',
+                'imagen_principal' => '/uploads/paquetes/principal.jpg',
+                'imagen_secundaria' => '/uploads/paquetes/secundaria.jpg',
+            ]);
+
+        $request = new Request(
+            [],
+            [],
+            [],
+            [],
+            [],
+            [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_AUTHORIZATION' => 'Bearer ' . $this->tokenValido,
+            ],
+            json_encode([
+                'nombre' => 'Paquete Actualizado',
+                'fecha_partida' => '2026-08-01',
+                'precio' => 2000.00,
+                'hoteles_ids' => [1],
+                'imagen_secundaria' => '/uploads/paquetes/secundaria.jpg',
+            ]),
+        );
+
+        $response = $this->controller->actualizar($request, ['id' => '1']);
+
+        $this->assertSame(200, $response->getStatusCode());
+        $content = json_decode((string) $response->getContent(), true);
+        $this->assertSame('/uploads/paquetes/secundaria.jpg', $content['imagen_secundaria']);
+        $this->assertSame('/uploads/paquetes/principal.jpg', $content['imagen_principal']);
+>>>>>>> back_dashboard_paquetes
     }
 }

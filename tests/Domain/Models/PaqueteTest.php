@@ -129,6 +129,7 @@ final class PaqueteTest extends TestCase
         $this->assertArrayHasKey('descripcion', $arr);
         $this->assertArrayHasKey('fecha_partida', $arr);
         $this->assertArrayHasKey('fecha_vuelta', $arr);
+        $this->assertArrayHasKey('imagen_secundaria', $arr);
         $this->assertArrayHasKey('precio', $arr);
         $this->assertArrayHasKey('disponible', $arr);
         $this->assertArrayHasKey('creado_por', $arr);
@@ -244,6 +245,125 @@ final class PaqueteTest extends TestCase
 
         $this->assertArrayHasKey('imagen_principal', $arr);
         $this->assertNull($arr['imagen_principal']);
+    }
+
+    public function test_constructor_con_imagen_principal_e_imagen_secundaria(): void
+    {
+        $paquete = new Paquete(
+            nombre: 'Paquete con Imagenes',
+            descripcion: null,
+            fechaPartida: new \DateTimeImmutable('2026-07-15'),
+            fechaVuelta: null,
+            precio: '100',
+            disponible: true,
+            creadoPor: $this->usuario,
+            imagenPrincipal: '/uploads/paquetes/principal.jpg',
+            imagenSecundaria: '/uploads/paquetes/secundaria.jpg',
+        );
+
+        $this->assertSame('/uploads/paquetes/principal.jpg', $paquete->imagenPrincipal());
+        $this->assertSame('/uploads/paquetes/secundaria.jpg', $paquete->imagenSecundaria());
+    }
+
+    public function test_constructor_sin_imagen_secundaria_por_defecto(): void
+    {
+        $this->assertNull($this->paquete->imagenSecundaria());
+    }
+
+    public function test_update_agrega_imagen_secundaria(): void
+    {
+        $this->paquete->update(
+            nombre: 'Paquete Modificado',
+            descripcion: 'Nueva descripción',
+            fechaPartida: new \DateTimeImmutable('2026-08-01'),
+            fechaVuelta: new \DateTimeImmutable('2026-08-10'),
+            precio: '2000.00',
+            disponible: false,
+            actualizadoPor: $this->usuario,
+            imagenSecundaria: '/uploads/paquetes/secundaria.jpg',
+        );
+
+        $this->assertSame('/uploads/paquetes/secundaria.jpg', $this->paquete->imagenSecundaria());
+    }
+
+    public function test_update_conserva_imagen_secundaria_si_no_se_envia(): void
+    {
+        $paquete = new Paquete(
+            nombre: 'Test',
+            descripcion: null,
+            fechaPartida: new \DateTimeImmutable('2026-07-15'),
+            fechaVuelta: null,
+            precio: '100',
+            disponible: true,
+            creadoPor: $this->usuario,
+            imagenSecundaria: '/uploads/paquetes/existente.jpg',
+        );
+
+        $paquete->update(
+            nombre: 'Test Actualizado',
+            descripcion: null,
+            fechaPartida: new \DateTimeImmutable('2026-07-15'),
+            fechaVuelta: null,
+            precio: '100',
+            disponible: true,
+            actualizadoPor: $this->usuario,
+        );
+
+        $this->assertSame('/uploads/paquetes/existente.jpg', $paquete->imagenSecundaria());
+    }
+
+    public function test_update_reemplaza_imagen_secundaria(): void
+    {
+        $paquete = new Paquete(
+            nombre: 'Test',
+            descripcion: null,
+            fechaPartida: new \DateTimeImmutable('2026-07-15'),
+            fechaVuelta: null,
+            precio: '100',
+            disponible: true,
+            creadoPor: $this->usuario,
+            imagenSecundaria: '/uploads/paquetes/vieja.jpg',
+        );
+
+        $paquete->update(
+            nombre: 'Test',
+            descripcion: null,
+            fechaPartida: new \DateTimeImmutable('2026-07-15'),
+            fechaVuelta: null,
+            precio: '100',
+            disponible: true,
+            actualizadoPor: $this->usuario,
+            imagenSecundaria: '/uploads/paquetes/nueva.jpg',
+        );
+
+        $this->assertSame('/uploads/paquetes/nueva.jpg', $paquete->imagenSecundaria());
+    }
+
+    public function test_toArray_incluye_imagen_secundaria(): void
+    {
+        $paquete = new Paquete(
+            nombre: 'Test',
+            descripcion: null,
+            fechaPartida: new \DateTimeImmutable('2026-07-15'),
+            fechaVuelta: null,
+            precio: '100',
+            disponible: true,
+            creadoPor: $this->usuario,
+            imagenSecundaria: '/uploads/paquetes/secundaria.jpg',
+        );
+
+        $arr = $paquete->toArray();
+
+        $this->assertArrayHasKey('imagen_secundaria', $arr);
+        $this->assertSame('/uploads/paquetes/secundaria.jpg', $arr['imagen_secundaria']);
+    }
+
+    public function test_toArray_imagen_secundaria_null_cuando_no_hay_imagen(): void
+    {
+        $arr = $this->paquete->toArray();
+
+        $this->assertArrayHasKey('imagen_secundaria', $arr);
+        $this->assertNull($arr['imagen_secundaria']);
     }
 
     public function test_constructor_lanza_excepcion_si_nombre_vacio(): void

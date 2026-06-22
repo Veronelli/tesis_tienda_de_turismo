@@ -173,6 +173,7 @@ final class CrearPaqueteUseCaseTest extends TestCase
         $this->assertSame($usuario, $paquete->creadoPor());
     }
 
+<<<<<<< HEAD
     public function test_execute_no_crea_usuario_nuevo(): void
     {
         $usuario = PaqueteFixtures::usuarioAdmin();
@@ -238,6 +239,9 @@ final class CrearPaqueteUseCaseTest extends TestCase
     }
 
     public function test_execute_crea_paquete_con_imagen(): void
+=======
+    public function test_execute_crea_paquete_con_imagen_secundaria(): void
+>>>>>>> back_dashboard_paquetes
     {
         $usuario = PaqueteFixtures::usuarioAdmin();
         $hotel = PaqueteFixtures::hotelUno();
@@ -253,6 +257,7 @@ final class CrearPaqueteUseCaseTest extends TestCase
             ->willReturn($hotel);
 
         $this->paqueteRepo->expects($this->once())->method('save');
+<<<<<<< HEAD
         $this->usuarioRepo->expects($this->never())->method('save');
         $this->hotelRepo->expects($this->never())->method('save');
 
@@ -266,14 +271,36 @@ final class CrearPaqueteUseCaseTest extends TestCase
             usuarioResponsableId: 1,
             hotelesIds: [1],
             imagenPrincipal: 'uploads/paquetes/imagen.jpg',
+=======
+
+        $input = new CrearPaqueteInput(
+            nombre: 'Paquete con Imagen Secundaria',
+            descripcion: 'Descripción',
+            fechaPartida: new \DateTimeImmutable('2026-07-15'),
+            fechaVuelta: new \DateTimeImmutable('2026-07-22'),
+            precio: '1500.00',
+            disponible: true,
+            usuarioResponsableId: 1,
+            hotelesIds: [1],
+            imagenSecundaria: '/uploads/paquetes/secundaria.jpg',
+>>>>>>> back_dashboard_paquetes
         );
 
         $paquete = $this->useCase->execute($input);
 
+<<<<<<< HEAD
         $this->assertSame('uploads/paquetes/imagen.jpg', $paquete->imagenPrincipal());
     }
 
     public function test_execute_crea_paquete_sin_imagen(): void
+=======
+        $this->assertSame('/uploads/paquetes/secundaria.jpg', $paquete->imagenSecundaria());
+        $this->assertSame($usuario, $paquete->creadoPor());
+        $this->assertCount(1, $paquete->hoteles());
+    }
+
+    public function test_execute_crea_paquete_sin_imagen_secundaria(): void
+>>>>>>> back_dashboard_paquetes
     {
         $usuario = PaqueteFixtures::usuarioAdmin();
         $hotel = PaqueteFixtures::hotelUno();
@@ -289,6 +316,7 @@ final class CrearPaqueteUseCaseTest extends TestCase
             ->willReturn($hotel);
 
         $this->paqueteRepo->expects($this->once())->method('save');
+<<<<<<< HEAD
         $this->usuarioRepo->expects($this->never())->method('save');
         $this->hotelRepo->expects($this->never())->method('save');
 
@@ -298,6 +326,15 @@ final class CrearPaqueteUseCaseTest extends TestCase
             fechaPartida: new \DateTimeImmutable('2026-07-15'),
             fechaVuelta: null,
             precio: '1000.00',
+=======
+
+        $input = new CrearPaqueteInput(
+            nombre: 'Paquete sin Imagen Secundaria',
+            descripcion: 'Descripción',
+            fechaPartida: new \DateTimeImmutable('2026-07-15'),
+            fechaVuelta: new \DateTimeImmutable('2026-07-22'),
+            precio: '1500.00',
+>>>>>>> back_dashboard_paquetes
             disponible: true,
             usuarioResponsableId: 1,
             hotelesIds: [1],
@@ -305,7 +342,13 @@ final class CrearPaqueteUseCaseTest extends TestCase
 
         $paquete = $this->useCase->execute($input);
 
+<<<<<<< HEAD
         $this->assertNull($paquete->imagenPrincipal());
+=======
+        $this->assertNull($paquete->imagenSecundaria());
+        $this->assertSame($usuario, $paquete->creadoPor());
+        $this->assertCount(1, $paquete->hoteles());
+>>>>>>> back_dashboard_paquetes
     }
 
     public function test_execute_verifica_destino_a_traves_del_hotel(): void
