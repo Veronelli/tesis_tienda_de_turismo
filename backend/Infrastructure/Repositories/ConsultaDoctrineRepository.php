@@ -72,6 +72,7 @@ final class ConsultaDoctrineRepository extends BaseRepository implements Consult
                     $qb->expr()->like('cli.nombre', ':cliente'),
                     $qb->expr()->like('cli.apellido', ':cliente'),
                     $qb->expr()->like('cli.email', ':cliente'),
+                    $qb->expr()->like('cli.dni', ':cliente'),
                 )
             )->setParameter('cliente', '%' . $filtros['cliente'] . '%');
         }
