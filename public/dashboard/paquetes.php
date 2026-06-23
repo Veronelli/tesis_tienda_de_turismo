@@ -119,19 +119,6 @@ require_once __DIR__ . '/components/page-header.php';
           </div>
         </div>
       </div>
-      <div class="form-group">
-        <label>Imagen secundaria (opcional)</label>
-        <div class="image-upload-row">
-          <div class="image-upload">
-            <div class="preview" id="previewImagenSecundaria" onclick="document.getElementById('imagenSecundariaInput').click()" style="cursor:pointer;position:relative;">
-              <span>+</span>
-            </div>
-            <input type="file" id="imagenSecundariaInput" accept="image/jpeg,image/png,image/webp" onchange="previewImagenSecundaria(this)">
-            <label class="upload-label" for="imagenSecundariaInput">Seleccionar imagen</label>
-            <button class="btn btn-ghost btn-sm" type="button" id="btnQuitarImagenSecundaria" onclick="quitarImagenSecundaria()" style="display:none;margin-top:6px;">Quitar imagen secundaria</button>
-          </div>
-        </div>
-      </div>
       <div id="errorValidacion" style="color:var(--status-cancelada);font-size:0.83rem;margin-bottom:12px;display:none;"></div>
     </div>
     <div class="modal-footer">
@@ -214,26 +201,22 @@ require_once __DIR__ . '/components/page-header.php';
 .btn-danger:hover { background: #b91c1c; }
 
 /* Preview de imagen: que se adapte a la imagen sin dejar bordes vacios */
-#previewImagen,
-#previewImagenSecundaria {
+#previewImagen {
   overflow: hidden;
 }
-#previewImagen:not(.sin-imagen),
-#previewImagenSecundaria:not(.sin-imagen) {
+#previewImagen:not(.sin-imagen) {
   aspect-ratio: auto;
   border: 1px solid var(--border);
   background: transparent;
   padding: 4px;
 }
-#previewImagen img,
-#previewImagenSecundaria img {
+#previewImagen img {
   display: block;
   width: 100%;
   height: auto;
   border-radius: 4px;
 }
-#previewImagen.sin-imagen,
-#previewImagenSecundaria.sin-imagen {
+#previewImagen.sin-imagen {
   aspect-ratio: 16/9;
   display: flex;
   align-items: center;
@@ -474,11 +457,6 @@ function abrirModalCrear() {
   preview.className = 'preview sin-imagen';
   document.getElementById('imagenInput').value = '';
   document.getElementById('btnQuitarImagen').style.display = 'none';
-  const previewSec = document.getElementById('previewImagenSecundaria');
-  previewSec.innerHTML = '<span>+</span>';
-  previewSec.className = 'preview sin-imagen';
-  document.getElementById('imagenSecundariaInput').value = '';
-  document.getElementById('btnQuitarImagenSecundaria').style.display = 'none';
   document.getElementById('errorValidacion').style.display = 'none';
   document.getElementById('btnGuardarPaquete').textContent = 'Guardar';
   document.getElementById('buscarHoteles').value = '';
@@ -516,17 +494,6 @@ function abrirModalEditar(id) {
   }
   document.getElementById('imagenInput').value = '';
   document.getElementById('btnQuitarImagen').style.display = 'none';
-
-  const previewSec = document.getElementById('previewImagenSecundaria');
-  if (p.imagen_secundaria) {
-    previewSec.innerHTML = '<img src="' + BASE + p.imagen_secundaria + '" alt="Imagen secundaria actual">';
-    previewSec.className = 'preview';
-  } else {
-    previewSec.innerHTML = '<span>+</span>';
-    previewSec.className = 'preview sin-imagen';
-  }
-  document.getElementById('imagenSecundariaInput').value = '';
-  document.getElementById('btnQuitarImagenSecundaria').style.display = 'none';
 
   cargarHoteles().then(() => {
     const select = document.getElementById('paqueteHoteles');
@@ -574,35 +541,6 @@ function quitarImagen() {
   document.getElementById('btnQuitarImagen').style.display = 'none';
 }
 
-function previewImagenSecundaria(input) {
-  const preview = document.getElementById('previewImagenSecundaria');
-  const btnQuitar = document.getElementById('btnQuitarImagenSecundaria');
-  if (input.files && input.files[0]) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      preview.innerHTML = '<img src="' + e.target.result + '" alt="Preview secundaria">';
-      preview.className = 'preview';
-      btnQuitar.style.display = 'inline-flex';
-    };
-    reader.readAsDataURL(input.files[0]);
-  }
-}
-
-function quitarImagenSecundaria() {
-  document.getElementById('imagenSecundariaInput').value = '';
-  const p = editandoId ? paquetesData.find(pkg => pkg.id === editandoId) : null;
-  const preview = document.getElementById('previewImagenSecundaria');
-  if (p && p.imagen_secundaria) {
-    const BASE = API_BASE.replace('/api', '');
-    preview.innerHTML = '<img src="' + BASE + p.imagen_secundaria + '" alt="Imagen secundaria actual">';
-    preview.className = 'preview';
-  } else {
-    preview.innerHTML = '<span>+</span>';
-    preview.className = 'preview sin-imagen';
-  }
-  document.getElementById('btnQuitarImagenSecundaria').style.display = 'none';
-}
-
 // ----- Guardar -----
 
 async function guardarPaquete() {
@@ -648,10 +586,6 @@ async function guardarPaquete() {
   formData.append('hoteles_ids', JSON.stringify(hotelesIds));
   if (imagenInput.files && imagenInput.files[0]) {
     formData.append('imagen_principal', imagenInput.files[0]);
-  }
-  const imagenSecundariaInput = document.getElementById('imagenSecundariaInput');
-  if (imagenSecundariaInput.files && imagenSecundariaInput.files[0]) {
-    formData.append('imagen_secundaria', imagenSecundariaInput.files[0]);
   }
 
   const btn = document.getElementById('btnGuardarPaquete');
