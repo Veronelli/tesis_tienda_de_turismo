@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Consulta Enviada — Tienda De Turismo</title>
+  <link rel="stylesheet" href="dashboard/css/style.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f0ebe5;
+      color: #1a1a2e;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .topbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 52px;
+      z-index: 120;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 12px;
+      padding: 0 14px;
+      background: #fbf3e5;
+      border-bottom: 1px solid rgba(26, 26, 46, 0.06);
+    }
+
+    .topbar__left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .topbar__title {
+      margin: 0;
+      color: #1a1a2e;
+      font-size: 1.45rem;
+      font-weight: 500;
+      line-height: 1;
+    }
+
+    .topbar__logo {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 35% 35%, #35b7ff 0 20%, #8fd14f 21% 42%, #ffb000 43% 68%, #f98a1f 69% 100%);
+      color: #1a1a2e;
+      font-size: 0.42rem;
+      font-weight: 700;
+      text-align: center;
+      line-height: 0.85;
+    }
+
+    .page-wrap {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 68px 16px 48px;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="topbar__left">
+      <div class="topbar__logo" aria-hidden="true">Tienda de<br>Turismo</div>
+    </div>
+    <h1 class="topbar__title">Tienda de Turismo</h1>
+  </header>
+
+<div class="page-wrap">
+
+  <div class="success-page" style="min-height:auto;padding:0;">
+    <div class="success-card">
+      <div class="icon">&#10003;</div>
+      <h2>Consulta enviada</h2>
+      <p>Gracias por contactarte con nosotros. Vamos a revisar tu consulta y te responderemos a la brevedad.</p>
+
+      <div class="summary" id="resumen-paquete">
+        <div class="loading" id="loading-resumen" style="padding:12px;">
+          <div class="spinner"></div>
+          <span style="font-size:0.82rem;">Cargando resumen del paquete...</span>
+        </div>
+      </div>
+
+      <a href="buscar-paquetes.html" class="btn btn-primary" style="text-decoration:none;">Volver a paquetes</a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const API_BASE = (() => {
+    const p = window.location.pathname;
+    const i = p.lastIndexOf('/');
+    return p.substring(0, i) + '/api';
+  })();
+
+  const paqueteId = new URLSearchParams(window.location.search).get('id');
+
+  function escapeHtml(text) {
+    if (!text) return '';
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+    return String(text).replace(/[&<>"']/g, c => map[c]);
+  }
+
+  async function cargarResumen() {
+    if (!paqueteId) {
+      document.getElementById('resumen-paquete').innerHTML = '';
+      return;
+    }
+    try {
+      const res = await fetch(API_BASE + '/paquetes/' + paqueteId);
+      const p = await res.json();
+      if (!res.ok) throw new Error(p.error || 'Error');
+      document.getElementById('resumen-paquete').innerHTML =
+        '<div><span class="label">Paquete:</span> ' + escapeHtml(p.nombre) + '</div>' +
+        '<div><span class="label">Precio:</span> $' + Number(p.precio).toLocaleString('es-AR') + '</div>' +
+        (p.fecha_partida ? '<div><span class="label">Partida:</span> ' + escapeHtml(p.fecha_partida) + '</div>' : '');
+    } catch (e) {
+      document.getElementById('resumen-paquete').innerHTML = '';
+    }
+  }
+
+  cargarResumen();
+</script>
+
+</body>
+</html>
