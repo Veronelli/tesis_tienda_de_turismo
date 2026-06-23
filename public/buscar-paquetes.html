@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buscar Paquetes — Tienda De Turismo</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f0ebe5;
+      color: #1a1a2e;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+
+    .topbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 52px;
+      z-index: 120;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 12px;
+      padding: 0 14px;
+      background: #fbf3e5;
+      border-bottom: 1px solid rgba(26, 26, 46, 0.06);
+    }
+
+    .topbar__left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .topbar__title {
+      margin: 0;
+      color: #1a1a2e;
+      font-size: 1.45rem;
+      font-weight: 500;
+      line-height: 1;
+    }
+
+    .topbar__logo {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 35% 35%, #35b7ff 0 20%, #8fd14f 21% 42%, #ffb000 43% 68%, #f98a1f 69% 100%);
+      color: #1a1a2e;
+      font-size: 0.42rem;
+      font-weight: 700;
+      text-align: center;
+      line-height: 0.85;
+    }
+
+    .page-wrap {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 68px 16px 48px;
+    }
+
+    /* ── Filtros ── */
+    .filter-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 22px 20px 18px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+      margin-bottom: 24px;
+    }
+    .filter-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .filter-row .field {
+      flex: 1;
+      min-width: 140px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .filter-row .field label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: #78716c;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .filter-row .field input,
+    .filter-row .field select {
+      padding: 8px 12px;
+      border: 1px solid #bccad8;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-family: inherit;
+      color: #1a1a2e;
+      background: #fff;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .filter-row .field input:focus,
+    .filter-row .field select:focus {
+      border-color: #ff7c00;
+      box-shadow: 0 0 0 3px rgba(255,124,0,0.1);
+    }
+    .filter-row .field input::placeholder { color: #aaa; }
+
+    .filter-card .btn-wrap {
+      text-align: center;
+      margin-top: 16px;
+    }
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 28px;
+      border: none;
+      border-radius: 6px;
+      background: #ff7c00;
+      color: #fff;
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-primary:hover { background: #e06e00; }
+
+    .btn-sm {
+      padding: 6px 16px;
+      font-size: 0.8rem;
+      border-radius: 100px;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    /* ── Resultados header ── */
+    .results-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .results-header h2 {
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: #1a1a2e;
+    }
+    .results-header select {
+      padding: 5px 10px;
+      border: 1px solid #bccad8;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-family: inherit;
+      color: #1a1a2e;
+      background: #fff;
+      outline: none;
+      cursor: pointer;
+    }
+    .results-header select:focus { border-color: #ff7c00; }
+
+    /* ── Tarjetas (grid como el dashboard) ── */
+    .pkg-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .pkg-card {
+      background: #fff;
+      border: 1px solid #d5dde5;
+      border-radius: 8px;
+      overflow: hidden;
+      transition: box-shadow 0.15s;
+    }
+
+    .pkg-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+
+    .pkg-card__img {
+      width: 100%;
+      height: 160px;
+      background: #f0ebe5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #78716c;
+      font-size: 0.75rem;
+      overflow: hidden;
+    }
+    .pkg-card__img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .pkg-card__img .placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      opacity: 0.5;
+    }
+
+    .pkg-card__body { padding: 16px 20px 20px; }
+    .pkg-card__body .name { font-size: 1rem; font-weight: 700; color: #1a1a2e; }
+    .pkg-card__body .hotel { font-size: 0.85rem; color: #78716c; margin-top: 4px; }
+    .pkg-card__body .details { margin-top: 8px; font-size: 0.8rem; color: #78716c; }
+    .pkg-card__body .price { font-size: 1.1rem; font-weight: 700; color: #ff7c00; margin-top: 8px; }
+    .pkg-card__body .actions { margin-top: 12px; }
+
+    .loading { display: flex; align-items: center; justify-content: center; padding: 40px; color: #78716c; gap: 8px; font-size: 0.85rem; }
+    .spinner { width: 18px; height: 18px; border: 2px solid #d5dde5; border-top-color: #ff7c00; border-radius: 50%; animation: spin 0.5s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .empty-state { text-align: center; padding: 40px 20px; color: #78716c; font-size: 0.88rem; }
+  </style>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="topbar__left">
+      <div class="topbar__logo" aria-hidden="true">Tienda de<br>Turismo</div>
+    </div>
+    <h1 class="topbar__title">Tienda de Turismo</h1>
+  </header>
+
+<div class="page-wrap">
+
+  <!-- Filtros -->
+  <div class="filter-card">
+    <div class="filter-row">
+      <div class="field">
+        <label for="filtro-destino">Destino</label>
+        <input type="text" id="filtro-destino" placeholder="ej: Bariloche">
+      </div>
+      <div class="field">
+        <label for="filtro-hotel">Hotel</label>
+        <input type="text" id="filtro-hotel" placeholder="ej: Hilton">
+      </div>
+      <div class="field">
+        <label for="filtro-fecha">Fecha</label>
+        <input type="date" id="filtro-fecha">
+      </div>
+    </div>
+    <div class="btn-wrap">
+      <button class="btn-primary" id="btn-buscar" type="button">Buscar paquetes</button>
+    </div>
+  </div>
+
+  <!-- Resultados -->
+  <div class="results-header">
+    <h2>Paquetes disponibles</h2>
+    <select id="sort-orden">
+      <option value="">Ordenar</option>
+      <option value="precio_asc">Menor precio</option>
+      <option value="precio_desc">Mayor precio</option>
+    </select>
+  </div>
+
+  <div id="paquetes-container">
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      Cargando paquetes...
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const API_BASE = (() => {
+    const p = window.location.pathname;
+    const i = p.lastIndexOf('/');
+    return p.substring(0, i) + '/api';
+  })();
+
+  let paquetesOriginales = [];
+
+  function escapeHtml(text) {
+    if (!text) return '';
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+    return String(text).replace(/[&<>"']/g, c => map[c]);
+  }
+
+  function obtenerHotelesTexto(p) {
+    if (Array.isArray(p.hoteles) && p.hoteles.length) {
+      return p.hoteles.map(h => h.nombre || '').filter(Boolean).join(', ');
+    }
+    return p.hotel_nombre || 'Hotel no informado';
+  }
+
+  function obtenerDestinoTexto(p) {
+    let text = '';
+    if (Array.isArray(p.hoteles)) {
+      p.hoteles.forEach(h => {
+        text += ' ' + (h.nombre || '');
+        text += ' ' + (h.ciudad || '');
+        text += ' ' + (h.provincia || '');
+        text += ' ' + (h.pais || '');
+        text += ' ' + (h.ubicacion || '');
+        text += ' ' + (h.destino_nombre || '');
+        if (h.destino && h.destino.nombre) text += ' ' + h.destino.nombre;
+      });
+    }
+    text += ' ' + (p.destino_nombre || '');
+    if (p.destino && p.destino.nombre) text += ' ' + p.destino.nombre;
+    text += ' ' + (p.hotel_nombre || '');
+    return text.toLowerCase();
+  }
+
+  function imagenPlaceholder() {
+    return '<div class="placeholder">' +
+      '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">' +
+      '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>' +
+      '</svg><span>Sin imagen</span></div>';
+  }
+
+  function renderizarPaquetes(paquetes) {
+    const container = document.getElementById('paquetes-container');
+    if (paquetes.length === 0) {
+      container.innerHTML = '<div class="empty-state"><p>No se encontraron paquetes</p></div>';
+      return;
+    }
+    const PUBLIC_PATH = API_BASE.replace('/api', '');
+    container.innerHTML = '<div class="pkg-grid">' +
+      paquetes.map(p => {
+        const hoteles = obtenerHotelesTexto(p);
+        const fecha = p.fecha_partida || '';
+        let imgUrl = p.imagen_principal || '';
+        if (imgUrl && !imgUrl.startsWith('http://') && !imgUrl.startsWith('https://')) {
+          imgUrl = PUBLIC_PATH + imgUrl;
+        }
+        const imgHtml = imgUrl
+          ? '<img src="' + imgUrl + '" alt="' + escapeHtml(p.nombre) + '" loading="lazy">'
+          : imagenPlaceholder();
+        return '<div class="pkg-card">' +
+          '<div class="pkg-card__img">' + imgHtml + '</div>' +
+          '<div class="pkg-card__body">' +
+          '<div class="name">' + escapeHtml(p.nombre) + '</div>' +
+          (hoteles ? '<div class="hotel">' + escapeHtml(hoteles) + '</div>' : '') +
+          '<div class="details">' + escapeHtml(fecha) + '</div>' +
+          '<div class="price">$' + Number(p.precio).toLocaleString('es-AR') + '</div>' +
+          '<div class="actions">' +
+          '<a href="consultar-paquete.html?id=' + p.id + '" class="btn-primary btn-sm">Consultar</a>' +
+          '</div>' +
+          '</div>' +
+          '</div>';
+      }).join('') + '</div>';
+  }
+
+  function aplicarFiltrosYRenderizar() {
+    const destinoFiltro = document.getElementById('filtro-destino').value.trim().toLowerCase();
+    const hotelFiltro = document.getElementById('filtro-hotel').value.trim().toLowerCase();
+    const fechaFiltro = document.getElementById('filtro-fecha').value;
+    const orden = document.getElementById('sort-orden').value;
+
+    let paquetes = [...paquetesOriginales];
+
+    if (destinoFiltro) {
+      paquetes = paquetes.filter(p => obtenerDestinoTexto(p).includes(destinoFiltro));
+    }
+
+    if (hotelFiltro) {
+      paquetes = paquetes.filter(p => obtenerHotelesTexto(p).toLowerCase().includes(hotelFiltro));
+    }
+
+    if (fechaFiltro) {
+      paquetes = paquetes.filter(p =>
+        (p.fecha_partida || '') === fechaFiltro || (p.fecha_vuelta || '') === fechaFiltro
+      );
+    }
+
+    if (orden === 'precio_asc') {
+      paquetes.sort((a, b) => Number(a.precio || 0) - Number(b.precio || 0));
+    } else if (orden === 'precio_desc') {
+      paquetes.sort((a, b) => Number(b.precio || 0) - Number(a.precio || 0));
+    }
+
+    renderizarPaquetes(paquetes);
+  }
+
+  async function cargarPaquetes() {
+    const loading = document.getElementById('loading');
+    loading.style.display = 'flex';
+    try {
+      const res = await fetch(API_BASE + '/paquetes');
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error al cargar');
+      paquetesOriginales = data;
+      loading.style.display = 'none';
+      aplicarFiltrosYRenderizar();
+    } catch (e) {
+      loading.style.display = 'none';
+      document.getElementById('paquetes-container').innerHTML =
+        '<div class="empty-state"><p>Error: ' + e.message + '</p></div>';
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('btn-buscar').addEventListener('click', aplicarFiltrosYRenderizar);
+    document.getElementById('filtro-destino').addEventListener('keydown', e => {
+      if (e.key === 'Enter') aplicarFiltrosYRenderizar();
+    });
+    document.getElementById('filtro-hotel').addEventListener('keydown', e => {
+      if (e.key === 'Enter') aplicarFiltrosYRenderizar();
+    });
+    document.getElementById('filtro-fecha').addEventListener('change', aplicarFiltrosYRenderizar);
+    document.getElementById('sort-orden').addEventListener('change', aplicarFiltrosYRenderizar);
+    cargarPaquetes();
+  });
+</script>
+</body>
+</html>
