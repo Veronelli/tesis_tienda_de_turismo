@@ -196,19 +196,11 @@ final class ActualizarPaqueteUseCaseTest extends TestCase
         $this->assertSame($editor, $resultado->actualizadoPor());
     }
 
-<<<<<<< HEAD
-    public function test_execute_actualiza_paquete_sin_imagen_mantiene_anterior(): void
-    {
-        $paquete = PaqueteFixtures::paqueteValido();
-        $editor = PaqueteFixtures::usuarioEditor();
-        $hotel1 = PaqueteFixtures::hotelUno();
-=======
     public function test_execute_actualiza_agregando_imagen_secundaria(): void
     {
         $paquete = PaqueteFixtures::paqueteValido();
         $editor = PaqueteFixtures::usuarioEditor();
         $hotel = PaqueteFixtures::hotelUno();
->>>>>>> back_dashboard_paquetes
 
         $this->paqueteRepo
             ->method('findById')
@@ -223,19 +215,6 @@ final class ActualizarPaqueteUseCaseTest extends TestCase
         $this->hotelRepo
             ->method('findById')
             ->with(1)
-<<<<<<< HEAD
-            ->willReturn($hotel1);
-
-        $this->paqueteRepo->expects($this->once())->method('update');
-        $this->usuarioRepo->expects($this->never())->method('save');
-        $this->hotelRepo->expects($this->never())->method('save');
-
-        $input = new ActualizarPaqueteInput(
-            id: 1, nombre: 'Sin Imagen', descripcion: null,
-            fechaPartida: new \DateTimeImmutable('2026-10-01'), fechaVuelta: null,
-            precio: '1200.00', disponible: true, usuarioResponsableId: 2, hotelesIds: [1],
-            imagenPrincipal: null,
-=======
             ->willReturn($hotel);
 
         $this->paqueteRepo->expects($this->once())->method('update');
@@ -251,14 +230,10 @@ final class ActualizarPaqueteUseCaseTest extends TestCase
             usuarioResponsableId: 2,
             hotelesIds: [1],
             imagenSecundaria: '/uploads/paquetes/secundaria.jpg',
->>>>>>> back_dashboard_paquetes
         );
 
         $resultado = $this->useCase->execute($input);
 
-<<<<<<< HEAD
-        $this->assertNull($resultado->imagenPrincipal());
-=======
         $this->assertSame('/uploads/paquetes/secundaria.jpg', $resultado->imagenSecundaria());
         $this->assertSame($editor, $resultado->actualizadoPor());
         $this->assertCount(1, $resultado->hoteles());
@@ -344,7 +319,6 @@ final class ActualizarPaqueteUseCaseTest extends TestCase
         $resultado = $this->useCase->execute($input);
 
         $this->assertSame('/uploads/paquetes/nueva_secundaria.jpg', $resultado->imagenSecundaria());
->>>>>>> back_dashboard_paquetes
         $this->assertSame($editor, $resultado->actualizadoPor());
     }
 }

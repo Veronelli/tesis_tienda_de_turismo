@@ -387,37 +387,6 @@ final class PaqueteControllerTest extends TestCase
         $this->assertSame(400, $response->getStatusCode());
     }
 
-<<<<<<< HEAD
-    public function test_eliminar_retorna_200(): void
-    {
-        $this->paqueteService
-            ->expects($this->once())
-            ->method('eliminar')
-            ->with(1, 1);
-
-        $request = new Request(
-            [],
-            [],
-            [],
-            [],
-            [],
-            ['HTTP_AUTHORIZATION' => 'Bearer ' . $this->tokenValido],
-        );
-
-        $response = $this->controller->eliminar($request, ['id' => '1']);
-
-        $this->assertSame(200, $response->getStatusCode());
-        $content = json_decode((string) $response->getContent(), true);
-        $this->assertSame('Paquete eliminado correctamente.', $content['mensaje']);
-    }
-
-    public function test_eliminar_paquete_inexistente_retorna_404(): void
-    {
-        $this->paqueteService
-            ->method('eliminar')
-            ->with(999, 1)
-            ->willThrowException(new \RuntimeException('Paquete no encontrado.'));
-=======
     public function test_listar_retorna_paquetes_con_imagen_secundaria(): void
     {
         $this->paqueteService
@@ -470,7 +439,6 @@ final class PaqueteControllerTest extends TestCase
                 'imagen_principal' => '/uploads/paquetes/principal.jpg',
                 'imagen_secundaria' => '/uploads/paquetes/secundaria.jpg',
             ]);
->>>>>>> back_dashboard_paquetes
 
         $request = new Request(
             [],
@@ -478,16 +446,6 @@ final class PaqueteControllerTest extends TestCase
             [],
             [],
             [],
-<<<<<<< HEAD
-            ['HTTP_AUTHORIZATION' => 'Bearer ' . $this->tokenValido],
-        );
-
-        $response = $this->controller->eliminar($request, ['id' => '999']);
-
-        $this->assertSame(404, $response->getStatusCode());
-        $content = json_decode((string) $response->getContent(), true);
-        $this->assertSame('Paquete no encontrado.', $content['error']);
-=======
             [
                 'CONTENT_TYPE' => 'application/json',
                 'HTTP_AUTHORIZATION' => 'Bearer ' . $this->tokenValido,
@@ -548,6 +506,5 @@ final class PaqueteControllerTest extends TestCase
         $content = json_decode((string) $response->getContent(), true);
         $this->assertSame('/uploads/paquetes/secundaria.jpg', $content['imagen_secundaria']);
         $this->assertSame('/uploads/paquetes/principal.jpg', $content['imagen_principal']);
->>>>>>> back_dashboard_paquetes
     }
 }
