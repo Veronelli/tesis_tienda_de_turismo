@@ -15,7 +15,7 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    /* ── Topbar (igual que el dashboard) ── */
+
     .topbar {
       position: fixed;
       top: 0;
@@ -25,7 +25,8 @@
       z-index: 120;
       display: flex;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
+      gap: 12px;
       padding: 0 14px;
       background: #fbf3e5;
       border-bottom: 1px solid rgba(26, 26, 46, 0.06);
@@ -35,14 +36,12 @@
       display: flex;
       align-items: center;
       gap: 12px;
-      position: absolute;
-      left: 14px;
     }
 
     .topbar__title {
       margin: 0;
       color: #1a1a2e;
-      font-size: 1.25rem;
+      font-size: 1.45rem;
       font-weight: 500;
       line-height: 1;
     }
@@ -227,9 +226,9 @@
 
   <header class="topbar">
     <div class="topbar__left">
-      <div class="topbar__logo" aria-hidden="true">Tienda<br>Turismo</div>
+      <div class="topbar__logo" aria-hidden="true">Tienda de<br>Turismo</div>
     </div>
-    <h1 class="topbar__title">Tienda turismo</h1>
+    <h1 class="topbar__title">Tienda de Turismo</h1>
   </header>
 
 <div class="page-wrap">
