@@ -9,11 +9,12 @@ use TiendaTurismo\GestionDatos\Interfaces\Http\Controllers\DestinoController;
 use TiendaTurismo\GestionDatos\Interfaces\Http\Controllers\HealthController;
 use TiendaTurismo\GestionDatos\Interfaces\Http\Controllers\HotelController;
 use TiendaTurismo\GestionDatos\Interfaces\Http\Controllers\LoginController;
+use TiendaTurismo\GestionDatos\Interfaces\Http\Controllers\ConsultaController;
 use TiendaTurismo\GestionDatos\Interfaces\Http\Controllers\PaqueteController;
 
 $routes = new RouteCollection();
 
-foreach ([HealthController::class, LoginController::class, AuthController::class, DestinoController::class, HotelController::class, ClienteController::class, PaqueteController::class] as $controller) {
+foreach ([HealthController::class, LoginController::class, AuthController::class, DestinoController::class, HotelController::class, ClienteController::class, PaqueteController::class, ConsultaController::class] as $controller) {
     $routes->addCollection($controller::rutas());
 }
 
