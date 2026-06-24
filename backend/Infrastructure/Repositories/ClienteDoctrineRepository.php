@@ -20,6 +20,13 @@ final class ClienteDoctrineRepository extends BaseRepository implements ClienteR
         return $this->entityManager->find(Cliente::class, $id);
     }
 
+    public function findByEmail(string $email): ?Cliente
+    {
+        return $this->entityManager
+            ->getRepository(Cliente::class)
+            ->findOneBy(['email' => $email]);
+    }
+
     public function update(Cliente $cliente): void
     {
         $this->flush();
