@@ -31,7 +31,7 @@ final class ActualizarHotelUseCase
             throw new \RuntimeException('Destino no encontrado.');
         }
 
-        $hotel->update($input->nombre, $input->ubicacion, $destino);
+        $hotel->update($input->nombre, $input->ubicacion, $input->descripcion, $destino);
         $this->hoteles->update($hotel);
 
         return $hotel;

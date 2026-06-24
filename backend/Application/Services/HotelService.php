@@ -31,12 +31,13 @@ class HotelService
         $this->actualizarHotel = new ActualizarHotelUseCase($hoteles, $destinos);
     }
 
-    /** @param array{nombre:string,ubicacion:string,destino_id:int} $datos */
+    /** @param array{nombre:string,ubicacion:string,descripcion:string,destino_id:int} $datos */
     public function crear(array $datos): array
     {
         $hotel = $this->crearHotel->execute(new CrearHotelInput(
             (string) $datos['nombre'],
             (string) $datos['ubicacion'],
+            (string) ($datos['descripcion'] ?? ''),
             (int) $datos['destino_id'],
         ));
         return $this->serializarHotel($hotel);
@@ -51,13 +52,14 @@ class HotelService
         return $this->serializarHotel($hotel);
     }
 
-    /** @param array{id:int,nombre:string,ubicacion:string,destino_id:int} $datos */
+    /** @param array{id:int,nombre:string,ubicacion:string,descripcion:string,destino_id:int} $datos */
     public function actualizar(array $datos): array
     {
         $hotel = $this->actualizarHotel->execute(new ActualizarHotelInput(
             (int) $datos['id'],
             (string) $datos['nombre'],
             (string) $datos['ubicacion'],
+            (string) ($datos['descripcion'] ?? ''),
             (int) $datos['destino_id'],
         ));
         return $this->serializarHotel($hotel);
