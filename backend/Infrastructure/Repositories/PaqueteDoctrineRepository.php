@@ -35,7 +35,13 @@ final class PaqueteDoctrineRepository extends BaseRepository implements PaqueteR
         $this->flush();
     }
 
-    /** @param array{nombre?:string, mes_partida?:int, destino_id?:int, orden_precio?:string} $filtros */
+    public function delete(Paquete $paquete): void
+    {
+        $this->entityManager->remove($paquete);
+        $this->flush();
+    }
+
+    /** @param array{nombre?:string, mes_partida?:string, destino_id?:int, orden_precio?:string} $filtros */
     public function findAll(array $filtros = []): array
     {
         $qb = $this->entityManager
@@ -50,7 +56,7 @@ final class PaqueteDoctrineRepository extends BaseRepository implements PaqueteR
         return $qb->getQuery()->getResult();
     }
 
-    /** @param array{nombre?:string, mes_partida?:int, destino_id?:int, orden_precio?:string} $filtros */
+    /** @param array{nombre?:string, mes_partida?:string, destino_id?:int, orden_precio?:string} $filtros */
     private function applyFilters(QueryBuilder $qb, array $filtros): void
     {
         if (isset($filtros['nombre']) && $filtros['nombre'] !== '') {
@@ -59,8 +65,13 @@ final class PaqueteDoctrineRepository extends BaseRepository implements PaqueteR
         }
 
         if (isset($filtros['mes_partida'])) {
-            $qb->andWhere('MONTH(p.fechaPartida) = :mes')
-                ->setParameter('mes', (int) $filtros['mes_partida']);
+            $month = (int) $filtros['mes_partida'];
+            $year = (int) date('Y');
+            $start = new \DateTimeImmutable(sprintf('%d-%02d-01 00:00:00', $year, $month));
+            $end = $start->modify('+1 month');
+            $qb->andWhere('p.fechaPartida >= :inicio AND p.fechaPartida < :fin')
+                ->setParameter('inicio', $start)
+                ->setParameter('fin', $end);
         }
 
         if (isset($filtros['destino_id'])) {

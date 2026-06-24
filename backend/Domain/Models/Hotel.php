@@ -9,7 +9,7 @@ use TiendaTurismo\GestionDatos\Domain\Models\Traits\AtributosBase;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'hoteles')]
-final class Hotel
+class Hotel
 {
     use AtributosBase;
 

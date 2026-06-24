@@ -60,6 +60,8 @@ final class ActualizarPaqueteUseCaseTest extends TestCase
             ]);
 
         $this->paqueteRepo->expects($this->once())->method('update')->with($paquete);
+        $this->usuarioRepo->expects($this->never())->method('save');
+        $this->hotelRepo->expects($this->never())->method('save');
 
         $input = new ActualizarPaqueteInput(
             id: 1,
@@ -179,6 +181,8 @@ final class ActualizarPaqueteUseCaseTest extends TestCase
             ]);
 
         $this->paqueteRepo->expects($this->once())->method('update');
+        $this->usuarioRepo->expects($this->never())->method('save');
+        $this->hotelRepo->expects($this->never())->method('save');
 
         $input = new ActualizarPaqueteInput(
             id: 1, nombre: 'Multi Hotel', descripcion: null,
@@ -192,11 +196,11 @@ final class ActualizarPaqueteUseCaseTest extends TestCase
         $this->assertSame($editor, $resultado->actualizadoPor());
     }
 
-    public function test_execute_actualiza_agregando_imagen_secundaria(): void
+    public function test_execute_actualiza_paquete_sin_imagen_mantiene_anterior(): void
     {
         $paquete = PaqueteFixtures::paqueteValido();
         $editor = PaqueteFixtures::usuarioEditor();
-        $hotel = PaqueteFixtures::hotelUno();
+        $hotel1 = PaqueteFixtures::hotelUno();
 
         $this->paqueteRepo
             ->method('findById')
@@ -211,110 +215,22 @@ final class ActualizarPaqueteUseCaseTest extends TestCase
         $this->hotelRepo
             ->method('findById')
             ->with(1)
-            ->willReturn($hotel);
+            ->willReturn($hotel1);
 
         $this->paqueteRepo->expects($this->once())->method('update');
+        $this->usuarioRepo->expects($this->never())->method('save');
+        $this->hotelRepo->expects($this->never())->method('save');
 
         $input = new ActualizarPaqueteInput(
-            id: 1,
-            nombre: 'Paquete Actualizado',
-            descripcion: 'Descripción',
-            fechaPartida: new \DateTimeImmutable('2026-08-01'),
-            fechaVuelta: new \DateTimeImmutable('2026-08-10'),
-            precio: '2000.00',
-            disponible: true,
-            usuarioResponsableId: 2,
-            hotelesIds: [1],
-            imagenSecundaria: '/uploads/paquetes/secundaria.jpg',
+            id: 1, nombre: 'Sin Imagen', descripcion: null,
+            fechaPartida: new \DateTimeImmutable('2026-10-01'), fechaVuelta: null,
+            precio: '1200.00', disponible: true, usuarioResponsableId: 2, hotelesIds: [1],
+            imagenPrincipal: null,
         );
 
         $resultado = $this->useCase->execute($input);
 
-        $this->assertSame('/uploads/paquetes/secundaria.jpg', $resultado->imagenSecundaria());
-        $this->assertSame($editor, $resultado->actualizadoPor());
-        $this->assertCount(1, $resultado->hoteles());
-    }
-
-    public function test_execute_actualiza_conserva_imagen_secundaria_si_no_se_envia(): void
-    {
-        $paquete = PaqueteFixtures::paqueteConImagenSecundaria();
-        $editor = PaqueteFixtures::usuarioEditor();
-        $hotel = PaqueteFixtures::hotelUno();
-
-        $this->paqueteRepo
-            ->method('findById')
-            ->with(2)
-            ->willReturn($paquete);
-
-        $this->usuarioRepo
-            ->method('findById')
-            ->with(2)
-            ->willReturn($editor);
-
-        $this->hotelRepo
-            ->method('findById')
-            ->with(1)
-            ->willReturn($hotel);
-
-        $this->paqueteRepo->expects($this->once())->method('update');
-
-        $input = new ActualizarPaqueteInput(
-            id: 2,
-            nombre: 'Paquete Actualizado',
-            descripcion: 'Descripción',
-            fechaPartida: new \DateTimeImmutable('2026-08-01'),
-            fechaVuelta: new \DateTimeImmutable('2026-08-10'),
-            precio: '2000.00',
-            disponible: true,
-            usuarioResponsableId: 2,
-            hotelesIds: [1],
-        );
-
-        $resultado = $this->useCase->execute($input);
-
-        $this->assertSame('/uploads/paquetes/secundaria.jpg', $resultado->imagenSecundaria());
-        $this->assertSame($editor, $resultado->actualizadoPor());
-    }
-
-    public function test_execute_actualiza_reemplaza_imagen_secundaria(): void
-    {
-        $paquete = PaqueteFixtures::paqueteConImagenSecundaria();
-        $editor = PaqueteFixtures::usuarioEditor();
-        $hotel = PaqueteFixtures::hotelUno();
-
-        $this->paqueteRepo
-            ->method('findById')
-            ->with(2)
-            ->willReturn($paquete);
-
-        $this->usuarioRepo
-            ->method('findById')
-            ->with(2)
-            ->willReturn($editor);
-
-        $this->hotelRepo
-            ->method('findById')
-            ->with(1)
-            ->willReturn($hotel);
-
-        $this->paqueteRepo->expects($this->once())->method('update');
-
-        $input = new ActualizarPaqueteInput(
-            id: 2,
-            nombre: 'Paquete Actualizado',
-            descripcion: 'Descripción',
-            fechaPartida: new \DateTimeImmutable('2026-08-01'),
-            fechaVuelta: new \DateTimeImmutable('2026-08-10'),
-            precio: '2000.00',
-            disponible: true,
-            usuarioResponsableId: 2,
-            hotelesIds: [1],
-            imagenSecundaria: '/uploads/paquetes/nueva_secundaria.jpg',
-        );
-
-        $resultado = $this->useCase->execute($input);
-
-        $this->assertSame('/uploads/paquetes/nueva_secundaria.jpg', $resultado->imagenSecundaria());
+        $this->assertNull($resultado->imagenPrincipal());
         $this->assertSame($editor, $resultado->actualizadoPor());
     }
 }

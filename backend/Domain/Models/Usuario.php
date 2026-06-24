@@ -10,7 +10,7 @@ use TiendaTurismo\GestionDatos\Domain\Models\Traits\AtributosBase;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'usuarios')]
-final class Usuario
+class Usuario
 {
     use AtributosBase;
 
