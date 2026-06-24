@@ -255,7 +255,7 @@
   function renderPaquete(p) {
     const PUBLIC_PATH = API_BASE.replace('/api', '');
     let imgUrl = p.imagen_principal || '';
-    if (imgUrl && !imgUrl.startsWith('http://') && !imgUrl.startsWith('https://')) {
+    if (imgUrl && !imgUrl.startsWith('data:image') && !imgUrl.startsWith('http://') && !imgUrl.startsWith('https://')) {
       imgUrl = PUBLIC_PATH + imgUrl;
     }
     const imgHtml = imgUrl

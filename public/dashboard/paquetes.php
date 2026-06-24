@@ -406,9 +406,17 @@ function renderizarPaquetes(paquetes) {
 
   const BASE = API_BASE.replace('/api', '');
 
+  function urlImagen(val) {
+    if (!val) return '';
+    if (val.startsWith('data:image')) return val;
+    if (val.startsWith('http://') || val.startsWith('https://')) return val;
+    return BASE + val;
+  }
+
   grid.innerHTML = paquetes.map(p => {
-    const imgHtml = p.imagen_principal
-      ? '<img src="' + BASE + p.imagen_principal + '" alt="' + escapeHtml(p.nombre) + '" loading="lazy">'
+    const imgSrc = urlImagen(p.imagen_principal);
+    const imgHtml = imgSrc
+      ? '<img src="' + imgSrc + '" alt="' + escapeHtml(p.nombre) + '" loading="lazy">'
       : '<div class="placeholder"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg><span>Sin imagen</span></div>';
 
     const fechas = p.fecha_partida + (p.fecha_vuelta ? ' → ' + p.fecha_vuelta : '');
@@ -503,9 +511,15 @@ function abrirModalEditar(id) {
   document.getElementById('buscarHoteles').value = '';
 
   const BASE = API_BASE.replace('/api', '');
+  function urlImagen(val) {
+    if (!val) return '';
+    if (val.startsWith('data:image')) return val;
+    if (val.startsWith('http://') || val.startsWith('https://')) return val;
+    return BASE + val;
+  }
   const preview = document.getElementById('previewImagen');
   if (p.imagen_principal) {
-    preview.innerHTML = '<img src="' + BASE + p.imagen_principal + '" alt="Imagen actual">';
+    preview.innerHTML = '<img src="' + urlImagen(p.imagen_principal) + '" alt="Imagen actual">';
     preview.className = 'preview';
   } else {
     preview.innerHTML = '<span>+</span>';
@@ -516,7 +530,7 @@ function abrirModalEditar(id) {
 
   const previewSec = document.getElementById('previewImagenSecundaria');
   if (p.imagen_secundaria) {
-    previewSec.innerHTML = '<img src="' + BASE + p.imagen_secundaria + '" alt="Imagen secundaria actual">';
+    previewSec.innerHTML = '<img src="' + urlImagen(p.imagen_secundaria) + '" alt="Imagen secundaria actual">';
     previewSec.className = 'preview';
   } else {
     previewSec.innerHTML = '<span>+</span>';
@@ -560,9 +574,15 @@ function quitarImagen() {
   document.getElementById('imagenInput').value = '';
   const p = editandoId ? paquetesData.find(pkg => pkg.id === editandoId) : null;
   const preview = document.getElementById('previewImagen');
+  const BASE = API_BASE.replace('/api', '');
+  function urlImagen(val) {
+    if (!val) return '';
+    if (val.startsWith('data:image')) return val;
+    if (val.startsWith('http://') || val.startsWith('https://')) return val;
+    return BASE + val;
+  }
   if (p && p.imagen_principal) {
-    const BASE = API_BASE.replace('/api', '');
-    preview.innerHTML = '<img src="' + BASE + p.imagen_principal + '" alt="Imagen actual">';
+    preview.innerHTML = '<img src="' + urlImagen(p.imagen_principal) + '" alt="Imagen actual">';
     preview.className = 'preview';
   } else {
     preview.innerHTML = '<span>+</span>';
@@ -589,9 +609,15 @@ function quitarImagenSecundaria() {
   document.getElementById('imagenSecundariaInput').value = '';
   const p = editandoId ? paquetesData.find(pkg => pkg.id === editandoId) : null;
   const preview = document.getElementById('previewImagenSecundaria');
+  const BASE = API_BASE.replace('/api', '');
+  function urlImagen(val) {
+    if (!val) return '';
+    if (val.startsWith('data:image')) return val;
+    if (val.startsWith('http://') || val.startsWith('https://')) return val;
+    return BASE + val;
+  }
   if (p && p.imagen_secundaria) {
-    const BASE = API_BASE.replace('/api', '');
-    preview.innerHTML = '<img src="' + BASE + p.imagen_secundaria + '" alt="Imagen secundaria actual">';
+    preview.innerHTML = '<img src="' + urlImagen(p.imagen_secundaria) + '" alt="Imagen secundaria actual">';
     preview.className = 'preview';
   } else {
     preview.innerHTML = '<span>+</span>';

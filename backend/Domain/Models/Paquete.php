@@ -33,10 +33,10 @@ final class Paquete
     #[ORM\Column(type: 'boolean')]
     private bool $disponible;
 
-    #[ORM\Column(name: 'imagen_principal', type: 'string', length: 255, nullable: true)]
+    #[ORM\Column(name: 'imagen_principal', type: 'text', nullable: true, columnDefinition: 'MEDIUMTEXT DEFAULT NULL')]
     private ?string $imagenPrincipal = null;
 
-    #[ORM\Column(name: 'imagen_secundaria', type: 'string', length: 255, nullable: true)]
+    #[ORM\Column(name: 'imagen_secundaria', type: 'text', nullable: true, columnDefinition: 'MEDIUMTEXT DEFAULT NULL')]
     private ?string $imagenSecundaria = null;
 
     #[ORM\ManyToOne(targetEntity: Usuario::class)]

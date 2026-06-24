@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace TiendaTurismo\GestionDatos\Interfaces\Http\Controllers;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
 use TiendaTurismo\GestionDatos\Application\Services\PaqueteService;
+use TiendaTurismo\GestionDatos\Infrastructure\Persistence\Doctrine\EntityManagerFactory;
 use TiendaTurismo\GestionDatos\Infrastructure\Repositories\HotelDoctrineRepository;
 use TiendaTurismo\GestionDatos\Infrastructure\Repositories\PaqueteDoctrineRepository;
 use TiendaTurismo\GestionDatos\Infrastructure\Repositories\UsuarioDoctrineRepository;
@@ -25,12 +27,18 @@ final class PaqueteController
         ?PaqueteService $paqueteService = null,
         ?JwtService $jwt = null,
         ?SubirImagenService $subirImagen = null,
+        ?EntityManagerInterface $em = null,
     ) {
-        $this->paqueteService = $paqueteService ?? new PaqueteService(
-            new PaqueteDoctrineRepository(),
-            new HotelDoctrineRepository(),
-            new UsuarioDoctrineRepository(),
-        );
+        if ($paqueteService === null) {
+            $em ??= EntityManagerFactory::createFromEnv();
+            $this->paqueteService = new PaqueteService(
+                new PaqueteDoctrineRepository($em),
+                new HotelDoctrineRepository($em),
+                new UsuarioDoctrineRepository($em),
+            );
+        } else {
+            $this->paqueteService = $paqueteService;
+        }
         $this->jwt = $jwt ?? new JwtService();
         $this->subirImagen = $subirImagen ?? new SubirImagenService();
     }
@@ -201,30 +209,12 @@ final class PaqueteController
 
         $archivoPrincipal = $request->files->get('imagen_principal');
         if ($archivoPrincipal !== null) {
-            $rutaPrincipal = $this->subirImagen->guardar($archivoPrincipal);
-            if ($rutaPrincipal !== null) {
-                if ($modo === 'actualizar') {
-                    $paqueteExistente = $this->paqueteService->obtenerPorId((int) ($data['id'] ?? 0));
-                    if ($paqueteExistente !== null && isset($paqueteExistente['imagen_principal'])) {
-                        $this->subirImagen->eliminar($paqueteExistente['imagen_principal']);
-                    }
-                }
-                $data['imagen_principal'] = $rutaPrincipal;
-            }
+            $data['imagen_principal'] = $this->subirImagen->guardar($archivoPrincipal);
         }
 
         $archivoSecundaria = $request->files->get('imagen_secundaria');
         if ($archivoSecundaria !== null) {
-            $rutaSecundaria = $this->subirImagen->guardar($archivoSecundaria);
-            if ($rutaSecundaria !== null) {
-                if ($modo === 'actualizar') {
-                    $paqueteExistente = $this->paqueteService->obtenerPorId((int) ($data['id'] ?? 0));
-                    if ($paqueteExistente !== null && isset($paqueteExistente['imagen_secundaria'])) {
-                        $this->subirImagen->eliminar($paqueteExistente['imagen_secundaria']);
-                    }
-                }
-                $data['imagen_secundaria'] = $rutaSecundaria;
-            }
+            $data['imagen_secundaria'] = $this->subirImagen->guardar($archivoSecundaria);
         }
 
         return $data;

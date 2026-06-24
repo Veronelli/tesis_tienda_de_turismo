@@ -9,19 +9,17 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 final class SubirImagenService
 {
     private const ARCHIVOS_PERMITIDOS = ['jpg', 'jpeg', 'png', 'webp'];
-    private const RUTA_BASE = '/uploads/paquetes';
-
-    private string $directorioPublico;
-
-    public function __construct(?string $directorioPublico = null)
-    {
-        $this->directorioPublico = $directorioPublico ?? (dirname(__DIR__, 3) . '/public');
-    }
+    private const MIMES_PERMITIDOS = ['image/jpeg', 'image/png', 'image/webp'];
+    private const TAMANIO_MAXIMO = 5 * 1024 * 1024;
 
     public function guardar(?UploadedFile $archivo): ?string
     {
         if ($archivo === null || !$archivo->isValid()) {
             return null;
+        }
+
+        if ($archivo->getSize() > self::TAMANIO_MAXIMO) {
+            throw new \InvalidArgumentException('La imagen no puede superar los 5MB.');
         }
 
         $extension = strtolower($archivo->getClientOriginalExtension());
@@ -31,36 +29,18 @@ final class SubirImagenService
             );
         }
 
-        $directorio = $this->obtenerDirectorioAbsoluto();
-        $nombreUnico = sprintf('%s_%s.%s', uniqid('paq_', true), bin2hex(random_bytes(4)), $extension);
-        $archivo->move($directorio, $nombreUnico);
-
-        return self::RUTA_BASE . '/' . $nombreUnico;
-    }
-
-    public function eliminar(?string $rutaRelativa): void
-    {
-        if ($rutaRelativa === null) {
-            return;
+        $mime = $archivo->getMimeType();
+        if (!in_array($mime, self::MIMES_PERMITIDOS, true)) {
+            throw new \InvalidArgumentException('Tipo MIME no permitido: ' . $mime);
         }
 
-        $rutaAbsoluta = $this->rutaAbsoluta($rutaRelativa);
-        if (file_exists($rutaAbsoluta)) {
-            unlink($rutaAbsoluta);
+        $contenido = file_get_contents($archivo->getPathname());
+        if ($contenido === false) {
+            throw new \RuntimeException('No se pudo leer el archivo subido.');
         }
-    }
 
-    private function obtenerDirectorioAbsoluto(): string
-    {
-        $dir = $this->directorioPublico . self::RUTA_BASE;
-        if (!is_dir($dir)) {
-            mkdir($dir, 0755, true);
-        }
-        return $dir;
-    }
+        $base64 = base64_encode($contenido);
 
-    private function rutaAbsoluta(string $rutaRelativa): string
-    {
-        return $this->directorioPublico . $rutaRelativa;
+        return 'data:' . $mime . ';base64,' . $base64;
     }
 }

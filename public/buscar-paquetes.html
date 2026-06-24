@@ -350,7 +350,7 @@
         const hoteles = obtenerHotelesTexto(p);
         const fecha = p.fecha_partida || '';
         let imgUrl = p.imagen_principal || '';
-        if (imgUrl && !imgUrl.startsWith('http://') && !imgUrl.startsWith('https://')) {
+        if (imgUrl && !imgUrl.startsWith('data:image') && !imgUrl.startsWith('http://') && !imgUrl.startsWith('https://')) {
           imgUrl = PUBLIC_PATH + imgUrl;
         }
         const imgHtml = imgUrl
