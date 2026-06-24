@@ -20,6 +20,7 @@
         }
     },
     "scripts": {
+        "db:create-all": "php bin/crear_tablas.php",
         "db:create-destinos": "php bin/crear_tabla_destinos.php",
         "db:dump-sql-destinos": "php bin/crear_tabla_destinos.php --dump-sql",
         "db:test-connection": "php bin/probar_conexion_db.php",
