@@ -104,4 +104,23 @@ final class PaqueteFixtures
         $paquete->syncHoteles([self::hotelUno()]);
         return $paquete;
     }
+
+    public static function paqueteConImagenSecundaria(): Paquete
+    {
+        $paquete = new Paquete(
+            nombre: 'Paquete con Imagen Secundaria',
+            descripcion: 'Descripción',
+            fechaPartida: new \DateTimeImmutable('2026-07-15'),
+            fechaVuelta: new \DateTimeImmutable('2026-07-22'),
+            precio: '1500.00',
+            disponible: true,
+            creadoPor: self::usuarioAdmin(),
+            imagenSecundaria: '/uploads/paquetes/secundaria.jpg',
+            id: 2,
+            fechaCreacion: new \DateTimeImmutable('2024-01-01 10:00:00'),
+            fechaActualizacion: new \DateTimeImmutable('2024-06-15 14:30:00'),
+        );
+        $paquete->syncHoteles([self::hotelUno()]);
+        return $paquete;
+    }
 }

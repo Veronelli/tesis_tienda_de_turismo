@@ -222,17 +222,31 @@ final class PaqueteController
             $data['hoteles_ids'] = json_decode($data['hoteles_ids'], true) ?? [];
         }
 
-        $archivo = $request->files->get('imagen_principal');
-        if ($archivo !== null) {
-            $ruta = $this->subirImagen->guardar($archivo);
-            if ($ruta !== null) {
+        $archivoPrincipal = $request->files->get('imagen_principal');
+        if ($archivoPrincipal !== null) {
+            $rutaPrincipal = $this->subirImagen->guardar($archivoPrincipal);
+            if ($rutaPrincipal !== null) {
                 if ($modo === 'actualizar') {
                     $paqueteExistente = $this->paqueteService->obtenerPorId((int) ($data['id'] ?? 0));
                     if ($paqueteExistente !== null && isset($paqueteExistente['imagen_principal'])) {
                         $this->subirImagen->eliminar($paqueteExistente['imagen_principal']);
                     }
                 }
-                $data['imagen_principal'] = $ruta;
+                $data['imagen_principal'] = $rutaPrincipal;
+            }
+        }
+
+        $archivoSecundaria = $request->files->get('imagen_secundaria');
+        if ($archivoSecundaria !== null) {
+            $rutaSecundaria = $this->subirImagen->guardar($archivoSecundaria);
+            if ($rutaSecundaria !== null) {
+                if ($modo === 'actualizar') {
+                    $paqueteExistente = $this->paqueteService->obtenerPorId((int) ($data['id'] ?? 0));
+                    if ($paqueteExistente !== null && isset($paqueteExistente['imagen_secundaria'])) {
+                        $this->subirImagen->eliminar($paqueteExistente['imagen_secundaria']);
+                    }
+                }
+                $data['imagen_secundaria'] = $rutaSecundaria;
             }
         }
 

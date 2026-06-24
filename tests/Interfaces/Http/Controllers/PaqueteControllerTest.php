@@ -37,7 +37,7 @@ final class PaqueteControllerTest extends TestCase
         $this->paqueteService
             ->method('listar')
             ->with([])
-            ->willReturn([['id' => 1, 'nombre' => 'Paquete Test']]);
+            ->willReturn([['id' => 1, 'nombre' => 'Paquete Test', 'imagen_secundaria' => null]]);
 
         $request = new Request();
         $response = $this->controller->listar($request);
@@ -46,6 +46,7 @@ final class PaqueteControllerTest extends TestCase
         $content = json_decode((string) $response->getContent(), true);
         $this->assertCount(1, $content);
         $this->assertSame('Paquete Test', $content[0]['nombre']);
+        $this->assertArrayHasKey('imagen_secundaria', $content[0]);
     }
 
     public function test_listar_con_filtro_nombre(): void
@@ -123,7 +124,7 @@ final class PaqueteControllerTest extends TestCase
         $this->paqueteService
             ->method('obtenerPorId')
             ->with(1)
-            ->willReturn(['id' => 1, 'nombre' => 'Paquete Test']);
+            ->willReturn(['id' => 1, 'nombre' => 'Paquete Test', 'imagen_secundaria' => null]);
 
         $request = new Request();
         $response = $this->controller->obtenerPorId($request, ['id' => '1']);
@@ -131,6 +132,7 @@ final class PaqueteControllerTest extends TestCase
         $this->assertSame(200, $response->getStatusCode());
         $content = json_decode((string) $response->getContent(), true);
         $this->assertSame('Paquete Test', $content['nombre']);
+        $this->assertArrayHasKey('imagen_secundaria', $content);
     }
 
     public function test_obtenerPorId_retorna_404_si_no_existe(): void
@@ -152,7 +154,7 @@ final class PaqueteControllerTest extends TestCase
     {
         $this->paqueteService
             ->method('crear')
-            ->willReturn(['id' => 1, 'nombre' => 'Paquete Nuevo']);
+            ->willReturn(['id' => 1, 'nombre' => 'Paquete Nuevo', 'imagen_secundaria' => null]);
 
         $request = new Request(
             [],
@@ -180,6 +182,7 @@ final class PaqueteControllerTest extends TestCase
         $this->assertSame(201, $response->getStatusCode());
         $content = json_decode((string) $response->getContent(), true);
         $this->assertSame('Paquete Nuevo', $content['nombre']);
+        $this->assertArrayHasKey('imagen_secundaria', $content);
     }
 
     public function test_crear_con_datos_invalidos_retorna_400(): void
