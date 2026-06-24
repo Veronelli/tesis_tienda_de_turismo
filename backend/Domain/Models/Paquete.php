@@ -36,6 +36,9 @@ final class Paquete
     #[ORM\Column(name: 'imagen_principal', type: 'string', length: 255, nullable: true)]
     private ?string $imagenPrincipal = null;
 
+    #[ORM\Column(name: 'imagen_secundaria', type: 'string', length: 255, nullable: true)]
+    private ?string $imagenSecundaria = null;
+
     #[ORM\ManyToOne(targetEntity: Usuario::class)]
     #[ORM\JoinColumn(name: 'creado_por_usuario_id', referencedColumnName: 'id', nullable: false)]
     private Usuario $creadoPor;
@@ -58,6 +61,7 @@ final class Paquete
         bool $disponible,
         Usuario $creadoPor,
         ?string $imagenPrincipal = null,
+        ?string $imagenSecundaria = null,
         ?int $id = null,
         ?\DateTimeImmutable $fechaCreacion = null,
         ?\DateTimeImmutable $fechaActualizacion = null,
@@ -72,6 +76,7 @@ final class Paquete
         $this->precio = $precio;
         $this->disponible = $disponible;
         $this->imagenPrincipal = $imagenPrincipal;
+        $this->imagenSecundaria = $imagenSecundaria;
         $this->creadoPor = $creadoPor;
         $this->actualizadoPor = null;
         $this->hoteles = new ArrayCollection();
@@ -113,6 +118,11 @@ final class Paquete
         return $this->imagenPrincipal;
     }
 
+    public function imagenSecundaria(): ?string
+    {
+        return $this->imagenSecundaria;
+    }
+
     public function creadoPor(): Usuario
     {
         return $this->creadoPor;
@@ -138,6 +148,7 @@ final class Paquete
         bool $disponible,
         Usuario $actualizadoPor,
         ?string $imagenPrincipal = null,
+        ?string $imagenSecundaria = null,
     ): void {
         $this->validarTextoObligatorio($nombre, 'nombre');
         $this->validarPrecio($precio);
@@ -149,6 +160,9 @@ final class Paquete
         $this->precio = $precio;
         $this->disponible = $disponible;
         $this->imagenPrincipal = $imagenPrincipal;
+        if ($imagenSecundaria !== null) {
+            $this->imagenSecundaria = $imagenSecundaria;
+        }
         $this->actualizadoPor = $actualizadoPor;
     }
 
@@ -192,6 +206,7 @@ final class Paquete
             'nombre' => $this->nombre,
             'descripcion' => $this->descripcion,
             'imagen_principal' => $this->imagenPrincipal,
+            'imagen_secundaria' => $this->imagenSecundaria,
             'fecha_partida' => $this->fechaPartida->format('Y-m-d'),
             'fecha_vuelta' => $this->fechaVuelta?->format('Y-m-d'),
             'precio' => $this->precio,
