@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 use Doctrine\ORM\Tools\SchemaTool;
@@ -11,7 +10,7 @@ $envPath = $argv[1] ?? __DIR__ . '/../.env';
 
 if (!file_exists($envPath)) {
     echo "Error: No existe el archivo de configuración: {$envPath}\n";
-    echo "Uso: php bin/crear_tablas.php [ruta/.env]\n";
+    echo "Uso: php bin/dump_schema_sql.php [ruta/.env]\n";
     exit(1);
 }
 
@@ -23,28 +22,7 @@ if (empty($metadata)) {
     exit(1);
 }
 
-echo "Entidades encontradas:\n";
-foreach ($metadata as $class) {
-    echo "  - {$class->getName()} (tabla: {$class->getTableName()})\n";
-}
-
 $schemaTool = new SchemaTool($entityManager);
-
 $sql = $schemaTool->getCreateSchemaSql($metadata);
 
-echo "\nSQL a ejecutar:\n";
-foreach ($sql as $stmt) {
-    echo "  {$stmt};\n";
-}
-
-echo "\nCreando tablas...\n";
-$connection = $entityManager->getConnection();
-foreach ($sql as $stmt) {
-    try {
-        $connection->executeStatement($stmt);
-        echo "  OK: " . substr($stmt, 0, 80) . "...\n";
-    } catch (\Throwable $e) {
-        echo "  (omitido - probablemente ya existe): " . $e->getMessage() . "\n";
-    }
-}
-echo "¡Tablas creadas exitosamente!\n";
+echo implode(";\n", $sql) . ";\n";
