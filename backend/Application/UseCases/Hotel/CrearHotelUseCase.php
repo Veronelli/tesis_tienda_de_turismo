@@ -29,6 +29,7 @@ final class CrearHotelUseCase
         $hotel = new Hotel(
             $input->nombre,
             $input->ubicacion,
+            $input->descripcion,
             $destino,
         );
 

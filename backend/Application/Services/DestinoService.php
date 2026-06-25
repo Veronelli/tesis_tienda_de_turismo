@@ -13,7 +13,7 @@ use TiendaTurismo\GestionDatos\Application\UseCases\Destino\ObtenerDestinoPorIdU
 use TiendaTurismo\GestionDatos\Domain\Models\Destino;
 use TiendaTurismo\GestionDatos\Domain\Repositories\DestinoRepositoryInterface;
 
-class DestinoService
+final class DestinoService
 {
     private CrearDestinoUseCase $crearDestino;
     private ObtenerDestinoPorIdUseCase $obtenerDestinoPorId;

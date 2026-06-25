@@ -29,14 +29,32 @@ foreach ($metadata as $class) {
 }
 
 $schemaTool = new SchemaTool($entityManager);
-
-$sql = $schemaTool->getCreateSchemaSql($metadata);
-
-echo "\nSQL a ejecutar:\n";
-foreach ($sql as $stmt) {
-    echo "  {$stmt};\n";
-}
+$connection = $entityManager->getConnection();
+$schemaManager = method_exists($connection, 'createSchemaManager')
+    ? $connection->createSchemaManager()
+    : $connection->getSchemaManager();
 
 echo "\nCreando tablas...\n";
-$schemaTool->createSchema($metadata);
-echo "¡Tablas creadas exitosamente!\n";
+foreach ($metadata as $class) {
+    $tableName = $class->getTableName();
+
+    if ($schemaManager->tablesExist([$tableName])) {
+        echo "  - {$tableName} ya existe, se omite.\n";
+        continue;
+    }
+
+    $sql = $schemaTool->getCreateSchemaSql([$class]);
+
+    echo "  - Creando {$tableName}\n";
+    foreach ($sql as $stmt) {
+        try {
+            $connection->executeStatement($stmt);
+            echo "    OK: {$stmt}\n";
+        } catch (Throwable $e) {
+            echo "    Error en {$tableName}: " . $e->getMessage() . "\n";
+            break;
+        }
+    }
+}
+
+echo "Proceso finalizado.\n";
