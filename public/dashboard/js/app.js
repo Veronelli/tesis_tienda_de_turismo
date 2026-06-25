@@ -1,4 +1,6 @@
-/* Guarda el token en una cookie para que el server lo valide al cargar admin.php */
+const DASHBOARD_HOME = 'consultas.php';
+
+/* Guarda el token en una cookie para que el server lo valide al cargar el dashboard */
 function guardarCookie(token) {
   const d = new Date();
   d.setTime(d.getTime() + 24 * 60 * 60 * 1000);
@@ -6,7 +8,7 @@ function guardarCookie(token) {
 }
 
 /* Maneja el submit del formulario de login.
-   Envia credenciales a la API, guarda el token y redirige al panel */
+   Envia credenciales a la API, guarda el token y redirige a Consultas */
 async function handleLogin(e) {
   e.preventDefault();
   const el = document.getElementById('login-error');
@@ -28,7 +30,7 @@ async function handleLogin(e) {
     localStorage.setItem(USER_KEY, JSON.stringify({
       id: p.sub, email: p.email, nombre: d.nombre || email.split('@')[0], rol: d.rol || 'admin'
     }));
-    window.location.href = 'admin.php';
+    window.location.href = DASHBOARD_HOME;
   } catch (err) {
 
     if (el) { el.textContent = err.message; el.classList.add('visible'); }
@@ -36,3 +38,17 @@ async function handleLogin(e) {
     btn.textContent = 'Ingresar';
   }
 }
+
+(function redirectIfAlreadyLoggedIn() {
+  const token = getToken();
+  if (!token) return;
+
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    if (payload.exp * 1000 > Date.now()) {
+      window.location.replace(DASHBOARD_HOME);
+    }
+  } catch (e) {
+    // Si el token no se puede leer, se deja mostrar el login.
+  }
+})();
