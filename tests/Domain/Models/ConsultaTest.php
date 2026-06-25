@@ -37,6 +37,7 @@ final class ConsultaTest extends TestCase
             cliente: $this->cliente,
             paquete: $this->paquete,
             mensaje: 'Quiero información sobre este paquete.',
+            calificacion: Consulta::CALIFICACION_CALIENTE,
         );
     }
 
@@ -46,6 +47,7 @@ final class ConsultaTest extends TestCase
         $this->assertSame($this->paquete, $this->consulta->paquete());
         $this->assertSame('Quiero información sobre este paquete.', $this->consulta->mensaje());
         $this->assertSame(Consulta::ESTADO_PENDIENTE, $this->consulta->estado());
+        $this->assertSame(Consulta::CALIFICACION_CALIENTE, $this->consulta->calificacion());
         $this->assertNotNull($this->consulta->fechaConsulta());
     }
 
@@ -58,6 +60,12 @@ final class ConsultaTest extends TestCase
     {
         $this->consulta->update(estado: Consulta::ESTADO_RESPONDIDA);
         $this->assertSame(Consulta::ESTADO_RESPONDIDA, $this->consulta->estado());
+    }
+
+    public function test_update_cambia_calificacion(): void
+    {
+        $this->consulta->update(calificacion: Consulta::CALIFICACION_TIBIO);
+        $this->assertSame(Consulta::CALIFICACION_TIBIO, $this->consulta->calificacion());
     }
 
     public function test_update_cambia_mensaje(): void
@@ -100,7 +108,7 @@ final class ConsultaTest extends TestCase
     public function test_constructor_lanza_excepcion_si_mensaje_vacio(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        new Consulta($this->cliente, $this->paquete, '');
+        new Consulta($this->cliente, $this->paquete, '', Consulta::CALIFICACION_FRIO);
     }
 
     public function test_toArray_retorna_todos_los_campos(): void
@@ -112,6 +120,7 @@ final class ConsultaTest extends TestCase
         $this->assertArrayHasKey('paquete', $arr);
         $this->assertArrayHasKey('mensaje', $arr);
         $this->assertArrayHasKey('estado', $arr);
+        $this->assertArrayHasKey('calificacion', $arr);
         $this->assertArrayHasKey('fecha_consulta', $arr);
         $this->assertArrayHasKey('fecha_creacion', $arr);
         $this->assertArrayHasKey('fecha_actualizacion', $arr);
@@ -124,6 +133,7 @@ final class ConsultaTest extends TestCase
         $this->assertNull($arr['id']);
         $this->assertSame('Quiero información sobre este paquete.', $arr['mensaje']);
         $this->assertSame(Consulta::ESTADO_PENDIENTE, $arr['estado']);
+        $this->assertSame(Consulta::CALIFICACION_CALIENTE, $arr['calificacion']);
         $this->assertSame($this->cliente->id(), $arr['cliente']['id']);
         $this->assertSame($this->paquete->nombre(), $arr['paquete']['nombre']);
     }

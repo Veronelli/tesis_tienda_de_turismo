@@ -132,6 +132,8 @@ final class ConsultaController
                 return new JsonResponse(['error' => 'Datos inválidos.'], 400);
             }
 
+            $this->validarSinCalificacion($data);
+
             $data['id'] = (int) $params['id'];
 
             $consulta = $this->consultaService->actualizar($data);
@@ -172,11 +174,23 @@ final class ConsultaController
             throw new \InvalidArgumentException('El mensaje es requerido.');
         }
 
+        if (array_key_exists('calificacion', $data)) {
+            throw new \InvalidArgumentException('La calificación del lead no puede ser enviada por el cliente.');
+        }
+
         $tieneClienteId = isset($data['cliente_id']);
         $tieneDatosCliente = isset($data['nombre'], $data['apellido'], $data['email']);
 
         if (!$tieneClienteId && !$tieneDatosCliente) {
             throw new \InvalidArgumentException('Debe proporcionar un cliente_id o datos del cliente (nombre, apellido, email).');
+        }
+    }
+
+    /** @param array<string, mixed> $data */
+    private function validarSinCalificacion(array $data): void
+    {
+        if (array_key_exists('calificacion', $data)) {
+            throw new \InvalidArgumentException('La calificación del lead no puede ser enviada por el cliente.');
         }
     }
 

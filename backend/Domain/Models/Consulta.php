@@ -17,10 +17,20 @@ final class Consulta
     public const ESTADO_RESPONDIDA = 'respondida';
     public const ESTADO_CERRADA = 'cerrada';
 
+    public const CALIFICACION_FRIO = 'Frio';
+    public const CALIFICACION_CALIENTE = 'Caliente';
+    public const CALIFICACION_TIBIO = 'tibio';
+
     private const ESTADOS_VALIDOS = [
         self::ESTADO_PENDIENTE,
         self::ESTADO_RESPONDIDA,
         self::ESTADO_CERRADA,
+    ];
+
+    private const CALIFICACIONES_VALIDAS = [
+        self::CALIFICACION_FRIO,
+        self::CALIFICACION_CALIENTE,
+        self::CALIFICACION_TIBIO,
     ];
 
     #[ORM\ManyToOne(targetEntity: Cliente::class)]
@@ -37,6 +47,9 @@ final class Consulta
     #[ORM\Column(type: 'string', length: 20)]
     private string $estado;
 
+    #[ORM\Column(type: 'string', length: 20, nullable: true)]
+    private ?string $calificacion = null;
+
     #[ORM\Column(name: 'fecha_consulta', type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $fechaConsulta;
 
@@ -44,6 +57,7 @@ final class Consulta
         Cliente $cliente,
         Paquete $paquete,
         string $mensaje,
+        ?string $calificacion = null,
         ?\DateTimeImmutable $fechaConsulta = null,
         ?int $id = null,
         ?\DateTimeImmutable $fechaCreacion = null,
@@ -55,6 +69,7 @@ final class Consulta
         $this->paquete = $paquete;
         $this->mensaje = $mensaje;
         $this->estado = self::ESTADO_PENDIENTE;
+        $this->calificacion = $calificacion !== null ? $this->normalizarCalificacion($calificacion) : null;
         $this->fechaConsulta = $fechaConsulta ?? new \DateTimeImmutable();
         $this->inicializarAtributosBase($id, $fechaCreacion, $fechaActualizacion);
     }
@@ -79,6 +94,11 @@ final class Consulta
         return $this->estado;
     }
 
+    public function calificacion(): ?string
+    {
+        return $this->calificacion;
+    }
+
     public function fechaConsulta(): ?\DateTimeImmutable
     {
         return $this->fechaConsulta;
@@ -89,6 +109,7 @@ final class Consulta
         ?Paquete $paquete = null,
         ?string $mensaje = null,
         ?string $estado = null,
+        ?string $calificacion = null,
         ?\DateTimeImmutable $fechaConsulta = null,
     ): void {
         if ($cliente !== null) {
@@ -104,6 +125,9 @@ final class Consulta
         if ($estado !== null) {
             $this->validarEstado($estado);
             $this->estado = $estado;
+        }
+        if ($calificacion !== null) {
+            $this->calificacion = $this->normalizarCalificacion($calificacion);
         }
         if ($fechaConsulta !== null) {
             $this->fechaConsulta = $fechaConsulta;
@@ -131,6 +155,7 @@ final class Consulta
             ],
             'mensaje' => $this->mensaje,
             'estado' => $this->estado,
+            'calificacion' => $this->calificacion,
             'fecha_consulta' => $this->fechaConsulta?->format('Y-m-d H:i:s'),
             'fecha_creacion' => $this->fechaCreacion()->format('Y-m-d H:i:s'),
             'fecha_actualizacion' => $this->fechaActualizacion()->format('Y-m-d H:i:s'),
@@ -151,5 +176,24 @@ final class Consulta
                 "Estado inválido. Valores permitidos: " . implode(', ', self::ESTADOS_VALIDOS)
             );
         }
+    }
+
+    private function normalizarCalificacion(string $calificacion): string
+    {
+        $valor = trim($calificacion);
+        $normalizado = match (strtolower($valor)) {
+            'frio' => self::CALIFICACION_FRIO,
+            'caliente' => self::CALIFICACION_CALIENTE,
+            'tibio' => self::CALIFICACION_TIBIO,
+            default => null,
+        };
+
+        if ($normalizado === null) {
+            throw new \InvalidArgumentException(
+                'Calificación inválida. Valores permitidos: ' . implode(', ', self::CALIFICACIONES_VALIDAS)
+            );
+        }
+
+        return $normalizado;
     }
 }

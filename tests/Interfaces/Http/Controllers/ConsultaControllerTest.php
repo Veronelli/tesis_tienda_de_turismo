@@ -92,6 +92,30 @@ final class ConsultaControllerTest extends TestCase
         $this->assertSame('El mensaje es requerido.', $content['error']);
     }
 
+    public function test_crear_con_calificacion_retorna_422(): void
+    {
+        $request = new Request(
+            [],
+            [],
+            [],
+            [],
+            [],
+            ['CONTENT_TYPE' => 'application/json'],
+            json_encode([
+                'paquete_id' => 1,
+                'mensaje' => 'Mensaje de prueba',
+                'calificacion' => 'Frio',
+                'cliente_id' => 1,
+            ]),
+        );
+
+        $response = $this->controller->crear($request);
+
+        $this->assertSame(422, $response->getStatusCode());
+        $content = json_decode((string) $response->getContent(), true);
+        $this->assertSame('La calificación del lead no puede ser enviada por el cliente.', $content['error']);
+    }
+
     public function test_crear_sin_paquete_id_retorna_422(): void
     {
         $request = new Request(
@@ -277,6 +301,28 @@ final class ConsultaControllerTest extends TestCase
         $this->assertSame(200, $response->getStatusCode());
         $content = json_decode((string) $response->getContent(), true);
         $this->assertSame('respondida', $content['estado']);
+    }
+
+    public function test_actualizar_con_calificacion_retorna_422(): void
+    {
+        $request = new Request(
+            [],
+            [],
+            [],
+            [],
+            [],
+            [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_AUTHORIZATION' => 'Bearer ' . $this->tokenValido,
+            ],
+            json_encode(['estado' => 'respondida', 'calificacion' => 'Caliente']),
+        );
+
+        $response = $this->controller->actualizar($request, ['id' => '1']);
+
+        $this->assertSame(422, $response->getStatusCode());
+        $content = json_decode((string) $response->getContent(), true);
+        $this->assertSame('La calificación del lead no puede ser enviada por el cliente.', $content['error']);
     }
 
     public function test_eliminar_retorna_200(): void

@@ -24,6 +24,7 @@ final class HotelFixtures
         return new Hotel(
             nombre: 'Hotel Sheraton',
             ubicacion: 'Av. Corrientes 1234',
+            descripcion: 'Hotel céntrico en Buenos Aires.',
             destino: $destino,
             id: 1,
             fechaCreacion: new \DateTimeImmutable('2024-01-01 10:00:00'),
@@ -37,6 +38,7 @@ final class HotelFixtures
         return new Hotel(
             nombre: 'Hotel Nuevo',
             ubicacion: 'Calle Falsa 456',
+            descripcion: 'Hotel de referencia.',
             destino: $destino,
         );
     }

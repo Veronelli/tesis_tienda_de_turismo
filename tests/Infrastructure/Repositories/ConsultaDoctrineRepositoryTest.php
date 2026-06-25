@@ -42,7 +42,13 @@ final class ConsultaDoctrineRepositoryTest extends TestCase
 
         $usuario = new \TiendaTurismo\GestionDatos\Domain\Models\Usuario('Admin', 'Test', 'a@a.com', 'hash', 'admin', id: 1);
         $destino = new \TiendaTurismo\GestionDatos\Domain\Models\Destino('Buenos Aires', 'CABA', 'Argentina', id: 1);
-        $hotel = new \TiendaTurismo\GestionDatos\Domain\Models\Hotel('Hotel Test', 'Centro', $destino, id: 1);
+        $hotel = new \TiendaTurismo\GestionDatos\Domain\Models\Hotel(
+            nombre: 'Hotel Test',
+            ubicacion: 'Centro',
+            descripcion: 'Hotel de prueba',
+            destino: $destino,
+            id: 1,
+        );
         $paquete = new \TiendaTurismo\GestionDatos\Domain\Models\Paquete(
             nombre: 'Paquete Test', descripcion: null,
             fechaPartida: new \DateTimeImmutable('2026-01-01'), fechaVuelta: null,
@@ -54,6 +60,7 @@ final class ConsultaDoctrineRepositoryTest extends TestCase
 
         $consulta = new Consulta(
             cliente: $cliente, paquete: $paquete, mensaje: 'Test consulta',
+            calificacion: Consulta::CALIFICACION_FRIO,
         );
 
         $this->entityManager->expects($this->once())->method('persist')->with($consulta);
@@ -81,7 +88,13 @@ final class ConsultaDoctrineRepositoryTest extends TestCase
 
         $usuario = new \TiendaTurismo\GestionDatos\Domain\Models\Usuario('Admin', 'Test', 'a@a.com', 'hash', 'admin', id: 1);
         $destino = new \TiendaTurismo\GestionDatos\Domain\Models\Destino('Buenos Aires', 'CABA', 'Argentina', id: 1);
-        $hotel = new \TiendaTurismo\GestionDatos\Domain\Models\Hotel('Hotel Test', 'Centro', $destino, id: 1);
+        $hotel = new \TiendaTurismo\GestionDatos\Domain\Models\Hotel(
+            nombre: 'Hotel Test',
+            ubicacion: 'Centro',
+            descripcion: 'Hotel de prueba',
+            destino: $destino,
+            id: 1,
+        );
         $paquete = new \TiendaTurismo\GestionDatos\Domain\Models\Paquete(
             nombre: 'Paquete Test', descripcion: null,
             fechaPartida: new \DateTimeImmutable('2026-01-01'), fechaVuelta: null,
@@ -93,6 +106,7 @@ final class ConsultaDoctrineRepositoryTest extends TestCase
 
         $consulta = new Consulta(
             cliente: $cliente, paquete: $paquete, mensaje: 'Test consulta',
+            calificacion: Consulta::CALIFICACION_CALIENTE,
         );
 
         $this->entityManager->expects($this->once())->method('remove')->with($consulta);
