@@ -9,6 +9,7 @@ final class CrearHotelInput
     public function __construct(
         public readonly string $nombre,
         public readonly string $ubicacion,
+        public readonly string $descripcion,
         public readonly int $destinoId,
     ) {
     }

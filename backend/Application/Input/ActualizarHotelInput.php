@@ -10,6 +10,7 @@ final class ActualizarHotelInput
         public readonly int $id,
         public readonly string $nombre,
         public readonly string $ubicacion,
+        public readonly string $descripcion,
         public readonly int $destinoId,
     ) {
     }

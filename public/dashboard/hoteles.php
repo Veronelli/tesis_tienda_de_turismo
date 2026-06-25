@@ -25,6 +25,7 @@ require_once __DIR__ . '/components/page-header.php';
           <tr>
             <th>Nombre</th>
             <th>Ubicación</th>
+            <th>Descripción</th>
             <th>Destino</th>
             <th class="text-right">Acciones</th>
           </tr>
@@ -52,6 +53,10 @@ require_once __DIR__ . '/components/page-header.php';
       <div class="form-group">
         <label for="hotelUbicacion">Ubicación</label>
         <input type="text" id="hotelUbicacion" class="form-control" placeholder="Ej: Av. Corrientes 1234" required maxlength="255">
+      </div>
+      <div class="form-group">
+        <label for="hotelDescripcion">Descripción</label>
+        <textarea id="hotelDescripcion" class="form-control" placeholder="Descripción del hotel..." maxlength="5000" style="min-height:80px;"></textarea>
       </div>
       <div class="form-group">
         <label for="hotelDestino">Destino</label>
@@ -142,7 +147,6 @@ require_once __DIR__ . '/components/page-header.php';
 }
 </style>
 
-<script src="js/auth.js"></script>
 <script>
 let hotelesData = [];
 let destinosData = [];
@@ -204,6 +208,7 @@ function renderizarTabla(hoteles) {
     <tr>
       <td><strong>${escapeHtml(h.nombre)}</strong></td>
       <td>${escapeHtml(h.ubicacion)}</td>
+      <td>${escapeHtml((h.descripcion || '').substring(0, 80))}${(h.descripcion || '').length > 80 ? '...' : ''}</td>
       <td>${destinoText}</td>
       <td class="text-right">
         <button class="btn-icon" type="button" onclick="abrirModalEditar(${h.id})" title="Editar">
@@ -220,6 +225,7 @@ function abrirModalCrear() {
   document.getElementById('hotelId').value = '';
   document.getElementById('hotelNombre').value = '';
   document.getElementById('hotelUbicacion').value = '';
+  document.getElementById('hotelDescripcion').value = '';
   document.getElementById('hotelDestino').value = '';
   document.getElementById('btnGuardarHotel').textContent = 'Guardar';
   cargarDestinos();
@@ -235,6 +241,7 @@ function abrirModalEditar(id) {
   document.getElementById('hotelId').value = id;
   document.getElementById('hotelNombre').value = hotel.nombre;
   document.getElementById('hotelUbicacion').value = hotel.ubicacion;
+  document.getElementById('hotelDescripcion').value = hotel.descripcion || '';
 
   cargarDestinos().then(() => {
     document.getElementById('hotelDestino').value = hotel.destino_id;
@@ -251,6 +258,7 @@ function cerrarModal() {
 async function guardarHotel() {
   const nombre = document.getElementById('hotelNombre').value.trim();
   const ubicacion = document.getElementById('hotelUbicacion').value.trim();
+  const descripcion = document.getElementById('hotelDescripcion').value.trim();
   const destinoId = document.getElementById('hotelDestino').value;
 
   if (!nombre || !ubicacion || !destinoId) {
@@ -258,7 +266,7 @@ async function guardarHotel() {
     return;
   }
 
-  const body = { nombre, ubicacion, destino_id: parseInt(destinoId, 10) };
+  const body = { nombre, ubicacion, descripcion, destino_id: parseInt(destinoId, 10) };
   const btn = document.getElementById('btnGuardarHotel');
   btn.disabled = true;
   btn.textContent = 'Guardando...';
