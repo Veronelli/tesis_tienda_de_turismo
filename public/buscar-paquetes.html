@@ -289,6 +289,14 @@
     return String(text).replace(/[&<>"']/g, c => map[c]);
   }
 
+  function resolverImagenSrc(valor) {
+    if (!valor) return '';
+    if (valor.startsWith('data:') || valor.startsWith('http://') || valor.startsWith('https://')) {
+      return valor;
+    }
+    return API_BASE.replace('/api', '') + valor;
+  }
+
   function obtenerHotelesTexto(p) {
     if (Array.isArray(p.hoteles) && p.hoteles.length) {
       return p.hoteles.map(h => h.nombre || '').filter(Boolean).join(', ');
@@ -344,15 +352,11 @@
       container.innerHTML = '<div class="empty-state"><p>No se encontraron paquetes</p></div>';
       return;
     }
-    const PUBLIC_PATH = API_BASE.replace('/api', '');
     container.innerHTML = '<div class="pkg-grid">' +
       paquetes.map(p => {
         const hoteles = obtenerHotelesTexto(p);
         const fecha = p.fecha_partida || '';
-        let imgUrl = p.imagen_principal || '';
-        if (imgUrl && !imgUrl.startsWith('http://') && !imgUrl.startsWith('https://')) {
-          imgUrl = PUBLIC_PATH + imgUrl;
-        }
+        let imgUrl = resolverImagenSrc(p.imagen_principal || '');
         const imgHtml = imgUrl
           ? '<img src="' + imgUrl + '" alt="' + escapeHtml(p.nombre) + '" loading="lazy">'
           : imagenPlaceholder();

@@ -245,6 +245,14 @@
     return String(text).replace(/[&<>"']/g, c => map[c]);
   }
 
+  function resolverImagenSrc(valor) {
+    if (!valor) return '';
+    if (valor.startsWith('data:') || valor.startsWith('http://') || valor.startsWith('https://')) {
+      return valor;
+    }
+    return API_BASE.replace('/api', '') + valor;
+  }
+
   function imagenPlaceholder() {
     return '<div class="placeholder">' +
       '<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">' +
@@ -253,11 +261,7 @@
   }
 
   function renderPaquete(p) {
-    const PUBLIC_PATH = API_BASE.replace('/api', '');
-    let imgUrl = p.imagen_principal || '';
-    if (imgUrl && !imgUrl.startsWith('http://') && !imgUrl.startsWith('https://')) {
-      imgUrl = PUBLIC_PATH + imgUrl;
-    }
+    const imgUrl = resolverImagenSrc(p.imagen_principal || '');
     const imgHtml = imgUrl
       ? '<img src="' + imgUrl + '" alt="' + escapeHtml(p.nombre) + '">'
       : imagenPlaceholder();
