@@ -55,7 +55,6 @@ final class CrearConsultaUseCaseTest extends TestCase
         $input = new CrearConsultaInput(
             paqueteId: 1,
             mensaje: 'Quiero más información.',
-            calificacion: 'Caliente',
             clienteId: 1,
         );
 
@@ -65,7 +64,6 @@ final class CrearConsultaUseCaseTest extends TestCase
         $this->assertSame($paquete, $consulta->paquete());
         $this->assertSame('Quiero más información.', $consulta->mensaje());
         $this->assertSame('pendiente', $consulta->estado());
-        $this->assertSame('Caliente', $consulta->calificacion());
     }
 
     public function test_execute_crea_consulta_creando_cliente_nuevo(): void
@@ -88,7 +86,6 @@ final class CrearConsultaUseCaseTest extends TestCase
         $input = new CrearConsultaInput(
             paqueteId: 1,
             mensaje: 'Consulta desde nuevo cliente.',
-            calificacion: 'Frio',
             datosCliente: [
                 'nombre' => 'Nuevo',
                 'apellido' => 'Cliente',
@@ -126,7 +123,6 @@ final class CrearConsultaUseCaseTest extends TestCase
         $input = new CrearConsultaInput(
             paqueteId: 1,
             mensaje: 'Consulta reusando cliente.',
-            calificacion: 'tibio',
             datosCliente: [
                 'nombre' => 'Juan',
                 'apellido' => 'Pérez',
@@ -156,7 +152,6 @@ final class CrearConsultaUseCaseTest extends TestCase
         $input = new CrearConsultaInput(
             paqueteId: 999,
             mensaje: 'Consulta sin paquete.',
-            calificacion: 'Frio',
             clienteId: 1,
         );
 
@@ -183,7 +178,6 @@ final class CrearConsultaUseCaseTest extends TestCase
         $input = new CrearConsultaInput(
             paqueteId: 1,
             mensaje: 'Consulta sin cliente.',
-            calificacion: 'Caliente',
             clienteId: 999,
         );
 
@@ -205,7 +199,6 @@ final class CrearConsultaUseCaseTest extends TestCase
         $input = new CrearConsultaInput(
             paqueteId: 1,
             mensaje: 'Consulta sin datos de cliente.',
-            calificacion: 'Frio',
         );
 
         $this->useCase->execute($input);

@@ -47,7 +47,6 @@ final class ActualizarConsultaUseCase
             paquete: $paquete,
             mensaje: $input->mensaje,
             estado: $input->estado,
-            calificacion: $input->calificacion,
             fechaConsulta: $input->fechaConsulta,
         );
 

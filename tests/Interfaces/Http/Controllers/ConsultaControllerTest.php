@@ -42,7 +42,6 @@ final class ConsultaControllerTest extends TestCase
                 'paquete' => ['id' => 1, 'nombre' => 'Paquete Test'],
                 'mensaje' => 'Quiero información.',
                 'estado' => 'pendiente',
-                'calificacion' => 'Frio',
             ]);
 
         $request = new Request(
@@ -55,7 +54,6 @@ final class ConsultaControllerTest extends TestCase
             json_encode([
                 'paquete_id' => 1,
                 'mensaje' => 'Quiero información.',
-                'calificacion' => 'Frio',
                 'nombre' => 'Juan',
                 'apellido' => 'Pérez',
                 'email' => 'juan@test.com',
@@ -71,7 +69,6 @@ final class ConsultaControllerTest extends TestCase
         $content = json_decode((string) $response->getContent(), true);
         $this->assertSame('Quiero información.', $content['mensaje']);
         $this->assertSame('pendiente', $content['estado']);
-        $this->assertSame('Frio', $content['calificacion']);
     }
 
     public function test_crear_con_datos_invalidos_retorna_422(): void
@@ -85,7 +82,6 @@ final class ConsultaControllerTest extends TestCase
             ['CONTENT_TYPE' => 'application/json'],
             json_encode([
                 'paquete_id' => 1,
-                'calificacion' => 'Frio',
             ]),
         );
 
@@ -96,7 +92,7 @@ final class ConsultaControllerTest extends TestCase
         $this->assertSame('El mensaje es requerido.', $content['error']);
     }
 
-    public function test_crear_sin_calificacion_retorna_422(): void
+    public function test_crear_con_calificacion_retorna_422(): void
     {
         $request = new Request(
             [],
@@ -108,6 +104,7 @@ final class ConsultaControllerTest extends TestCase
             json_encode([
                 'paquete_id' => 1,
                 'mensaje' => 'Mensaje de prueba',
+                'calificacion' => 'Frio',
                 'cliente_id' => 1,
             ]),
         );
@@ -116,7 +113,7 @@ final class ConsultaControllerTest extends TestCase
 
         $this->assertSame(422, $response->getStatusCode());
         $content = json_decode((string) $response->getContent(), true);
-        $this->assertSame('La calificación es requerida.', $content['error']);
+        $this->assertSame('La calificación del lead no puede ser enviada por el cliente.', $content['error']);
     }
 
     public function test_crear_sin_paquete_id_retorna_422(): void
@@ -131,7 +128,6 @@ final class ConsultaControllerTest extends TestCase
             json_encode([
                 'mensaje' => 'Mensaje de prueba',
                 'cliente_id' => 1,
-                'calificacion' => 'Frio',
             ]),
         );
 
@@ -153,7 +149,6 @@ final class ConsultaControllerTest extends TestCase
             ['CONTENT_TYPE' => 'application/json'],
             json_encode([
                 'paquete_id' => 1,
-                'calificacion' => 'Frio',
                 'mensaje' => 'Mensaje sin cliente',
             ]),
         );
@@ -195,7 +190,6 @@ final class ConsultaControllerTest extends TestCase
                 'paquete' => ['id' => 1, 'nombre' => 'Paquete Test'],
                 'mensaje' => 'Test',
                 'estado' => 'pendiente',
-                'calificacion' => 'Caliente',
             ]]);
 
         $request = new Request(
@@ -213,7 +207,6 @@ final class ConsultaControllerTest extends TestCase
         $content = json_decode((string) $response->getContent(), true);
         $this->assertCount(1, $content);
         $this->assertSame('pendiente', $content[0]['estado']);
-        $this->assertSame('Caliente', $content[0]['calificacion']);
     }
 
     public function test_listar_sin_token_retorna_401(): void
@@ -237,7 +230,6 @@ final class ConsultaControllerTest extends TestCase
                 'paquete' => ['id' => 1, 'nombre' => 'Paquete Test'],
                 'mensaje' => 'Test',
                 'estado' => 'pendiente',
-                'calificacion' => 'tibio',
             ]);
 
         $request = new Request(
@@ -254,7 +246,6 @@ final class ConsultaControllerTest extends TestCase
         $this->assertSame(200, $response->getStatusCode());
         $content = json_decode((string) $response->getContent(), true);
         $this->assertSame('pendiente', $content['estado']);
-        $this->assertSame('tibio', $content['calificacion']);
     }
 
     public function test_obtenerPorId_retorna_404_si_no_existe(): void
@@ -290,9 +281,30 @@ final class ConsultaControllerTest extends TestCase
                 'paquete' => ['id' => 1],
                 'mensaje' => 'Actualizado',
                 'estado' => 'respondida',
-                'calificacion' => 'Caliente',
             ]);
 
+        $request = new Request(
+            [],
+            [],
+            [],
+            [],
+            [],
+            [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_AUTHORIZATION' => 'Bearer ' . $this->tokenValido,
+            ],
+            json_encode(['estado' => 'respondida']),
+        );
+
+        $response = $this->controller->actualizar($request, ['id' => '1']);
+
+        $this->assertSame(200, $response->getStatusCode());
+        $content = json_decode((string) $response->getContent(), true);
+        $this->assertSame('respondida', $content['estado']);
+    }
+
+    public function test_actualizar_con_calificacion_retorna_422(): void
+    {
         $request = new Request(
             [],
             [],
@@ -308,10 +320,9 @@ final class ConsultaControllerTest extends TestCase
 
         $response = $this->controller->actualizar($request, ['id' => '1']);
 
-        $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame(422, $response->getStatusCode());
         $content = json_decode((string) $response->getContent(), true);
-        $this->assertSame('respondida', $content['estado']);
-        $this->assertSame('Caliente', $content['calificacion']);
+        $this->assertSame('La calificación del lead no puede ser enviada por el cliente.', $content['error']);
     }
 
     public function test_eliminar_retorna_200(): void
