@@ -405,11 +405,9 @@ function renderizarPaquetes(paquetes) {
 
   empty.style.display = 'none';
 
-  const BASE = API_BASE.replace('/api', '');
-
   grid.innerHTML = paquetes.map(p => {
     const imgHtml = p.imagen_principal
-      ? '<img src="' + BASE + p.imagen_principal + '" alt="' + escapeHtml(p.nombre) + '" loading="lazy">'
+      ? '<img src="' + resolverImagenSrc(p.imagen_principal) + '" alt="' + escapeHtml(p.nombre) + '" loading="lazy">'
       : '<div class="placeholder"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg><span>Sin imagen</span></div>';
 
     const fechas = p.fecha_partida + (p.fecha_vuelta ? ' → ' + p.fecha_vuelta : '');
@@ -505,10 +503,9 @@ function abrirModalEditar(id) {
   document.getElementById('btnEliminarPaquete').style.display = 'inline-flex';
   document.getElementById('buscarHoteles').value = '';
 
-  const BASE = API_BASE.replace('/api', '');
   const preview = document.getElementById('previewImagen');
   if (p.imagen_principal) {
-    preview.innerHTML = '<img src="' + BASE + p.imagen_principal + '" alt="Imagen actual">';
+    preview.innerHTML = '<img src="' + resolverImagenSrc(p.imagen_principal) + '" alt="Imagen actual">';
     preview.className = 'preview';
   } else {
     preview.innerHTML = '<span>+</span>';
@@ -564,8 +561,7 @@ function quitarImagen() {
   const p = editandoId ? paquetesData.find(pkg => pkg.id === editandoId) : null;
   const preview = document.getElementById('previewImagen');
   if (p && p.imagen_principal) {
-    const BASE = API_BASE.replace('/api', '');
-    preview.innerHTML = '<img src="' + BASE + p.imagen_principal + '" alt="Imagen actual">';
+    preview.innerHTML = '<img src="' + resolverImagenSrc(p.imagen_principal) + '" alt="Imagen actual">';
     preview.className = 'preview';
   } else {
     preview.innerHTML = '<span>+</span>';
@@ -739,6 +735,14 @@ function escapeHtml(text) {
   if (text === null || text === undefined) return '';
   const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
   return String(text).replace(/[&<>"']/g, c => map[c]);
+}
+
+function resolverImagenSrc(valor) {
+  if (!valor) return '';
+  if (valor.startsWith('data:') || valor.startsWith('http://') || valor.startsWith('https://')) {
+    return valor;
+  }
+  return API_BASE.replace('/api', '') + valor;
 }
 
 function mostrarToast(mensaje, tipo) {

@@ -9,14 +9,7 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 final class SubirImagenService
 {
     private const ARCHIVOS_PERMITIDOS = ['jpg', 'jpeg', 'png', 'webp'];
-    private const RUTA_BASE = '/uploads/paquetes';
-
-    private string $directorioPublico;
-
-    public function __construct(?string $directorioPublico = null)
-    {
-        $this->directorioPublico = $directorioPublico ?? (dirname(__DIR__, 3) . '/public');
-    }
+    private const TAMANO_MAXIMO_BASE64 = 16777216;
 
     public function guardar(?UploadedFile $archivo): ?string
     {
@@ -31,16 +24,29 @@ final class SubirImagenService
             );
         }
 
-        $directorio = $this->obtenerDirectorioAbsoluto();
-        $nombreUnico = sprintf('%s_%s.%s', uniqid('paq_', true), bin2hex(random_bytes(4)), $extension);
-        $archivo->move($directorio, $nombreUnico);
+        $contenido = file_get_contents($archivo->getPathname());
+        if ($contenido === false) {
+            throw new \RuntimeException('No se pudo leer la imagen cargada.');
+        }
 
-        return self::RUTA_BASE . '/' . $nombreUnico;
+        $base64 = base64_encode($contenido);
+        $mimeType = $archivo->getMimeType() ?: $this->mimeTypeDesdeExtension($extension);
+        $dataUri = sprintf('data:%s;base64,%s', $mimeType, $base64);
+
+        if (strlen($dataUri) > self::TAMANO_MAXIMO_BASE64) {
+            throw new \InvalidArgumentException('La imagen codificada no puede superar 16 MB.');
+        }
+
+        return $dataUri;
     }
 
     public function eliminar(?string $rutaRelativa): void
     {
         if ($rutaRelativa === null) {
+            return;
+        }
+
+        if (str_starts_with($rutaRelativa, 'data:')) {
             return;
         }
 
@@ -50,17 +56,18 @@ final class SubirImagenService
         }
     }
 
-    private function obtenerDirectorioAbsoluto(): string
-    {
-        $dir = $this->directorioPublico . self::RUTA_BASE;
-        if (!is_dir($dir)) {
-            mkdir($dir, 0755, true);
-        }
-        return $dir;
-    }
-
     private function rutaAbsoluta(string $rutaRelativa): string
     {
-        return $this->directorioPublico . $rutaRelativa;
+        return dirname(__DIR__, 3) . '/public' . $rutaRelativa;
+    }
+
+    private function mimeTypeDesdeExtension(string $extension): string
+    {
+        return match ($extension) {
+            'jpg', 'jpeg' => 'image/jpeg',
+            'png' => 'image/png',
+            'webp' => 'image/webp',
+            default => 'application/octet-stream',
+        };
     }
 }

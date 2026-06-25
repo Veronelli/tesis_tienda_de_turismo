@@ -200,6 +200,10 @@
           <input type="text" id="apellido" class="form-control" placeholder="Tu apellido" required maxlength="100">
         </div>
         <div class="form-group">
+          <label for="dni">DNI *</label>
+          <input type="text" id="dni" class="form-control" placeholder="Ej: 12345678" required maxlength="20">
+        </div>
+        <div class="form-group">
           <label for="email">Email *</label>
           <input type="email" id="email" class="form-control" placeholder="tucorreo@ejemplo.com" required maxlength="200">
         </div>
@@ -241,6 +245,14 @@
     return String(text).replace(/[&<>"']/g, c => map[c]);
   }
 
+  function resolverImagenSrc(valor) {
+    if (!valor) return '';
+    if (valor.startsWith('data:') || valor.startsWith('http://') || valor.startsWith('https://')) {
+      return valor;
+    }
+    return API_BASE.replace('/api', '') + valor;
+  }
+
   function imagenPlaceholder() {
     return '<div class="placeholder">' +
       '<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">' +
@@ -249,11 +261,7 @@
   }
 
   function renderPaquete(p) {
-    const PUBLIC_PATH = API_BASE.replace('/api', '');
-    let imgUrl = p.imagen_principal || '';
-    if (imgUrl && !imgUrl.startsWith('http://') && !imgUrl.startsWith('https://')) {
-      imgUrl = PUBLIC_PATH + imgUrl;
-    }
+    const imgUrl = resolverImagenSrc(p.imagen_principal || '');
     const imgHtml = imgUrl
       ? '<img src="' + imgUrl + '" alt="' + escapeHtml(p.nombre) + '">'
       : imagenPlaceholder();
@@ -299,6 +307,7 @@
 
     const nombre = document.getElementById('nombre').value.trim();
     const apellido = document.getElementById('apellido').value.trim();
+    const dni = document.getElementById('dni').value.trim();
     const email = document.getElementById('email').value.trim();
     const telefono = document.getElementById('telefono').value.trim();
     const ubicacion = document.getElementById('ubicacion').value.trim();
@@ -310,25 +319,33 @@
       return;
     }
 
+    if (!dni) {
+      errorEl.textContent = 'El DNI es obligatorio.';
+      errorEl.style.display = 'block';
+      return;
+    }
+
     const btn = document.getElementById('btn-enviar');
     btn.disabled = true;
     btn.textContent = 'Enviando...';
+
+    const payload = {
+      paquete_id: parseInt(paqueteId, 10),
+      mensaje: mensaje,
+      nombre: nombre,
+      apellido: apellido,
+      dni: dni,
+      email: email,
+      telefono: telefono,
+      ubicacion: ubicacion
+    };
+    console.log('Enviando consulta:', payload);
 
     try {
       const res = await fetch(API_BASE + '/consultas', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          paquete_id: parseInt(paqueteId, 10),
-          mensaje: mensaje,
-          datos_cliente: {
-            nombre: nombre,
-            apellido: apellido,
-            email: email,
-            telefono: telefono,
-            ubicacion: ubicacion
-          }
-        })
+        body: JSON.stringify(payload)
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Error al enviar la consulta');
