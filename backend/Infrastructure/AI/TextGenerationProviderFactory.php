@@ -34,7 +34,7 @@ final class TextGenerationProviderFactory
         return new GeminiTextProvider(
             transport: $transport,
             apiKey: $apiKey,
-            model: (string) ($_ENV['GEMINI_MODEL'] ?? 'gemini-2.0-flash'),
+            model: (string) ($_ENV['GEMINI_MODEL'] ?? 'gemini-3.1-flash-lite'),
         );
     }
 

@@ -6,6 +6,7 @@ namespace TiendaTurismo\GestionDatos\Tests\Application\UseCases\Consulta;
 
 use PHPUnit\Framework\TestCase;
 use TiendaTurismo\GestionDatos\Application\Input\CrearConsultaInput;
+use TiendaTurismo\GestionDatos\Application\AI\Contracts\ProspectoCalificadorInterface;
 use TiendaTurismo\GestionDatos\Application\UseCases\Consulta\CrearConsultaUseCase;
 use TiendaTurismo\GestionDatos\Domain\Repositories\ClienteRepositoryInterface;
 use TiendaTurismo\GestionDatos\Domain\Repositories\ConsultaRepositoryInterface;
@@ -25,6 +26,7 @@ final class CrearConsultaUseCaseTest extends TestCase
     private ConsultaRepositoryInterface $consultaRepo;
     private ClienteRepositoryInterface $clienteRepo;
     private PaqueteRepositoryInterface $paqueteRepo;
+    private ProspectoCalificadorInterface $enviarProspecto;
     private CrearConsultaUseCase $useCase;
 
     protected function setUp(): void
@@ -32,7 +34,13 @@ final class CrearConsultaUseCaseTest extends TestCase
         $this->consultaRepo = $this->createConsultaRepositoryMock();
         $this->clienteRepo = $this->createClienteRepositoryMock();
         $this->paqueteRepo = $this->createPaqueteRepositoryMock();
-        $this->useCase = new CrearConsultaUseCase($this->consultaRepo, $this->clienteRepo, $this->paqueteRepo);
+        $this->enviarProspecto = $this->createMock(ProspectoCalificadorInterface::class);
+        $this->useCase = new CrearConsultaUseCase(
+            $this->consultaRepo,
+            $this->clienteRepo,
+            $this->paqueteRepo,
+            $this->enviarProspecto,
+        );
     }
 
     public function test_execute_crea_consulta_con_cliente_existente(): void
@@ -50,6 +58,12 @@ final class CrearConsultaUseCaseTest extends TestCase
             ->with(1)
             ->willReturn($cliente);
 
+        $this->enviarProspecto
+            ->expects($this->once())
+            ->method('execute')
+            ->with('Quiero más información.')
+            ->willReturn(['calificacion' => 'CALIENTE']);
+
         $this->consultaRepo->expects($this->once())->method('save');
 
         $input = new CrearConsultaInput(
@@ -64,6 +78,7 @@ final class CrearConsultaUseCaseTest extends TestCase
         $this->assertSame($paquete, $consulta->paquete());
         $this->assertSame('Quiero más información.', $consulta->mensaje());
         $this->assertSame('pendiente', $consulta->estado());
+        $this->assertSame('Caliente', $consulta->calificacion());
     }
 
     public function test_execute_crea_consulta_creando_cliente_nuevo(): void
@@ -79,6 +94,12 @@ final class CrearConsultaUseCaseTest extends TestCase
             ->method('findByEmail')
             ->with('nuevo@example.com')
             ->willReturn(null);
+
+        $this->enviarProspecto
+            ->expects($this->once())
+            ->method('execute')
+            ->with('Consulta desde nuevo cliente.')
+            ->willReturn(['calificacion' => 'TIBIO']);
 
         $this->clienteRepo->expects($this->once())->method('save');
         $this->consultaRepo->expects($this->once())->method('save');
@@ -100,6 +121,7 @@ final class CrearConsultaUseCaseTest extends TestCase
 
         $this->assertSame('Nuevo', $consulta->cliente()->nombre());
         $this->assertSame('nuevo@example.com', $consulta->cliente()->email());
+        $this->assertSame('tibio', $consulta->calificacion());
     }
 
     public function test_execute_reusa_cliente_existente_por_email(): void
@@ -116,6 +138,12 @@ final class CrearConsultaUseCaseTest extends TestCase
             ->method('findByEmail')
             ->with('juan@example.com')
             ->willReturn($clienteExistente);
+
+        $this->enviarProspecto
+            ->expects($this->once())
+            ->method('execute')
+            ->with('Consulta reusando cliente.')
+            ->willReturn(['calificacion' => 'FRIO']);
 
         $this->clienteRepo->expects($this->never())->method('save');
         $this->consultaRepo->expects($this->once())->method('save');
@@ -137,6 +165,7 @@ final class CrearConsultaUseCaseTest extends TestCase
 
         $this->assertSame($clienteExistente, $consulta->cliente());
         $this->assertSame('juan@example.com', $consulta->cliente()->email());
+        $this->assertSame('Frio', $consulta->calificacion());
     }
 
     public function test_execute_lanza_excepcion_si_paquete_no_existe(): void
@@ -148,6 +177,8 @@ final class CrearConsultaUseCaseTest extends TestCase
 
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('El paquete con ID 999 no existe.');
+
+        $this->enviarProspecto->expects($this->never())->method('execute');
 
         $input = new CrearConsultaInput(
             paqueteId: 999,
@@ -175,6 +206,8 @@ final class CrearConsultaUseCaseTest extends TestCase
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('El cliente con ID 999 no existe.');
 
+        $this->enviarProspecto->expects($this->never())->method('execute');
+
         $input = new CrearConsultaInput(
             paqueteId: 1,
             mensaje: 'Consulta sin cliente.',
@@ -195,6 +228,8 @@ final class CrearConsultaUseCaseTest extends TestCase
 
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Debe proporcionar un cliente_id o datos completos del cliente.');
+
+        $this->enviarProspecto->expects($this->never())->method('execute');
 
         $input = new CrearConsultaInput(
             paqueteId: 1,
