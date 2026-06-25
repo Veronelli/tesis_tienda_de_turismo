@@ -33,6 +33,7 @@ final class CrearConsultaUseCase
             cliente: $cliente,
             paquete: $paquete,
             mensaje: $input->mensaje,
+            calificacion: $input->calificacion,
             fechaConsulta: $input->fechaConsulta,
         );
 

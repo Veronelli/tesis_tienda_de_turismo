@@ -36,7 +36,7 @@ class ConsultaService
         $this->eliminarConsulta = new EliminarConsultaUseCase($consultas);
     }
 
-    /** @param array{paquete_id:int,mensaje:string,cliente_id?:int,nombre?:string,apellido?:string,email?:string,telefono?:string,dni?:string,ubicacion?:string} $datos */
+    /** @param array{paquete_id:int,mensaje:string,calificacion:string,cliente_id?:int,nombre?:string,apellido?:string,email?:string,telefono?:string,dni?:string,ubicacion?:string} $datos */
     public function crear(array $datos): array
     {
         $datosCliente = null;
@@ -54,6 +54,7 @@ class ConsultaService
         $consulta = $this->crearConsulta->execute(new CrearConsultaInput(
             paqueteId: (int) $datos['paquete_id'],
             mensaje: (string) $datos['mensaje'],
+            calificacion: (string) ($datos['calificacion'] ?? ''),
             clienteId: isset($datos['cliente_id']) ? (int) $datos['cliente_id'] : null,
             datosCliente: $datosCliente,
         ));
@@ -70,7 +71,7 @@ class ConsultaService
         return $this->serializarConsulta($consulta);
     }
 
-    /** @param array{id:int,cliente_id?:int,paquete_id?:int,mensaje?:string,estado?:string} $datos */
+    /** @param array{id:int,cliente_id?:int,paquete_id?:int,mensaje?:string,estado?:string,calificacion?:string} $datos */
     public function actualizar(array $datos): array
     {
         $consulta = $this->actualizarConsulta->execute(new ActualizarConsultaInput(
@@ -79,6 +80,7 @@ class ConsultaService
             paqueteId: isset($datos['paquete_id']) ? (int) $datos['paquete_id'] : null,
             mensaje: $datos['mensaje'] ?? null,
             estado: $datos['estado'] ?? null,
+            calificacion: $datos['calificacion'] ?? null,
         ));
 
         return $this->serializarConsulta($consulta);

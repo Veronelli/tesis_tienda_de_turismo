@@ -12,6 +12,7 @@ final class ActualizarConsultaInput
         public readonly ?int $paqueteId = null,
         public readonly ?string $mensaje = null,
         public readonly ?string $estado = null,
+        public readonly ?string $calificacion = null,
         public readonly ?\DateTimeImmutable $fechaConsulta = null,
     ) {
     }

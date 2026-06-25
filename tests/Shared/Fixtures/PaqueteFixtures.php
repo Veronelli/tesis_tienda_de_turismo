@@ -68,6 +68,7 @@ final class PaqueteFixtures
         return new Hotel(
             nombre: 'Hotel Sheraton',
             ubicacion: 'Av. Corrientes 1234',
+            descripcion: 'Hotel céntrico en Buenos Aires.',
             destino: self::destinoBsAs(),
             id: 1,
             fechaCreacion: new \DateTimeImmutable('2024-01-01 10:00:00'),
@@ -80,6 +81,7 @@ final class PaqueteFixtures
         return new Hotel(
             nombre: 'Hotel Holiday',
             ubicacion: 'Av. Colón 567',
+            descripcion: 'Hotel con vista a las sierras.',
             destino: self::destinoCordoba(),
             id: 2,
             fechaCreacion: new \DateTimeImmutable('2024-01-01 10:00:00'),

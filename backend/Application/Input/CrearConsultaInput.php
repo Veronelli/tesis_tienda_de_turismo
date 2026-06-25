@@ -10,6 +10,7 @@ final class CrearConsultaInput
     public function __construct(
         public readonly int $paqueteId,
         public readonly string $mensaje,
+        public readonly ?string $calificacion = null,
         public readonly ?int $clienteId = null,
         public readonly ?array $datosCliente = null,
         public readonly ?\DateTimeImmutable $fechaConsulta = null,

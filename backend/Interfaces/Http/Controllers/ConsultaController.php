@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
 use TiendaTurismo\GestionDatos\Application\Services\ConsultaService;
+use TiendaTurismo\GestionDatos\Domain\Models\Consulta;
 use TiendaTurismo\GestionDatos\Infrastructure\Persistence\Doctrine\EntityManagerFactory;
 use TiendaTurismo\GestionDatos\Infrastructure\Repositories\ClienteDoctrineRepository;
 use TiendaTurismo\GestionDatos\Infrastructure\Repositories\ConsultaDoctrineRepository;
@@ -172,11 +173,33 @@ final class ConsultaController
             throw new \InvalidArgumentException('El mensaje es requerido.');
         }
 
+        if (!isset($data['calificacion']) || trim((string) $data['calificacion']) === '') {
+            throw new \InvalidArgumentException('La calificación es requerida.');
+        }
+
+        $this->validarCalificacion((string) $data['calificacion']);
+
         $tieneClienteId = isset($data['cliente_id']);
         $tieneDatosCliente = isset($data['nombre'], $data['apellido'], $data['email']);
 
         if (!$tieneClienteId && !$tieneDatosCliente) {
             throw new \InvalidArgumentException('Debe proporcionar un cliente_id o datos del cliente (nombre, apellido, email).');
+        }
+    }
+
+    private function validarCalificacion(string $calificacion): void
+    {
+        $valoresValidos = [
+            Consulta::CALIFICACION_FRIO,
+            Consulta::CALIFICACION_CALIENTE,
+            Consulta::CALIFICACION_TIBIO,
+        ];
+
+        $normalizado = strtolower(trim($calificacion));
+        $permitidos = array_map('strtolower', $valoresValidos);
+
+        if (!in_array($normalizado, $permitidos, true)) {
+            throw new \InvalidArgumentException('Calificación inválida. Valores permitidos: Frio, Caliente, tibio.');
         }
     }
 
