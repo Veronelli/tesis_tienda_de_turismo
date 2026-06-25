@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace TiendaTurismo\GestionDatos\Application\UseCases\Consulta;
 
 use TiendaTurismo\GestionDatos\Application\Input\CrearConsultaInput;
+use TiendaTurismo\GestionDatos\Application\AI\Contracts\ProspectoCalificadorInterface;
 use TiendaTurismo\GestionDatos\Domain\Models\Cliente;
 use TiendaTurismo\GestionDatos\Domain\Models\Consulta;
 use TiendaTurismo\GestionDatos\Domain\Repositories\ClienteRepositoryInterface;
@@ -17,6 +18,7 @@ final class CrearConsultaUseCase
         private readonly ConsultaRepositoryInterface $consultas,
         private readonly ClienteRepositoryInterface $clientes,
         private readonly PaqueteRepositoryInterface $paquetes,
+        private readonly ProspectoCalificadorInterface $enviarProspecto,
     ) {
     }
 
@@ -28,11 +30,13 @@ final class CrearConsultaUseCase
         }
 
         $cliente = $this->resolveCliente($input);
+        $prospecto = $this->enviarProspecto->execute($input->mensaje);
 
         $consulta = new Consulta(
             cliente: $cliente,
             paquete: $paquete,
             mensaje: $input->mensaje,
+            calificacion: $prospecto['calificacion'],
             fechaConsulta: $input->fechaConsulta,
         );
 

@@ -6,6 +6,9 @@ namespace TiendaTurismo\GestionDatos\Application\Services;
 
 use TiendaTurismo\GestionDatos\Application\Input\ActualizarConsultaInput;
 use TiendaTurismo\GestionDatos\Application\Input\CrearConsultaInput;
+use TiendaTurismo\GestionDatos\Application\AI\Prompts\CalificarProspectoPrompt;
+use TiendaTurismo\GestionDatos\Application\AI\Validators\CalificarProspectoResponseValidator;
+use TiendaTurismo\GestionDatos\Application\UseCases\AI\EnviarProspectoUseCase;
 use TiendaTurismo\GestionDatos\Application\UseCases\Consulta\ActualizarConsultaUseCase;
 use TiendaTurismo\GestionDatos\Application\UseCases\Consulta\CrearConsultaUseCase;
 use TiendaTurismo\GestionDatos\Application\UseCases\Consulta\EliminarConsultaUseCase;
@@ -15,6 +18,7 @@ use TiendaTurismo\GestionDatos\Domain\Models\Consulta;
 use TiendaTurismo\GestionDatos\Domain\Repositories\ClienteRepositoryInterface;
 use TiendaTurismo\GestionDatos\Domain\Repositories\ConsultaRepositoryInterface;
 use TiendaTurismo\GestionDatos\Domain\Repositories\PaqueteRepositoryInterface;
+use TiendaTurismo\GestionDatos\Infrastructure\AI\TextGenerationProviderFactory;
 
 class ConsultaService
 {
@@ -28,8 +32,15 @@ class ConsultaService
         ConsultaRepositoryInterface $consultas,
         ClienteRepositoryInterface $clientes,
         PaqueteRepositoryInterface $paquetes,
+        ?EnviarProspectoUseCase $enviarProspecto = null,
     ) {
-        $this->crearConsulta = new CrearConsultaUseCase($consultas, $clientes, $paquetes);
+        $enviarProspecto ??= new EnviarProspectoUseCase(
+            new CalificarProspectoPrompt(),
+            TextGenerationProviderFactory::createFromEnv(),
+            new CalificarProspectoResponseValidator(),
+        );
+
+        $this->crearConsulta = new CrearConsultaUseCase($consultas, $clientes, $paquetes, $enviarProspecto);
         $this->obtenerConsultaPorId = new ObtenerConsultaPorIdUseCase($consultas);
         $this->listarConsultas = new ListarConsultasUseCase($consultas);
         $this->actualizarConsulta = new ActualizarConsultaUseCase($consultas, $clientes, $paquetes);

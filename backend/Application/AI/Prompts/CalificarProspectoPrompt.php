@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace TiendaTurismo\GestionDatos\Application\AI\Prompts;
 
+use TiendaTurismo\GestionDatos\Application\AI\Contracts\PromptBuilderInterface;
 use TiendaTurismo\GestionDatos\Application\AI\DTO\AiPrompt;
 
-final class CalificarProspectoPrompt
+final class CalificarProspectoPrompt implements PromptBuilderInterface
 {
     private const SYSTEM_PROMPT = <<<'TXT'
 Eres un clasificador de prospectos comerciales.
@@ -26,12 +27,17 @@ Reglas de salida:
 - CALIENTE: interes alto, hay intencion clara de compra o consulta concreta para cerrar.
 TXT;
 
-    public static function fromMensaje(string $mensaje): AiPrompt
+    public function build(string $input): AiPrompt
     {
         return new AiPrompt(
             instructions: self::SYSTEM_PROMPT,
-            input: trim($mensaje),
+            input: trim($input),
         );
+    }
+
+    public static function fromMensaje(string $mensaje): AiPrompt
+    {
+        return (new self())->build($mensaje);
     }
 
     public static function systemPrompt(): string
