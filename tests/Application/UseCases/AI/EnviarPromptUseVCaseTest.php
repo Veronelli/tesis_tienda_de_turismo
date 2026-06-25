@@ -6,6 +6,7 @@ namespace TiendaTurismo\GestionDatos\Tests\Application\UseCases\AI;
 
 use PHPUnit\Framework\TestCase;
 use TiendaTurismo\GestionDatos\Application\AI\Contracts\GenerativeTextProviderInterface;
+use TiendaTurismo\GestionDatos\Application\AI\Contracts\ResponseValidatorInterface;
 use TiendaTurismo\GestionDatos\Application\AI\DTO\AiPrompt;
 use TiendaTurismo\GestionDatos\Application\AI\DTO\AiResponse;
 use TiendaTurismo\GestionDatos\Application\UseCases\AI\EnviarPromptUseVCase;
@@ -37,5 +38,39 @@ final class EnviarPromptUseVCaseTest extends TestCase
         $result = $useCase->execute($prompt);
 
         $this->assertSame($expected, $result);
+    }
+
+    public function test_execute_valida_la_respuesta_si_hay_validador(): void
+    {
+        $provider = $this->createMock(GenerativeTextProviderInterface::class);
+        $validator = $this->createMock(ResponseValidatorInterface::class);
+        $useCase = new EnviarPromptUseVCase($provider, $validator);
+
+        $prompt = new AiPrompt(
+            instructions: 'Actua como agente de ventas.',
+            input: 'Hola, quiero viajar a Brasil.',
+        );
+
+        $response = new AiResponse(
+            text: '{"calificacion":"CALIENTE"}',
+            provider: 'openai',
+            model: 'gpt-5.5',
+        );
+
+        $provider
+            ->expects($this->once())
+            ->method('generate')
+            ->with($prompt)
+            ->willReturn($response);
+
+        $validator
+            ->expects($this->once())
+            ->method('validate')
+            ->with('{"calificacion":"CALIENTE"}')
+            ->willReturn(['calificacion' => 'CALIENTE']);
+
+        $result = $useCase->execute($prompt);
+
+        $this->assertSame($response, $result);
     }
 }
