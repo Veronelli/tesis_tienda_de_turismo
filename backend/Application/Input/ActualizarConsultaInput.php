@@ -13,6 +13,7 @@ final class ActualizarConsultaInput
         public readonly ?string $mensaje = null,
         public readonly ?string $estado = null,
         public readonly ?\DateTimeImmutable $fechaConsulta = null,
+        public readonly int $usuarioResponsableId = 0,
     ) {
     }
 }

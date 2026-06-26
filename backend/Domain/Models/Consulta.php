@@ -55,12 +55,17 @@ final class Consulta
     #[ORM\Column(name: 'fecha_consulta', type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $fechaConsulta;
 
+    #[ORM\ManyToOne(targetEntity: Usuario::class)]
+    #[ORM\JoinColumn(name: 'actualizado_por_usuario_id', referencedColumnName: 'id', nullable: true)]
+    private ?Usuario $actualizadoPor = null;
+
     public function __construct(
         Cliente $cliente,
         Paquete $paquete,
         string $mensaje,
         ?string $calificacion = null,
         ?\DateTimeImmutable $fechaConsulta = null,
+        ?Usuario $actualizadoPor = null,
         ?int $id = null,
         ?\DateTimeImmutable $fechaCreacion = null,
         ?\DateTimeImmutable $fechaActualizacion = null,
@@ -73,6 +78,7 @@ final class Consulta
         $this->estado = self::ESTADO_PENDIENTE;
         $this->calificacion = $calificacion !== null ? $this->normalizarCalificacion($calificacion) : null;
         $this->fechaConsulta = $fechaConsulta ?? new \DateTimeImmutable();
+        $this->actualizadoPor = $actualizadoPor;
         $this->inicializarAtributosBase($id, $fechaCreacion, $fechaActualizacion);
     }
 
@@ -106,6 +112,11 @@ final class Consulta
         return $this->fechaConsulta;
     }
 
+    public function actualizadoPor(): ?Usuario
+    {
+        return $this->actualizadoPor;
+    }
+
     public function update(
         ?Cliente $cliente = null,
         ?Paquete $paquete = null,
@@ -113,6 +124,7 @@ final class Consulta
         ?string $estado = null,
         ?string $calificacion = null,
         ?\DateTimeImmutable $fechaConsulta = null,
+        ?Usuario $actualizadoPor = null,
     ): void {
         if ($cliente !== null) {
             $this->cliente = $cliente;
@@ -134,6 +146,10 @@ final class Consulta
         }
         if ($fechaConsulta !== null) {
             $this->fechaConsulta = $fechaConsulta;
+        }
+
+        if ($actualizadoPor !== null) {
+            $this->actualizadoPor = $actualizadoPor;
         }
     }
 
@@ -159,6 +175,18 @@ final class Consulta
             'mensaje' => $this->mensaje,
             'estado' => $this->estado,
             'calificacion' => $this->calificacion,
+            'creado_por' => [
+                'tipo' => 'cliente',
+                'nombre' => $this->cliente->nombre(),
+                'apellido' => $this->cliente->apellido(),
+                'email' => $this->cliente->email(),
+            ],
+            'actualizado_por' => $this->actualizadoPor !== null ? [
+                'id' => $this->actualizadoPor->id(),
+                'nombre' => $this->actualizadoPor->nombre(),
+                'apellido' => $this->actualizadoPor->apellido(),
+                'email' => $this->actualizadoPor->email(),
+            ] : null,
             'fecha_consulta' => $this->fechaConsulta?->format('Y-m-d H:i:s'),
             'fecha_creacion' => $this->fechaCreacion()->format('Y-m-d H:i:s'),
             'fecha_actualizacion' => $this->fechaActualizacion()->format('Y-m-d H:i:s'),
