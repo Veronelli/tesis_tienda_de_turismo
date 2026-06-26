@@ -13,6 +13,7 @@ use TiendaTurismo\GestionDatos\Infrastructure\Persistence\Doctrine\EntityManager
 use TiendaTurismo\GestionDatos\Infrastructure\Repositories\ClienteDoctrineRepository;
 use TiendaTurismo\GestionDatos\Infrastructure\Repositories\ConsultaDoctrineRepository;
 use TiendaTurismo\GestionDatos\Infrastructure\Repositories\PaqueteDoctrineRepository;
+use TiendaTurismo\GestionDatos\Infrastructure\Repositories\UsuarioDoctrineRepository;
 use TiendaTurismo\GestionDatos\Infrastructure\Security\JwtService;
 
 final class ConsultaController
@@ -30,6 +31,7 @@ final class ConsultaController
                 new ConsultaDoctrineRepository($entityManager),
                 new ClienteDoctrineRepository($entityManager),
                 new PaqueteDoctrineRepository($entityManager),
+                new UsuarioDoctrineRepository($entityManager),
             );
         } else {
             $this->consultaService = $consultaService;
@@ -140,6 +142,7 @@ final class ConsultaController
             $this->validarSinCalificacion($data);
 
             $data['id'] = (int) $params['id'];
+            $data['usuario_responsable_id'] = $this->obtenerUsuarioDesdeToken($request);
 
             $consulta = $this->consultaService->actualizar($data);
 
@@ -186,6 +189,11 @@ final class ConsultaController
 
     private function requerirAutenticacion(Request $request): void
     {
+        $this->obtenerUsuarioDesdeToken($request);
+    }
+
+    private function obtenerUsuarioDesdeToken(Request $request): int
+    {
         $header = $request->headers->get('Authorization', '');
 
         if (!str_starts_with($header, 'Bearer ')) {
@@ -198,6 +206,8 @@ final class ConsultaController
         if ($payload === null || !isset($payload['sub'])) {
             throw new \RuntimeException('Token inválido o expirado.');
         }
+
+        return (int) $payload['sub'];
     }
 
     public static function rutas(): RouteCollection
