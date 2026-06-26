@@ -135,7 +135,6 @@ require_once __DIR__ . '/components/page-header.php';
       <div id="errorValidacion" style="color:var(--status-cancelada);font-size:0.83rem;margin-bottom:12px;display:none;"></div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-danger" type="button" id="btnEliminarPaquete" onclick="eliminarPaquete()" style="display:none;margin-right:auto;">Eliminar</button>
       <button class="btn btn-secondary" type="button" onclick="cerrarModal()">Cancelar</button>
       <button class="btn btn-primary" type="button" id="btnGuardarPaquete" onclick="guardarPaquete()">Guardar</button>
     </div>
@@ -480,7 +479,6 @@ function abrirModalCrear() {
   document.getElementById('errorValidacion').style.display = 'none';
   document.getElementById('btnGuardarPaquete').textContent = 'Guardar';
   document.getElementById('buscarHoteles').value = '';
-  document.getElementById('btnEliminarPaquete').style.display = 'none';
   cargarHoteles();
   document.getElementById('modalPaquete').classList.add('open');
 }
@@ -500,7 +498,6 @@ function abrirModalEditar(id) {
   document.getElementById('paqueteDisponible').checked = p.disponible;
   document.getElementById('errorValidacion').style.display = 'none';
   document.getElementById('btnGuardarPaquete').textContent = 'Actualizar';
-  document.getElementById('btnEliminarPaquete').style.display = 'inline-flex';
   document.getElementById('buscarHoteles').value = '';
 
   const preview = document.getElementById('previewImagen');
@@ -690,43 +687,6 @@ function filtrarHoteles(valor) {
     const opt = Array.from(select.options).find(o => o.value === v);
     if (opt) opt.selected = true;
   });
-}
-
-// ----- Delete -----
-
-async function eliminarPaquete() {
-  if (!editandoId) return;
-  if (!confirm('¿Seguro que querés eliminar este paquete?')) return;
-
-  const token = getToken();
-  if (!token) {
-    mostrarToast('Sesión expirada. Volvé a iniciar sesión.', 'error');
-    setTimeout(logout, 2000);
-    return;
-  }
-
-  const btn = document.getElementById('btnEliminarPaquete');
-  btn.disabled = true;
-  btn.textContent = 'Eliminando...';
-
-  try {
-    const r = await fetch(API_BASE + '/paquetes/' + editandoId, {
-      method: 'DELETE',
-      headers: { 'Authorization': 'Bearer ' + token },
-    });
-    const d = await r.json();
-    if (!r.ok) {
-      throw new Error(d.error || 'Error al eliminar');
-    }
-    mostrarToast('Paquete eliminado correctamente.', 'success');
-    cerrarModal();
-    await cargarPaquetes();
-  } catch (e) {
-    mostrarToast(e.message, 'error');
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Eliminar';
-  }
 }
 
 // ----- Helpers -----

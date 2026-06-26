@@ -387,49 +387,4 @@ final class PaqueteControllerTest extends TestCase
         $this->assertSame(400, $response->getStatusCode());
     }
 
-    public function test_eliminar_retorna_200(): void
-    {
-        $this->paqueteService
-            ->expects($this->once())
-            ->method('eliminar')
-            ->with(1, 1);
-
-        $request = new Request(
-            [],
-            [],
-            [],
-            [],
-            [],
-            ['HTTP_AUTHORIZATION' => 'Bearer ' . $this->tokenValido],
-        );
-
-        $response = $this->controller->eliminar($request, ['id' => '1']);
-
-        $this->assertSame(200, $response->getStatusCode());
-        $content = json_decode((string) $response->getContent(), true);
-        $this->assertSame('Paquete eliminado correctamente.', $content['mensaje']);
-    }
-
-    public function test_eliminar_paquete_inexistente_retorna_404(): void
-    {
-        $this->paqueteService
-            ->method('eliminar')
-            ->with(999, 1)
-            ->willThrowException(new \RuntimeException('Paquete no encontrado.'));
-
-        $request = new Request(
-            [],
-            [],
-            [],
-            [],
-            [],
-            ['HTTP_AUTHORIZATION' => 'Bearer ' . $this->tokenValido],
-        );
-
-        $response = $this->controller->eliminar($request, ['id' => '999']);
-
-        $this->assertSame(404, $response->getStatusCode());
-        $content = json_decode((string) $response->getContent(), true);
-        $this->assertSame('Paquete no encontrado.', $content['error']);
-    }
 }

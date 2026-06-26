@@ -44,26 +44,6 @@ final class PaqueteDoctrineRepositoryTest extends TestCase
         $this->repo->save($paquete);
     }
 
-    public function test_delete_removes_and_flushes(): void
-    {
-        $usuario = new Usuario('Admin', 'Test', 'a@a.com', 'hash', 'admin', id: 1);
-
-        $paquete = new Paquete(
-            nombre: 'Test',
-            descripcion: null,
-            fechaPartida: new \DateTimeImmutable('2026-01-01'),
-            fechaVuelta: null,
-            precio: '100',
-            disponible: true,
-            creadoPor: $usuario,
-        );
-
-        $this->entityManager->expects($this->once())->method('remove')->with($paquete);
-        $this->entityManager->expects($this->once())->method('flush');
-
-        $this->repo->delete($paquete);
-    }
-
     public function test_findById_delega_en_entityManager(): void
     {
         $query = $this->createMock(Query::class);
