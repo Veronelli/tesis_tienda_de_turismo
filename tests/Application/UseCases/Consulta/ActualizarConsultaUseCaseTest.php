@@ -44,13 +44,23 @@ final class ActualizarConsultaUseCaseTest extends TestCase
     {
         $consulta = ConsultaFixtures::consultaPendiente();
         $usuarioEditor = ConsultaFixtures::usuarioEditor();
+        $consultaPersistida = null;
 
         $this->consultaRepo
             ->method('findById')
             ->with(1)
             ->willReturn($consulta);
 
-        $this->consultaRepo->expects($this->once())->method('update');
+        $this->consultaRepo->expects($this->once())
+            ->method('update')
+            ->with($this->callback(function (Consulta $consulta) use (&$consultaPersistida, $usuarioEditor): bool {
+                $consultaPersistida = $consulta;
+
+                $this->assertSame($usuarioEditor, $consulta->actualizadoPor());
+                $this->assertSame(Consulta::ESTADO_PROCESANDO, $consulta->estado());
+
+                return true;
+            }));
 
         $this->usuarioRepo
             ->method('findById')
@@ -65,6 +75,7 @@ final class ActualizarConsultaUseCaseTest extends TestCase
 
         $resultado = $this->useCase->execute($input);
 
+        $this->assertInstanceOf(Consulta::class, $consultaPersistida);
         $this->assertSame(Consulta::ESTADO_PROCESANDO, $resultado->estado());
         $this->assertSame($usuarioEditor, $resultado->actualizadoPor());
     }
