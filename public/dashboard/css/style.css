@@ -310,6 +310,36 @@ body {
 .pkg-inline .hotel { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
 .pkg-inline .date { font-size: 0.75rem; color: var(--text-muted); margin-top: 6px; }
 
+.pkg-card__audit,
+.consulta-audit {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-light);
+  display: grid;
+  gap: 6px;
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+
+.pkg-card__audit-row,
+.consulta-audit-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  line-height: 1.35;
+}
+
+.pkg-card__audit-label,
+.consulta-audit-label {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.pkg-card__audit-value,
+.consulta-audit-value {
+  color: var(--text-muted);
+}
+
 /* ---------- Total count badge ---------- */
 .total-badge {
   display: inline-flex;

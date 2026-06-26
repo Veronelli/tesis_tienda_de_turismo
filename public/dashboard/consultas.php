@@ -131,6 +131,12 @@ require_once __DIR__ . '/components/page-header.php';
           </select>
         </div>
       </div>
+      <div class="consulta-audit" id="consultaAuditoria" style="display:none;">
+        <div class="consulta-audit-row"><span class="consulta-audit-label">Creado por:</span><span class="consulta-audit-value" id="consultaCreadoPor"></span></div>
+        <div class="consulta-audit-row"><span class="consulta-audit-label">Fecha de creación:</span><span class="consulta-audit-value" id="consultaFechaCreacion"></span></div>
+        <div class="consulta-audit-row"><span class="consulta-audit-label">Modificado por:</span><span class="consulta-audit-value" id="consultaActualizadoPor"></span></div>
+        <div class="consulta-audit-row"><span class="consulta-audit-label">Fecha de modificación:</span><span class="consulta-audit-value" id="consultaFechaActualizacion"></span></div>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" type="button" onclick="cerrarModal()">Cancelar</button>
@@ -406,6 +412,10 @@ function renderizarTabla(consultas) {
     const estado = String(c.estado || 'pendiente').trim().toLowerCase();
     const estadoLabel = formatearEstado(estado);
     const fecha = c.fecha_creacion ? c.fecha_creacion.split(' ')[0] : '—';
+    const creadoPor = c.creado_por ? formatearPersonaAuditoria(c.creado_por, 'Cliente') : clienteNombre;
+    const actualizadoPor = c.actualizado_por ? formatearPersonaAuditoria(c.actualizado_por, 'Sin modificaciones') : 'Sin modificaciones';
+    const fechaCreacion = formatearFechaAuditoria(c.fecha_creacion);
+    const fechaActualizacion = formatearFechaAuditoria(c.fecha_actualizacion, '—');
 
     return `
     <tr>
@@ -414,6 +424,12 @@ function renderizarTabla(consultas) {
         <strong>${clienteNombre}</strong>
         <div style="font-size:0.75rem;color:var(--text-muted)">${clienteEmail}</div>
         <div style="font-size:0.75rem;color:var(--text-muted)">DNI: ${escapeHtml(c.cliente ? c.cliente.dni || '—' : '—')}</div>
+        <div class="consulta-audit">
+          <div class="consulta-audit-row"><span class="consulta-audit-label">Creado por:</span><span class="consulta-audit-value">${escapeHtml(creadoPor)}</span></div>
+          <div class="consulta-audit-row"><span class="consulta-audit-label">Fecha de creación:</span><span class="consulta-audit-value">${escapeHtml(fechaCreacion)}</span></div>
+          <div class="consulta-audit-row"><span class="consulta-audit-label">Modificado por:</span><span class="consulta-audit-value">${escapeHtml(actualizadoPor)}</span></div>
+          <div class="consulta-audit-row"><span class="consulta-audit-label">Fecha de modificación:</span><span class="consulta-audit-value">${escapeHtml(fechaActualizacion)}</span></div>
+        </div>
       </td>
       <td>${paqueteNombre}</td>
       <td><span class="mensaje-truncate" title="${escapeHtml(mensaje)}">${mensaje}</span></td>
@@ -448,6 +464,11 @@ function abrirModalConsulta(id) {
   document.getElementById('consultaMensaje').value = consulta.mensaje || '';
   document.getElementById('consultaCalificacion').textContent = formatearCalificacion(consulta.calificacion);
   document.getElementById('consultaEstado').value = String(consulta.estado || 'pendiente').trim().toLowerCase();
+  document.getElementById('consultaAuditoria').style.display = 'grid';
+  document.getElementById('consultaCreadoPor').textContent = formatearPersonaAuditoria(consulta.creado_por, 'Cliente');
+  document.getElementById('consultaFechaCreacion').textContent = formatearFechaAuditoria(consulta.fecha_creacion);
+  document.getElementById('consultaActualizadoPor').textContent = formatearPersonaAuditoria(consulta.actualizado_por, 'Sin modificaciones');
+  document.getElementById('consultaFechaActualizacion').textContent = formatearFechaAuditoria(consulta.fecha_actualizacion, '—');
   document.getElementById('modalConsulta').classList.add('open');
 }
 
@@ -519,6 +540,23 @@ function formatearEstado(estado) {
     cancelada: 'Cancelada',
     completada: 'Completada',
   }[valor] || valor;
+}
+
+function formatearPersonaAuditoria(persona, fallback = '—') {
+  if (!persona) return fallback;
+  const nombre = [persona.nombre, persona.apellido].filter(Boolean).join(' ').trim();
+  const email = persona.email ? ' <' + persona.email + '>' : '';
+  const valor = (nombre + email).trim();
+  return valor || fallback;
+}
+
+function formatearFechaAuditoria(fecha, fallback = 'Sin fecha') {
+  if (!fecha) return fallback;
+  const partes = String(fecha).split(' ');
+  const fechaParte = partes[0] || '';
+  const horaParte = partes[1] || '';
+  if (!fechaParte) return fallback;
+  return horaParte ? fechaParte + ' ' + horaParte : fechaParte;
 }
 
 function mostrarToast(mensaje, tipo) {
