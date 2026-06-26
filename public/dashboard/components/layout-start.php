@@ -33,6 +33,8 @@ $rol = $payload['rol'] ?? 'admin';
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/x-icon" href="../../img/logo.png">
+
   <title><?= htmlspecialchars($title ?? 'Dashboard', ENT_QUOTES) ?> - Tienda De Turismo Admin</title>
   <link rel="stylesheet" href="css/style.css">
   <style>
@@ -85,13 +87,12 @@ $rol = $payload['rol'] ?? 'admin';
     }
 
     .dashboard-topbar__logo {
-      width: 34px;
-      height: 34px;
+      width: 50px;
+      height: 50px;
       border-radius: 50%;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      background: radial-gradient(circle at 35% 35%, #35b7ff 0 20%, #8fd14f 21% 42%, #ffb000 43% 68%, #f98a1f 69% 100%);
       color: #1a1a2e;
       font-size: 0.42rem;
       font-weight: 700;
@@ -118,7 +119,7 @@ $rol = $payload['rol'] ?? 'admin';
       </button>
       <h1 class="dashboard-topbar__title">Tienda De Turismo Admin</h1>
     </div>
-    <div class="dashboard-topbar__logo" aria-hidden="true">Tienda<br>Turismo</div>
+      <img src="../img/logo.png" alt=""class="dashboard-topbar__logo">
   </header>
   <?php require __DIR__ . '/sidebar.php'; ?>
   <main class="main">
