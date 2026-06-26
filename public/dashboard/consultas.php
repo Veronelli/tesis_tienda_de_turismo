@@ -27,8 +27,9 @@ require_once __DIR__ . '/components/page-header.php';
         <select id="filtroEstado" class="form-control">
           <option value="">Todos</option>
           <option value="pendiente">Pendiente</option>
-          <option value="respondida">Respondida</option>
-          <option value="cerrada">Cerrada</option>
+          <option value="procesando">Procesando</option>
+          <option value="cancelada">Cancelada</option>
+          <option value="completada">Completada</option>
         </select>
       </div>
       <div class="field">
@@ -124,8 +125,9 @@ require_once __DIR__ . '/components/page-header.php';
           <label>Estado</label>
           <select id="consultaEstado" class="form-control">
             <option value="pendiente">Pendiente</option>
-            <option value="respondida">Respondida</option>
-            <option value="cerrada">Cerrada</option>
+            <option value="procesando">Procesando</option>
+            <option value="cancelada">Cancelada</option>
+            <option value="completada">Completada</option>
           </select>
         </div>
       </div>
@@ -240,13 +242,17 @@ require_once __DIR__ . '/components/page-header.php';
   background: rgba(245,158,11,0.12);
   color: var(--status-proceso);
 }
-.badge-estado.respondida {
+.badge-estado.procesando {
   background: rgba(34,197,94,0.12);
   color: var(--status-concretada);
 }
-.badge-estado.cerrada {
+.badge-estado.cancelada {
   background: rgba(239,68,68,0.12);
   color: var(--status-cancelada);
+}
+.badge-estado.completada {
+  background: rgba(34,197,94,0.12);
+  color: var(--status-concretada);
 }
 .badge-calificacion {
   display: inline-block;
@@ -396,7 +402,7 @@ function renderizarTabla(consultas) {
     const mensaje = escapeHtml(c.mensaje || '');
     const calificacion = normalizarCalificacion(c.calificacion);
     const calificacionLabel = formatearCalificacion(c.calificacion);
-    const estado = c.estado || 'pendiente';
+    const estado = String(c.estado || 'pendiente').trim().toLowerCase();
     const estadoLabel = formatearEstado(estado);
     const fecha = c.fecha_creacion ? c.fecha_creacion.split(' ')[0] : '—';
 
@@ -440,7 +446,7 @@ function abrirModalConsulta(id) {
   document.getElementById('consultaPaquete').textContent = paquete.nombre || '—';
   document.getElementById('consultaMensaje').value = consulta.mensaje || '';
   document.getElementById('consultaCalificacion').textContent = formatearCalificacion(consulta.calificacion);
-  document.getElementById('consultaEstado').value = consulta.estado || 'pendiente';
+  document.getElementById('consultaEstado').value = String(consulta.estado || 'pendiente').trim().toLowerCase();
   document.getElementById('modalConsulta').classList.add('open');
 }
 
@@ -463,7 +469,7 @@ async function guardarConsulta() {
     return;
   }
 
-  const estadosValidos = ['pendiente', 'respondida', 'cerrada'];
+  const estadosValidos = ['pendiente', 'procesando', 'cancelada', 'completada'];
   if (!estadosValidos.includes(estado)) {
     mostrarToast('Estado inválido.', 'error');
     return;
@@ -505,8 +511,13 @@ function formatearCalificacion(calificacion) {
 }
 
 function formatearEstado(estado) {
-  const valor = String(estado || 'pendiente').trim().toLowerCase();
-  return { pendiente: 'Pendiente', respondida: 'Respondida', cerrada: 'Cerrada' }[valor] || valor;
+  const valor = String(estado || '').trim().toLowerCase();
+    return {
+    pendiente: 'Pendiente',
+    procesando: 'Procesando',
+    cancelada: 'Cancelada',
+    completada: 'Completada',
+  }[valor] || valor;
 }
 
 function mostrarToast(mensaje, tipo) {

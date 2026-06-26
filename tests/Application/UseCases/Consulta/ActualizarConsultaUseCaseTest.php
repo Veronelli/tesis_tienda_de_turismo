@@ -48,12 +48,12 @@ final class ActualizarConsultaUseCaseTest extends TestCase
 
         $input = new ActualizarConsultaInput(
             id: 1,
-            estado: Consulta::ESTADO_RESPONDIDA,
+            estado: Consulta::ESTADO_PROCESANDO,
         );
 
         $resultado = $this->useCase->execute($input);
 
-        $this->assertSame(Consulta::ESTADO_RESPONDIDA, $resultado->estado());
+        $this->assertSame(Consulta::ESTADO_PROCESANDO, $resultado->estado());
     }
 
     public function test_execute_lanza_excepcion_si_consulta_no_existe(): void
@@ -68,7 +68,7 @@ final class ActualizarConsultaUseCaseTest extends TestCase
 
         $input = new ActualizarConsultaInput(
             id: 999,
-            estado: Consulta::ESTADO_CERRADA,
+            estado: Consulta::ESTADO_CANCELADA,
         );
 
         $this->useCase->execute($input);

@@ -38,14 +38,14 @@ final class ConsultaFixtures
         $consulta = new Consulta(
             cliente: self::clienteValido(),
             paquete: PaqueteFixtures::paqueteValido(),
-            mensaje: 'Consulta respondida.',
+            mensaje: 'Consulta procesando.',
             calificacion: Consulta::CALIFICACION_TIBIO,
             fechaConsulta: new \DateTimeImmutable('2026-06-02 10:00:00'),
             id: 2,
             fechaCreacion: new \DateTimeImmutable('2026-06-02 10:00:00'),
             fechaActualizacion: new \DateTimeImmutable('2026-06-03 10:00:00'),
         );
-        $consulta->update(estado: Consulta::ESTADO_RESPONDIDA);
+        $consulta->update(estado: Consulta::ESTADO_PROCESANDO);
         return $consulta;
     }
 }

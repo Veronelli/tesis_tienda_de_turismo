@@ -302,7 +302,7 @@ final class ConsultaControllerTest extends TestCase
                 'cliente' => ['id' => 1],
                 'paquete' => ['id' => 1],
                 'mensaje' => 'Actualizado',
-                'estado' => 'respondida',
+                'estado' => 'procesando',
             ]);
 
         $request = new Request(
@@ -315,14 +315,14 @@ final class ConsultaControllerTest extends TestCase
                 'CONTENT_TYPE' => 'application/json',
                 'HTTP_AUTHORIZATION' => 'Bearer ' . $this->tokenValido,
             ],
-            json_encode(['estado' => 'respondida']),
+            json_encode(['estado' => 'procesando']),
         );
 
         $response = $this->controller->actualizar($request, ['id' => '1']);
 
         $this->assertSame(200, $response->getStatusCode());
         $content = json_decode((string) $response->getContent(), true);
-        $this->assertSame('respondida', $content['estado']);
+        $this->assertSame('procesando', $content['estado']);
     }
 
     public function test_actualizar_con_calificacion_retorna_422(): void
@@ -337,7 +337,7 @@ final class ConsultaControllerTest extends TestCase
                 'CONTENT_TYPE' => 'application/json',
                 'HTTP_AUTHORIZATION' => 'Bearer ' . $this->tokenValido,
             ],
-            json_encode(['estado' => 'respondida', 'calificacion' => 'Caliente']),
+            json_encode(['estado' => 'procesando', 'calificacion' => 'Caliente']),
         );
 
         $response = $this->controller->actualizar($request, ['id' => '1']);

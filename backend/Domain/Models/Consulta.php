@@ -14,8 +14,9 @@ final class Consulta
     use AtributosBase;
 
     public const ESTADO_PENDIENTE = 'pendiente';
-    public const ESTADO_RESPONDIDA = 'respondida';
-    public const ESTADO_CERRADA = 'cerrada';
+    public const ESTADO_PROCESANDO = 'procesando';
+    public const ESTADO_CANCELADA = 'cancelada';
+    public const ESTADO_COMPLETADA = 'completada';
 
     public const CALIFICACION_FRIO = 'Frio';
     public const CALIFICACION_CALIENTE = 'Caliente';
@@ -23,8 +24,9 @@ final class Consulta
 
     private const ESTADOS_VALIDOS = [
         self::ESTADO_PENDIENTE,
-        self::ESTADO_RESPONDIDA,
-        self::ESTADO_CERRADA,
+        self::ESTADO_PROCESANDO,
+        self::ESTADO_CANCELADA,
+        self::ESTADO_COMPLETADA,
     ];
 
     private const CALIFICACIONES_VALIDAS = [
@@ -123,8 +125,9 @@ final class Consulta
             $this->mensaje = $mensaje;
         }
         if ($estado !== null) {
-            $this->validarEstado($estado);
-            $this->estado = $estado;
+            $estadoNormalizado = strtolower(trim($estado));
+            $this->validarEstado($estadoNormalizado);
+            $this->estado = $estadoNormalizado;
         }
         if ($calificacion !== null) {
             $this->calificacion = $this->normalizarCalificacion($calificacion);

@@ -63,8 +63,9 @@ final class ConsultaDoctrineRepository extends BaseRepository implements Consult
     private function applyFilters(QueryBuilder $qb, array $filtros): void
     {
         if (isset($filtros['estado']) && $filtros['estado'] !== '') {
+            $estado = strtolower(trim((string) $filtros['estado']));
             $qb->andWhere('c.estado = :estado')
-                ->setParameter('estado', $filtros['estado']);
+                ->setParameter('estado', $estado);
         }
 
         if (isset($filtros['calificacion']) && $filtros['calificacion'] !== '') {
