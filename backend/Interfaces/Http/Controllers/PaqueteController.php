@@ -143,23 +143,6 @@ final class PaqueteController
         }
     }
 
-    public function eliminar(Request $request, array $params): JsonResponse
-    {
-        try {
-            $id = (int) $params['id'];
-
-            $usuarioId = $this->obtenerUsuarioDesdeToken($request);
-
-            $this->paqueteService->eliminar($id, $usuarioId);
-
-            return new JsonResponse(['mensaje' => 'Paquete eliminado correctamente.']);
-        } catch (\RuntimeException $e) {
-            return new JsonResponse(['error' => $e->getMessage()], 404);
-        } catch (\Throwable $e) {
-            return new JsonResponse(['error' => $e->getMessage()], 500);
-        }
-    }
-
     /** @param array<string, mixed> $data */
     private function validarDatosCrear(array $data): void
     {
@@ -294,11 +277,6 @@ final class PaqueteController
             '_controller' => self::class,
             '_action' => 'actualizar',
         ], methods: ['PUT', 'POST'], requirements: ['id' => '\d+']));
-
-        $routes->add('paquetes.eliminar', new Route('/api/paquetes/{id}', [
-            '_controller' => self::class,
-            '_action' => 'eliminar',
-        ], methods: ['DELETE'], requirements: ['id' => '\d+']));
 
         return $routes;
     }

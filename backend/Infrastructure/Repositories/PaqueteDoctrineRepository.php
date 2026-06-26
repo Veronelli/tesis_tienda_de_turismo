@@ -35,12 +35,6 @@ final class PaqueteDoctrineRepository extends BaseRepository implements PaqueteR
         $this->flush();
     }
 
-    public function delete(Paquete $paquete): void
-    {
-        $this->entityManager->remove($paquete);
-        $this->flush();
-    }
-
     /** @param array{nombre?:string, mes_partida?:string, destino_id?:int, orden_precio?:string} $filtros */
     public function findAll(array $filtros = []): array
     {
