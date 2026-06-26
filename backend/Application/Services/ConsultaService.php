@@ -11,7 +11,6 @@ use TiendaTurismo\GestionDatos\Application\AI\Validators\CalificarProspectoRespo
 use TiendaTurismo\GestionDatos\Application\UseCases\AI\EnviarProspectoUseCase;
 use TiendaTurismo\GestionDatos\Application\UseCases\Consulta\ActualizarConsultaUseCase;
 use TiendaTurismo\GestionDatos\Application\UseCases\Consulta\CrearConsultaUseCase;
-use TiendaTurismo\GestionDatos\Application\UseCases\Consulta\EliminarConsultaUseCase;
 use TiendaTurismo\GestionDatos\Application\UseCases\Consulta\ListarConsultasUseCase;
 use TiendaTurismo\GestionDatos\Application\UseCases\Consulta\ObtenerConsultaPorIdUseCase;
 use TiendaTurismo\GestionDatos\Domain\Models\Consulta;
@@ -26,7 +25,6 @@ class ConsultaService
     private ObtenerConsultaPorIdUseCase $obtenerConsultaPorId;
     private ListarConsultasUseCase $listarConsultas;
     private ActualizarConsultaUseCase $actualizarConsulta;
-    private EliminarConsultaUseCase $eliminarConsulta;
 
     public function __construct(
         ConsultaRepositoryInterface $consultas,
@@ -44,7 +42,6 @@ class ConsultaService
         $this->obtenerConsultaPorId = new ObtenerConsultaPorIdUseCase($consultas);
         $this->listarConsultas = new ListarConsultasUseCase($consultas);
         $this->actualizarConsulta = new ActualizarConsultaUseCase($consultas, $clientes, $paquetes);
-        $this->eliminarConsulta = new EliminarConsultaUseCase($consultas);
     }
 
     /** @param array{paquete_id:int,mensaje:string,cliente_id?:int,nombre?:string,apellido?:string,email?:string,telefono?:string,dni?:string,ubicacion?:string} $datos */
@@ -93,11 +90,6 @@ class ConsultaService
         ));
 
         return $this->serializarConsulta($consulta);
-    }
-
-    public function eliminar(int $id): void
-    {
-        $this->eliminarConsulta->execute($id);
     }
 
     /** @param array{estado?:string, calificacion?:string, cliente?:string, paquete_id?:int, fecha_desde?:string, fecha_hasta?:string} $filtros */

@@ -153,21 +153,6 @@ final class ConsultaController
         }
     }
 
-    public function eliminar(Request $request, array $params): JsonResponse
-    {
-        try {
-            $this->requerirAutenticacion($request);
-
-            $this->consultaService->eliminar((int) $params['id']);
-
-            return new JsonResponse(['mensaje' => 'Consulta eliminada correctamente.']);
-        } catch (\RuntimeException $e) {
-            return new JsonResponse(['error' => $e->getMessage()], 404);
-        } catch (\Throwable $e) {
-            return new JsonResponse(['error' => $e->getMessage()], 500);
-        }
-    }
-
     /** @param array<string, mixed> $data */
     private function validarDatosCrear(array $data): void
     {
@@ -238,11 +223,6 @@ final class ConsultaController
             '_controller' => self::class,
             '_action' => 'actualizar',
         ], methods: ['PUT'], requirements: ['id' => '\d+']));
-
-        $routes->add('consultas.eliminar', new Route('/api/consultas/{id}', [
-            '_controller' => self::class,
-            '_action' => 'eliminar',
-        ], methods: ['DELETE'], requirements: ['id' => '\d+']));
 
         return $routes;
     }

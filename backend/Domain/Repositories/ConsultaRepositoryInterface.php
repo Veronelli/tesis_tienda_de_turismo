@@ -14,8 +14,6 @@ interface ConsultaRepositoryInterface
 
     public function update(Consulta $consulta): void;
 
-    public function delete(Consulta $consulta): void;
-
     /** @param array{estado?:string, calificacion?:string, cliente?:string, paquete_id?:int, fecha_desde?:string, fecha_hasta?:string} $filtros */
     public function findAll(array $filtros = []): array;
 }

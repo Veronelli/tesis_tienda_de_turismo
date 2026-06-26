@@ -69,52 +69,6 @@ final class ConsultaDoctrineRepositoryTest extends TestCase
         $this->repo->save($consulta);
     }
 
-    public function test_delete_removes_and_flushes(): void
-    {
-        $query = $this->createMock(Query::class);
-        $query->method('getOneOrNullResult')->willReturn(null);
-
-        $qb = $this->createMock(QueryBuilder::class);
-        $qb->method('select')->willReturnSelf();
-        $qb->method('from')->willReturnSelf();
-        $qb->method('leftJoin')->willReturnSelf();
-        $qb->method('where')->willReturnSelf();
-        $qb->method('setParameter')->willReturnSelf();
-        $qb->method('getQuery')->willReturn($query);
-
-        $this->entityManager
-            ->method('createQueryBuilder')
-            ->willReturn($qb);
-
-        $usuario = new \TiendaTurismo\GestionDatos\Domain\Models\Usuario('Admin', 'Test', 'a@a.com', 'hash', 'admin', id: 1);
-        $destino = new \TiendaTurismo\GestionDatos\Domain\Models\Destino('Buenos Aires', 'CABA', 'Argentina', id: 1);
-        $hotel = new \TiendaTurismo\GestionDatos\Domain\Models\Hotel(
-            nombre: 'Hotel Test',
-            ubicacion: 'Centro',
-            descripcion: 'Hotel de prueba',
-            destino: $destino,
-            id: 1,
-        );
-        $paquete = new \TiendaTurismo\GestionDatos\Domain\Models\Paquete(
-            nombre: 'Paquete Test', descripcion: null,
-            fechaPartida: new \DateTimeImmutable('2026-01-01'), fechaVuelta: null,
-            precio: '100', disponible: true, creadoPor: $usuario,
-        );
-        $cliente = new \TiendaTurismo\GestionDatos\Domain\Models\Cliente(
-            'Juan', 'Pérez', 'juan@test.com', '123456789', '12345678', 'Bs As', id: 1,
-        );
-
-        $consulta = new Consulta(
-            cliente: $cliente, paquete: $paquete, mensaje: 'Test consulta',
-            calificacion: Consulta::CALIFICACION_CALIENTE,
-        );
-
-        $this->entityManager->expects($this->once())->method('remove')->with($consulta);
-        $this->entityManager->expects($this->once())->method('flush');
-
-        $this->repo->delete($consulta);
-    }
-
     public function test_findById_delega_en_entityManager(): void
     {
         $query = $this->createMock(Query::class);

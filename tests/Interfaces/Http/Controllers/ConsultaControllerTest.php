@@ -347,49 +347,4 @@ final class ConsultaControllerTest extends TestCase
         $this->assertSame('La calificación del lead no puede ser enviada por el cliente.', $content['error']);
     }
 
-    public function test_eliminar_retorna_200(): void
-    {
-        $this->consultaService
-            ->expects($this->once())
-            ->method('eliminar')
-            ->with(1);
-
-        $request = new Request(
-            [],
-            [],
-            [],
-            [],
-            [],
-            ['HTTP_AUTHORIZATION' => 'Bearer ' . $this->tokenValido],
-        );
-
-        $response = $this->controller->eliminar($request, ['id' => '1']);
-
-        $this->assertSame(200, $response->getStatusCode());
-        $content = json_decode((string) $response->getContent(), true);
-        $this->assertSame('Consulta eliminada correctamente.', $content['mensaje']);
-    }
-
-    public function test_eliminar_consulta_inexistente_retorna_404(): void
-    {
-        $this->consultaService
-            ->method('eliminar')
-            ->with(999)
-            ->willThrowException(new \RuntimeException('Consulta no encontrada.'));
-
-        $request = new Request(
-            [],
-            [],
-            [],
-            [],
-            [],
-            ['HTTP_AUTHORIZATION' => 'Bearer ' . $this->tokenValido],
-        );
-
-        $response = $this->controller->eliminar($request, ['id' => '999']);
-
-        $this->assertSame(404, $response->getStatusCode());
-        $content = json_decode((string) $response->getContent(), true);
-        $this->assertSame('Consulta no encontrada.', $content['error']);
-    }
 }
