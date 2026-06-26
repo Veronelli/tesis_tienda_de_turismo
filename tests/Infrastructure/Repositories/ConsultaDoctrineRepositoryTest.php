@@ -126,8 +126,11 @@ final class ConsultaDoctrineRepositoryTest extends TestCase
         $qb->method('select')->willReturnSelf();
         $qb->method('from')->willReturnSelf();
         $qb->method('leftJoin')->willReturnSelf();
+        $qb->method('addSelect')->willReturnSelf();
         $qb->method('where')->willReturnSelf();
         $qb->method('setParameter')->willReturnSelf();
+        $qb->method('orderBy')->willReturnSelf();
+        $qb->method('addOrderBy')->willReturnSelf();
         $qb->method('getQuery')->willReturn($query);
 
         $this->entityManager
@@ -153,7 +156,15 @@ final class ConsultaDoctrineRepositoryTest extends TestCase
         $qb->method('select')->willReturnSelf();
         $qb->method('from')->willReturnSelf();
         $qb->method('leftJoin')->willReturnSelf();
-        $qb->method('orderBy')->willReturnSelf();
+        $qb->method('addSelect')->willReturnSelf();
+        $qb->expects($this->once())
+            ->method('orderBy')
+            ->with('calificacionOrden', 'ASC')
+            ->willReturnSelf();
+        $qb->expects($this->once())
+            ->method('addOrderBy')
+            ->with('c.fechaCreacion', 'DESC')
+            ->willReturnSelf();
         $qb->method('getQuery')->willReturn($query);
 
         $this->entityManager
@@ -162,6 +173,48 @@ final class ConsultaDoctrineRepositoryTest extends TestCase
             ->willReturn($qb);
 
         $resultado = $this->repo->findAll();
+
+        $this->assertSame($result, $resultado);
+    }
+
+    public function test_findAll_filtra_por_calificacion(): void
+    {
+        $result = [];
+
+        $query = $this->createMock(Query::class);
+        $query->expects($this->once())
+            ->method('getResult')
+            ->willReturn($result);
+
+        $qb = $this->createMock(QueryBuilder::class);
+        $qb->method('select')->willReturnSelf();
+        $qb->method('from')->willReturnSelf();
+        $qb->method('leftJoin')->willReturnSelf();
+        $qb->method('addSelect')->willReturnSelf();
+        $qb->expects($this->once())
+            ->method('andWhere')
+            ->with('LOWER(c.calificacion) = :calificacion')
+            ->willReturnSelf();
+        $qb->expects($this->once())
+            ->method('setParameter')
+            ->with('calificacion', 'frio')
+            ->willReturnSelf();
+        $qb->expects($this->once())
+            ->method('orderBy')
+            ->with('calificacionOrden', 'ASC')
+            ->willReturnSelf();
+        $qb->expects($this->once())
+            ->method('addOrderBy')
+            ->with('c.fechaCreacion', 'DESC')
+            ->willReturnSelf();
+        $qb->method('getQuery')->willReturn($query);
+
+        $this->entityManager
+            ->expects($this->once())
+            ->method('createQueryBuilder')
+            ->willReturn($qb);
+
+        $resultado = $this->repo->findAll(['calificacion' => 'Frio']);
 
         $this->assertSame($result, $resultado);
     }

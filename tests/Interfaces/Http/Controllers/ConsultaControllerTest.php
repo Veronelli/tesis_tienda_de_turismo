@@ -209,6 +209,28 @@ final class ConsultaControllerTest extends TestCase
         $this->assertSame('pendiente', $content[0]['estado']);
     }
 
+    public function test_listar_filtra_por_calificacion(): void
+    {
+        $this->consultaService
+            ->expects($this->once())
+            ->method('listar')
+            ->with(['calificacion' => 'caliente'])
+            ->willReturn([]);
+
+        $request = new Request(
+            ['calificacion' => 'Caliente'],
+            [],
+            [],
+            [],
+            [],
+            ['HTTP_AUTHORIZATION' => 'Bearer ' . $this->tokenValido],
+        );
+
+        $response = $this->controller->listar($request);
+
+        $this->assertSame(200, $response->getStatusCode());
+    }
+
     public function test_listar_sin_token_retorna_401(): void
     {
         $request = new Request();

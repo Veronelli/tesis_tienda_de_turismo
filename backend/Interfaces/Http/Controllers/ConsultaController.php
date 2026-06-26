@@ -49,6 +49,11 @@ final class ConsultaController
                 $filtros['estado'] = $estado;
             }
 
+            $calificacion = $request->query->get('calificacion');
+            if ($calificacion !== null && $calificacion !== '') {
+                $filtros['calificacion'] = strtolower(trim((string) $calificacion));
+            }
+
             $cliente = $request->query->get('cliente');
             if ($cliente !== null && $cliente !== '') {
                 $filtros['cliente'] = $cliente;
