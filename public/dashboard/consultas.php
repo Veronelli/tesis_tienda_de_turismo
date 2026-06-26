@@ -56,6 +56,7 @@ require_once __DIR__ . '/components/page-header.php';
             <th>Cliente</th>
             <th>Paquete</th>
             <th>Mensaje</th>
+            <th>Calificación</th>
             <th>Estado</th>
             <th>Fecha</th>
             <th class="text-right">Acciones</th>
@@ -102,16 +103,22 @@ require_once __DIR__ . '/components/page-header.php';
         <p class="form-value" id="consultaPaquete"></p>
       </div>
       <div class="form-group">
-        <label for="consultaMensaje">Mensaje</label>
+        <label>Mensaje</label>
         <textarea id="consultaMensaje" class="form-control" rows="4"></textarea>
       </div>
-      <div class="form-group">
-        <label for="consultaEstado">Estado</label>
-        <select id="consultaEstado" class="form-control">
-          <option value="pendiente">Pendiente</option>
-          <option value="respondida">Respondida</option>
-          <option value="cerrada">Cerrada</option>
-        </select>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Calificación</label>
+          <p class="form-value" id="consultaCalificacion"></p>
+        </div>
+        <div class="form-group">
+          <label>Estado</label>
+          <select id="consultaEstado" class="form-control">
+            <option value="pendiente">Pendiente</option>
+            <option value="respondida">Respondida</option>
+            <option value="cerrada">Cerrada</option>
+          </select>
+        </div>
       </div>
     </div>
     <div class="modal-footer">
@@ -232,6 +239,29 @@ require_once __DIR__ . '/components/page-header.php';
   background: rgba(239,68,68,0.12);
   color: var(--status-cancelada);
 }
+.badge-calificacion {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 100px;
+}
+.badge-calificacion.frio {
+  background: rgba(59,130,246,0.12);
+  color: #2563eb;
+}
+.badge-calificacion.tibio {
+  background: rgba(245,158,11,0.12);
+  color: #d97706;
+}
+.badge-calificacion.caliente {
+  background: rgba(249,115,22,0.12);
+  color: #ea580c;
+}
+.badge-calificacion.sin-calificar {
+  background: rgba(120,113,108,0.12);
+  color: var(--text-muted);
+}
 .form-value {
   padding: 9px 12px;
   background: var(--bg);
@@ -242,6 +272,10 @@ require_once __DIR__ . '/components/page-header.php';
   min-height: 38px;
   display: flex;
   align-items: center;
+}
+.form-value-multiline {
+  align-items: flex-start;
+  white-space: pre-wrap;
 }
 .mensaje-truncate {
   max-width: 200px;
@@ -267,7 +301,6 @@ require_once __DIR__ . '/components/page-header.php';
 <script src="js/auth.js"></script>
 <script>
 let consultasData = [];
-let editandoId = null;
 
 document.addEventListener('DOMContentLoaded', () => {
   cargarConsultas();
@@ -349,8 +382,10 @@ function renderizarTabla(consultas) {
     const clienteEmail = c.cliente ? escapeHtml(c.cliente.email) : '—';
     const paqueteNombre = c.paquete ? escapeHtml(c.paquete.nombre) : '—';
     const mensaje = escapeHtml(c.mensaje || '');
+    const calificacion = normalizarCalificacion(c.calificacion);
+    const calificacionLabel = formatearCalificacion(c.calificacion);
     const estado = c.estado || 'pendiente';
-    const estadoLabel = { pendiente: 'Pendiente', respondida: 'Respondida', cerrada: 'Cerrada' }[estado] || estado;
+    const estadoLabel = formatearEstado(estado);
     const fecha = c.fecha_creacion ? c.fecha_creacion.split(' ')[0] : '—';
 
     return `
@@ -363,12 +398,13 @@ function renderizarTabla(consultas) {
       </td>
       <td>${paqueteNombre}</td>
       <td><span class="mensaje-truncate" title="${escapeHtml(mensaje)}">${mensaje}</span></td>
+      <td><span class="badge-calificacion ${calificacion || 'sin-calificar'}">${escapeHtml(calificacionLabel)}</span></td>
       <td><span class="badge-estado ${estado}">${estadoLabel}</span></td>
       <td>${fecha}</td>
       <td class="text-right">
         <div class="actions-group">
-          <button class="btn-icon" type="button" onclick="abrirModalEditar(${c.id})" title="Ver / Editar">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          <button class="btn-icon" type="button" onclick="abrirModalConsulta(${c.id})" title="Ver detalle">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
           </button>
           <button class="btn-icon btn-icon-danger" type="button" onclick="eliminarConsulta(${c.id})" title="Eliminar">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
@@ -379,11 +415,10 @@ function renderizarTabla(consultas) {
   `}).join('');
 }
 
-function abrirModalEditar(id) {
+function abrirModalConsulta(id) {
   const consulta = consultasData.find(c => c.id === id);
   if (!consulta) return;
 
-  editandoId = id;
   document.getElementById('modalConsultaTitulo').textContent = 'Editar Consulta #' + id;
   document.getElementById('consultaId').value = id;
 
@@ -395,8 +430,8 @@ function abrirModalEditar(id) {
   const paquete = consulta.paquete || {};
   document.getElementById('consultaPaquete').textContent = paquete.nombre || '—';
   document.getElementById('consultaMensaje').value = consulta.mensaje || '';
+  document.getElementById('consultaCalificacion').textContent = formatearCalificacion(consulta.calificacion);
   document.getElementById('consultaEstado').value = consulta.estado || 'pendiente';
-  document.getElementById('btnGuardarConsulta').textContent = 'Guardar cambios';
   document.getElementById('modalConsulta').classList.add('open');
 }
 
@@ -458,6 +493,23 @@ async function eliminarConsulta(id) {
 function escapeHtml(text) {
   const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
   return String(text).replace(/[&<>"']/g, c => map[c]);
+}
+
+function normalizarCalificacion(calificacion) {
+  if (!calificacion) return '';
+  const valor = String(calificacion).trim().toLowerCase();
+  return ['frio', 'tibio', 'caliente'].includes(valor) ? valor : '';
+}
+
+function formatearCalificacion(calificacion) {
+  const valor = normalizarCalificacion(calificacion);
+  if (!valor) return 'Sin calificar';
+  return { frio: 'Frio', tibio: 'Tibio', caliente: 'Caliente' }[valor] || 'Sin calificar';
+}
+
+function formatearEstado(estado) {
+  const valor = String(estado || 'pendiente').trim().toLowerCase();
+  return { pendiente: 'Pendiente', respondida: 'Respondida', cerrada: 'Cerrada' }[valor] || valor;
 }
 
 function mostrarToast(mensaje, tipo) {
