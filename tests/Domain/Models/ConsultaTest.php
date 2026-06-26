@@ -9,7 +9,6 @@ use TiendaTurismo\GestionDatos\Domain\Models\Cliente;
 use TiendaTurismo\GestionDatos\Domain\Models\Consulta;
 use TiendaTurismo\GestionDatos\Domain\Models\Paquete;
 use TiendaTurismo\GestionDatos\Domain\Models\Usuario;
-use TiendaTurismo\GestionDatos\Tests\Shared\Fixtures\PaqueteFixtures;
 
 final class ConsultaTest extends TestCase
 {
@@ -99,6 +98,19 @@ final class ConsultaTest extends TestCase
         $this->assertSame($otroPaquete, $this->consulta->paquete());
     }
 
+    public function test_update_cambia_usuario_actualizacion(): void
+    {
+        $usuarioEditor = new Usuario('Editor', 'Test', 'editor@test.com', 'hash', 'editor', id: 2);
+
+        $this->consulta->update(actualizadoPor: $usuarioEditor);
+
+        $this->assertSame($usuarioEditor, $this->consulta->actualizadoPor());
+
+        $arr = $this->consulta->toArray();
+        $this->assertSame(2, $arr['actualizado_por']['id']);
+        $this->assertSame('editor@test.com', $arr['actualizado_por']['email']);
+    }
+
     public function test_update_con_estado_invalido_lanza_excepcion(): void
     {
         $this->expectException(\InvalidArgumentException::class);
@@ -121,6 +133,8 @@ final class ConsultaTest extends TestCase
         $this->assertArrayHasKey('mensaje', $arr);
         $this->assertArrayHasKey('estado', $arr);
         $this->assertArrayHasKey('calificacion', $arr);
+        $this->assertArrayHasKey('creado_por', $arr);
+        $this->assertArrayHasKey('actualizado_por', $arr);
         $this->assertArrayHasKey('fecha_consulta', $arr);
         $this->assertArrayHasKey('fecha_creacion', $arr);
         $this->assertArrayHasKey('fecha_actualizacion', $arr);
@@ -134,6 +148,9 @@ final class ConsultaTest extends TestCase
         $this->assertSame('Quiero información sobre este paquete.', $arr['mensaje']);
         $this->assertSame(Consulta::ESTADO_PENDIENTE, $arr['estado']);
         $this->assertSame(Consulta::CALIFICACION_CALIENTE, $arr['calificacion']);
+        $this->assertSame('cliente', $arr['creado_por']['tipo']);
+        $this->assertSame($this->cliente->nombre(), $arr['creado_por']['nombre']);
+        $this->assertNull($arr['actualizado_por']);
         $this->assertSame($this->cliente->id(), $arr['cliente']['id']);
         $this->assertSame($this->paquete->nombre(), $arr['paquete']['nombre']);
     }

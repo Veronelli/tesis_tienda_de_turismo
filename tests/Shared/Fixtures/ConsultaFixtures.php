@@ -6,6 +6,7 @@ namespace TiendaTurismo\GestionDatos\Tests\Shared\Fixtures;
 
 use TiendaTurismo\GestionDatos\Domain\Models\Cliente;
 use TiendaTurismo\GestionDatos\Domain\Models\Consulta;
+use TiendaTurismo\GestionDatos\Domain\Models\Usuario;
 
 final class ConsultaFixtures
 {
@@ -27,6 +28,7 @@ final class ConsultaFixtures
             mensaje: 'Quiero información sobre este paquete.',
             calificacion: Consulta::CALIFICACION_FRIO,
             fechaConsulta: new \DateTimeImmutable('2026-06-01 10:00:00'),
+            actualizadoPor: self::usuarioEditor(),
             id: 1,
             fechaCreacion: new \DateTimeImmutable('2026-06-01 10:00:00'),
             fechaActualizacion: new \DateTimeImmutable('2026-06-01 10:00:00'),
@@ -41,11 +43,17 @@ final class ConsultaFixtures
             mensaje: 'Consulta procesando.',
             calificacion: Consulta::CALIFICACION_TIBIO,
             fechaConsulta: new \DateTimeImmutable('2026-06-02 10:00:00'),
+            actualizadoPor: self::usuarioEditor(),
             id: 2,
             fechaCreacion: new \DateTimeImmutable('2026-06-02 10:00:00'),
             fechaActualizacion: new \DateTimeImmutable('2026-06-03 10:00:00'),
         );
         $consulta->update(estado: Consulta::ESTADO_PROCESANDO);
         return $consulta;
+    }
+
+    public static function usuarioEditor(): Usuario
+    {
+        return PaqueteFixtures::usuarioEditor();
     }
 }
