@@ -1,5 +1,8 @@
 RewriteEngine On
 
+# Serve the public landing page at /
+DirectoryIndex buscar-paquetes.html index.php
+
 # Forward Authorization header to PHP (required for XAMPP/Apache CGI)
 RewriteCond %{HTTP:Authorization} .+
 RewriteRule ^ - [E=HTTP_AUTHORIZATION:%0]
