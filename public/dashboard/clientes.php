@@ -192,6 +192,7 @@ async function cargarClientes() {
     renderizarTabla(getFilteredData());
     document.getElementById('loadingClientes').style.display = 'none';
     document.getElementById('tablaClientes').style.display = 'block';
+    document.getElementById('tablaClientes').style.overflowX = 'auto';
   } catch (e) {
     document.getElementById('loadingClientes').innerHTML = '<p class="error-message">Error al cargar clientes.</p>';
     mostrarToast(e.message, 'error');

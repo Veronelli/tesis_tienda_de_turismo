@@ -182,6 +182,7 @@ async function cargarHoteles() {
     renderizarTabla(hotelesData);
     document.getElementById('loadingHoteles').style.display = 'none';
     document.getElementById('tablaHoteles').style.display = 'block';
+    document.getElementById('tablaHoteles').style.overflowX = 'auto';
   } catch (e) {
     document.getElementById('loadingHoteles').innerHTML = '<p class="error-message">Error al cargar hoteles.</p>';
     mostrarToast(e.message, 'error');

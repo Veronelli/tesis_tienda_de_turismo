@@ -336,6 +336,7 @@ async function cargarConsultas() {
   const tabla = document.getElementById('tablaConsultas');
   loading.style.display = 'flex';
   tabla.style.display = 'none';
+  tabla.style.overflowX = 'auto';
 
   try {
     const filtros = getFiltros();

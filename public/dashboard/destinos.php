@@ -136,6 +136,7 @@ async function cargarDestinos() {
     renderizarTabla(destinosData);
     document.getElementById('loadingDestinos').style.display = 'none';
     document.getElementById('tablaDestinos').style.display = 'block';
+    document.getElementById('tablaDestinos').style.overflowX = 'auto';
   } catch (e) {
     document.getElementById('loadingDestinos').innerHTML = '<p class="error-message">Error al cargar destinos.</p>';
     mostrarToast(e.message, 'error');

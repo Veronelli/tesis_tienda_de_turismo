@@ -41,7 +41,7 @@ body {
 }
 
 /* ---------- Layout ---------- */
-.app { display: flex; min-height: 100vh; }
+.app {  min-height: 100vh; }
 
 /* Sidebar */
 .sidebar {
