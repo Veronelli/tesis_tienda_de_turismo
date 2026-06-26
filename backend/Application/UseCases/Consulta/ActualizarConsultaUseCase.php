@@ -9,6 +9,7 @@ use TiendaTurismo\GestionDatos\Domain\Models\Consulta;
 use TiendaTurismo\GestionDatos\Domain\Repositories\ClienteRepositoryInterface;
 use TiendaTurismo\GestionDatos\Domain\Repositories\ConsultaRepositoryInterface;
 use TiendaTurismo\GestionDatos\Domain\Repositories\PaqueteRepositoryInterface;
+use TiendaTurismo\GestionDatos\Domain\Repositories\UsuarioRepositoryInterface;
 
 final class ActualizarConsultaUseCase
 {
@@ -16,6 +17,7 @@ final class ActualizarConsultaUseCase
         private readonly ConsultaRepositoryInterface $consultas,
         private readonly ClienteRepositoryInterface $clientes,
         private readonly PaqueteRepositoryInterface $paquetes,
+        private readonly UsuarioRepositoryInterface $usuarios,
     ) {
     }
 
@@ -37,9 +39,14 @@ final class ActualizarConsultaUseCase
         $paquete = null;
         if ($input->paqueteId !== null) {
             $paquete = $this->paquetes->findById($input->paqueteId);
-            if ($paquete === null) {
+        if ($paquete === null) {
                 throw new \RuntimeException("El paquete con ID {$input->paqueteId} no existe.");
             }
+        }
+
+        $usuario = $this->usuarios->findById($input->usuarioResponsableId);
+        if ($usuario === null) {
+            throw new \RuntimeException('Usuario responsable no encontrado.');
         }
 
         $consulta->update(
@@ -48,6 +55,7 @@ final class ActualizarConsultaUseCase
             mensaje: $input->mensaje,
             estado: $input->estado,
             fechaConsulta: $input->fechaConsulta,
+            actualizadoPor: $usuario,
         );
 
         $this->consultas->update($consulta);

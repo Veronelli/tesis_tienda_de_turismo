@@ -17,6 +17,7 @@ use TiendaTurismo\GestionDatos\Domain\Models\Consulta;
 use TiendaTurismo\GestionDatos\Domain\Repositories\ClienteRepositoryInterface;
 use TiendaTurismo\GestionDatos\Domain\Repositories\ConsultaRepositoryInterface;
 use TiendaTurismo\GestionDatos\Domain\Repositories\PaqueteRepositoryInterface;
+use TiendaTurismo\GestionDatos\Domain\Repositories\UsuarioRepositoryInterface;
 use TiendaTurismo\GestionDatos\Infrastructure\AI\TextGenerationProviderFactory;
 
 class ConsultaService
@@ -30,6 +31,7 @@ class ConsultaService
         ConsultaRepositoryInterface $consultas,
         ClienteRepositoryInterface $clientes,
         PaqueteRepositoryInterface $paquetes,
+        UsuarioRepositoryInterface $usuarios,
         ?EnviarProspectoUseCase $enviarProspecto = null,
     ) {
         $enviarProspecto ??= new EnviarProspectoUseCase(
@@ -41,7 +43,7 @@ class ConsultaService
         $this->crearConsulta = new CrearConsultaUseCase($consultas, $clientes, $paquetes, $enviarProspecto);
         $this->obtenerConsultaPorId = new ObtenerConsultaPorIdUseCase($consultas);
         $this->listarConsultas = new ListarConsultasUseCase($consultas);
-        $this->actualizarConsulta = new ActualizarConsultaUseCase($consultas, $clientes, $paquetes);
+        $this->actualizarConsulta = new ActualizarConsultaUseCase($consultas, $clientes, $paquetes, $usuarios);
     }
 
     /** @param array{paquete_id:int,mensaje:string,cliente_id?:int,nombre?:string,apellido?:string,email?:string,telefono?:string,dni?:string,ubicacion?:string} $datos */
@@ -87,6 +89,7 @@ class ConsultaService
             paqueteId: isset($datos['paquete_id']) ? (int) $datos['paquete_id'] : null,
             mensaje: $datos['mensaje'] ?? null,
             estado: $datos['estado'] ?? null,
+            usuarioResponsableId: isset($datos['usuario_responsable_id']) ? (int) $datos['usuario_responsable_id'] : 0,
         ));
 
         return $this->serializarConsulta($consulta);

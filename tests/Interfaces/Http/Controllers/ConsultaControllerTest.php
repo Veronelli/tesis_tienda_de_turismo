@@ -296,7 +296,14 @@ final class ConsultaControllerTest extends TestCase
     public function test_actualizar_retorna_200(): void
     {
         $this->consultaService
+            ->expects($this->once())
             ->method('actualizar')
+            ->with($this->callback(function (array $data): bool {
+                $this->assertSame(1, $data['id']);
+                $this->assertSame(1, $data['usuario_responsable_id']);
+                $this->assertSame('procesando', $data['estado']);
+                return true;
+            }))
             ->willReturn([
                 'id' => 1,
                 'cliente' => ['id' => 1],

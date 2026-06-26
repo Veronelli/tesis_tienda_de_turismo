@@ -97,6 +97,41 @@ final class ConsultaDoctrineRepositoryTest extends TestCase
         $this->assertNull($resultado);
     }
 
+    public function test_findById_carga_relacion_de_auditoria(): void
+    {
+        $query = $this->createMock(Query::class);
+        $query->method('getOneOrNullResult')->willReturn(null);
+
+        $joins = [];
+
+        $qb = $this->createMock(QueryBuilder::class);
+        $qb->method('select')->willReturnSelf();
+        $qb->method('from')->willReturnSelf();
+        $qb->expects($this->exactly(3))
+            ->method('leftJoin')
+            ->willReturnCallback(function (string $relation, string $alias) use (&$joins, $qb) {
+                $joins[] = [$relation, $alias];
+
+                return $qb;
+            });
+        $qb->method('where')->willReturnSelf();
+        $qb->method('setParameter')->willReturnSelf();
+        $qb->method('getQuery')->willReturn($query);
+
+        $this->entityManager
+            ->expects($this->once())
+            ->method('createQueryBuilder')
+            ->willReturn($qb);
+
+        $this->repo->findById(5);
+
+        $this->assertSame([
+            ['c.cliente', 'cli'],
+            ['c.paquete', 'p'],
+            ['c.actualizadoPor', 'u'],
+        ], $joins);
+    }
+
     public function test_findAll_retorna_lista(): void
     {
         $result = [];
