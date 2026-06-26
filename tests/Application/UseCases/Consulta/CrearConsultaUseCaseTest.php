@@ -8,6 +8,7 @@ use PHPUnit\Framework\TestCase;
 use TiendaTurismo\GestionDatos\Application\Input\CrearConsultaInput;
 use TiendaTurismo\GestionDatos\Application\AI\Contracts\ProspectoCalificadorInterface;
 use TiendaTurismo\GestionDatos\Application\UseCases\Consulta\CrearConsultaUseCase;
+use TiendaTurismo\GestionDatos\Domain\Models\Consulta;
 use TiendaTurismo\GestionDatos\Domain\Repositories\ClienteRepositoryInterface;
 use TiendaTurismo\GestionDatos\Domain\Repositories\ConsultaRepositoryInterface;
 use TiendaTurismo\GestionDatos\Domain\Repositories\PaqueteRepositoryInterface;
@@ -77,7 +78,7 @@ final class CrearConsultaUseCaseTest extends TestCase
         $this->assertSame($cliente, $consulta->cliente());
         $this->assertSame($paquete, $consulta->paquete());
         $this->assertSame('Quiero más información.', $consulta->mensaje());
-        $this->assertSame('pendiente', $consulta->estado());
+        $this->assertSame(Consulta::ESTADO_PENDIENTE, $consulta->estado());
         $this->assertSame('Caliente', $consulta->calificacion());
     }
 
@@ -121,7 +122,7 @@ final class CrearConsultaUseCaseTest extends TestCase
 
         $this->assertSame('Nuevo', $consulta->cliente()->nombre());
         $this->assertSame('nuevo@example.com', $consulta->cliente()->email());
-        $this->assertSame('tibio', $consulta->calificacion());
+        $this->assertSame(Consulta::CALIFICACION_TIBIO, $consulta->calificacion());
     }
 
     public function test_execute_reusa_cliente_existente_por_email(): void
@@ -165,7 +166,7 @@ final class CrearConsultaUseCaseTest extends TestCase
 
         $this->assertSame($clienteExistente, $consulta->cliente());
         $this->assertSame('juan@example.com', $consulta->cliente()->email());
-        $this->assertSame('Frio', $consulta->calificacion());
+        $this->assertSame(Consulta::CALIFICACION_FRIO, $consulta->calificacion());
     }
 
     public function test_execute_lanza_excepcion_si_paquete_no_existe(): void

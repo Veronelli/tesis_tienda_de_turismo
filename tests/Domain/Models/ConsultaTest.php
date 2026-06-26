@@ -58,8 +58,8 @@ final class ConsultaTest extends TestCase
 
     public function test_update_cambia_estado(): void
     {
-        $this->consulta->update(estado: Consulta::ESTADO_RESPONDIDA);
-        $this->assertSame(Consulta::ESTADO_RESPONDIDA, $this->consulta->estado());
+        $this->consulta->update(estado: Consulta::ESTADO_PROCESANDO);
+        $this->assertSame(Consulta::ESTADO_PROCESANDO, $this->consulta->estado());
     }
 
     public function test_update_cambia_calificacion(): void
