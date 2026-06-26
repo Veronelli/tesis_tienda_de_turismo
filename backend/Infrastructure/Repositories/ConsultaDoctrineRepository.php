@@ -53,7 +53,14 @@ final class ConsultaDoctrineRepository extends BaseRepository implements Consult
 
         $this->applyFilters($qb, $filtros);
 
-        $qb->orderBy('c.fechaCreacion', 'DESC');
+        $qb->addSelect("CASE
+            WHEN LOWER(COALESCE(c.calificacion, '')) = 'caliente' THEN 1
+            WHEN LOWER(COALESCE(c.calificacion, '')) = 'tibio' THEN 2
+            WHEN LOWER(COALESCE(c.calificacion, '')) = 'frio' THEN 3
+            ELSE 4
+        END AS HIDDEN calificacionOrden");
+        $qb->orderBy('calificacionOrden', 'ASC')
+            ->addOrderBy('c.fechaCreacion', 'DESC');
 
         return $qb->getQuery()->getResult();
     }
