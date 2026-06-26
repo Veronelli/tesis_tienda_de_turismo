@@ -14,7 +14,7 @@ final class ListarConsultasUseCase
     ) {
     }
 
-    /** @param array{estado?:string, cliente?:string, paquete_id?:int, fecha_desde?:string, fecha_hasta?:string} $filtros */
+    /** @param array{estado?:string, calificacion?:string, cliente?:string, paquete_id?:int, fecha_desde?:string, fecha_hasta?:string} $filtros */
     public function execute(array $filtros = []): array
     {
         return $this->consultas->findAll($filtros);

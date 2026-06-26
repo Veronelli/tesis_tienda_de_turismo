@@ -32,6 +32,15 @@ require_once __DIR__ . '/components/page-header.php';
         </select>
       </div>
       <div class="field">
+        <label>Calificación</label>
+        <select id="filtroCalificacion" class="form-control">
+          <option value="">Todas</option>
+          <option value="frio">Frio</option>
+          <option value="tibio">Tibio</option>
+          <option value="caliente">Caliente</option>
+        </select>
+      </div>
+      <div class="field">
         <label>Fecha desde</label>
         <input type="date" id="filtroFechaDesde" class="form-control">
       </div>
@@ -310,9 +319,10 @@ function getFiltros() {
   const cliente = document.getElementById('filtroCliente').value.trim();
   const paquete = document.getElementById('filtroPaquete').value.trim().toLowerCase();
   const estado = document.getElementById('filtroEstado').value;
+  const calificacion = document.getElementById('filtroCalificacion').value;
   const fechaDesde = document.getElementById('filtroFechaDesde').value;
   const fechaHasta = document.getElementById('filtroFechaHasta').value;
-  return { cliente, paquete, estado, fechaDesde, fechaHasta };
+  return { cliente, paquete, estado, calificacion, fechaDesde, fechaHasta };
 }
 
 async function cargarConsultas() {
@@ -327,6 +337,7 @@ async function cargarConsultas() {
 
     if (filtros.cliente) params.set('cliente', filtros.cliente);
     if (filtros.estado) params.set('estado', filtros.estado);
+    if (filtros.calificacion) params.set('calificacion', filtros.calificacion);
     if (filtros.fechaDesde) params.set('fecha_desde', filtros.fechaDesde);
     if (filtros.fechaHasta) params.set('fecha_hasta', filtros.fechaHasta);
 
@@ -358,6 +369,7 @@ function limpiarFiltros() {
   document.getElementById('filtroCliente').value = '';
   document.getElementById('filtroPaquete').value = '';
   document.getElementById('filtroEstado').value = '';
+  document.getElementById('filtroCalificacion').value = '';
   document.getElementById('filtroFechaDesde').value = '';
   document.getElementById('filtroFechaHasta').value = '';
   cargarConsultas();

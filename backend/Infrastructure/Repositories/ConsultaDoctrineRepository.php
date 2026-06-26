@@ -41,7 +41,7 @@ final class ConsultaDoctrineRepository extends BaseRepository implements Consult
         $this->flush();
     }
 
-    /** @param array{estado?:string, cliente?:string, paquete_id?:int, fecha_desde?:string, fecha_hasta?:string} $filtros */
+    /** @param array{estado?:string, calificacion?:string, cliente?:string, paquete_id?:int, fecha_desde?:string, fecha_hasta?:string} $filtros */
     public function findAll(array $filtros = []): array
     {
         $qb = $this->entityManager
@@ -58,12 +58,17 @@ final class ConsultaDoctrineRepository extends BaseRepository implements Consult
         return $qb->getQuery()->getResult();
     }
 
-    /** @param array{estado?:string, cliente?:string, paquete_id?:int, fecha_desde?:string, fecha_hasta?:string} $filtros */
+    /** @param array{estado?:string, calificacion?:string, cliente?:string, paquete_id?:int, fecha_desde?:string, fecha_hasta?:string} $filtros */
     private function applyFilters(QueryBuilder $qb, array $filtros): void
     {
         if (isset($filtros['estado']) && $filtros['estado'] !== '') {
             $qb->andWhere('c.estado = :estado')
                 ->setParameter('estado', $filtros['estado']);
+        }
+
+        if (isset($filtros['calificacion']) && $filtros['calificacion'] !== '') {
+            $qb->andWhere('LOWER(c.calificacion) = :calificacion')
+                ->setParameter('calificacion', strtolower($filtros['calificacion']));
         }
 
         if (isset($filtros['cliente']) && $filtros['cliente'] !== '') {

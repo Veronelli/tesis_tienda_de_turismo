@@ -100,7 +100,7 @@ class ConsultaService
         $this->eliminarConsulta->execute($id);
     }
 
-    /** @param array<string, mixed> $filtros */
+    /** @param array{estado?:string, calificacion?:string, cliente?:string, paquete_id?:int, fecha_desde?:string, fecha_hasta?:string} $filtros */
     public function listar(array $filtros = []): array
     {
         return array_map(
