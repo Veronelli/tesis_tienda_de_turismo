@@ -107,28 +107,37 @@ require_once __DIR__ . '/components/page-header.php';
         <small style="color:var(--text-muted);font-size:0.72rem;">Ctrl+click para seleccionar múltiples hoteles</small>
       </div>
       <div class="form-group">
-        <label>Imagen principal (opcional)</label>
+        <label>Imágenes (opcional)</label>
         <div class="image-upload-row">
           <div class="image-upload">
+            <label class="upload-label" for="imagenInput" style="margin-bottom:6px;">Imagen principal</label>
             <div class="preview" id="previewImagen" onclick="document.getElementById('imagenInput').click()" style="cursor:pointer;position:relative;">
               <span>+</span>
             </div>
             <input type="file" id="imagenInput" accept="image/jpeg,image/png,image/webp" onchange="previewImagen(this)">
-            <label class="upload-label" for="imagenInput">Seleccionar imagen</label>
             <button class="btn btn-ghost btn-sm" type="button" id="btnQuitarImagen" onclick="quitarImagen()" style="display:none;margin-top:6px;">Quitar imagen</button>
           </div>
-        </div>
-      </div>
-      <div class="form-group">
-        <label>Imagen secundaria (opcional)</label>
-        <div class="image-upload-row">
           <div class="image-upload">
+            <label class="upload-label" for="imagenSecundariaInput" style="margin-bottom:6px;">Imagen secundaria</label>
             <div class="preview" id="previewImagenSecundaria" onclick="document.getElementById('imagenSecundariaInput').click()" style="cursor:pointer;position:relative;">
               <span>+</span>
             </div>
             <input type="file" id="imagenSecundariaInput" accept="image/jpeg,image/png,image/webp" onchange="previewImagenSecundaria(this)">
-            <label class="upload-label" for="imagenSecundariaInput">Seleccionar imagen</label>
             <button class="btn btn-ghost btn-sm" type="button" id="btnQuitarImagenSecundaria" onclick="quitarImagenSecundaria()" style="display:none;margin-top:6px;">Quitar imagen secundaria</button>
+          </div>
+        </div>
+      </div>
+      <div id="paqueteAuditoria" style="display:none;">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Creado por</label>
+            <p class="form-value" id="paqueteCreadoPor"></p>
+            <p class="form-value form-value-subtle" id="paqueteFechaCreacion"></p>
+          </div>
+          <div class="form-group">
+            <label>Actualizado por</label>
+            <p class="form-value" id="paqueteActualizadoPor"></p>
+            <p class="form-value form-value-subtle" id="paqueteFechaActualizacion"></p>
           </div>
         </div>
       </div>
@@ -190,6 +199,32 @@ require_once __DIR__ . '/components/page-header.php';
 .badge-available.si { background: rgba(34,197,94,0.12); color: #166534; }
 .badge-available.no { background: rgba(239,68,68,0.12); color: #991b1b; }
 .pkg-card__actions { display: flex; gap: 6px; }
+.image-upload-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+.image-upload-row .image-upload {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.form-value {
+  padding: 9px 12px;
+  background: var(--bg);
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  font-size: 0.88rem;
+  color: var(--text);
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  margin: 0;
+}
+.form-value-subtle {
+  margin-top: 6px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
 .btn-icon {
   display: inline-flex;
   align-items: center;
@@ -212,14 +247,24 @@ require_once __DIR__ . '/components/page-header.php';
 .btn-danger { background: #dc2626; color: #fff; }
 .btn-danger:hover { background: #b91c1c; }
 
+@media (max-width: 768px) {
+  .image-upload-row {
+    flex-direction: column;
+  }
+  #previewImagen,
+  #previewImagenSecundaria {
+    height: 180px;
+  }
+}
+
 /* Preview de imagen: que se adapte a la imagen sin dejar bordes vacios */
 #previewImagen,
 #previewImagenSecundaria {
   overflow: hidden;
+  height: 220px;
 }
 #previewImagen:not(.sin-imagen),
 #previewImagenSecundaria:not(.sin-imagen) {
-  aspect-ratio: auto;
   border: 1px solid var(--border);
   background: transparent;
   padding: 4px;
@@ -228,12 +273,12 @@ require_once __DIR__ . '/components/page-header.php';
 #previewImagenSecundaria img {
   display: block;
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: cover;
   border-radius: 4px;
 }
 #previewImagen.sin-imagen,
 #previewImagenSecundaria.sin-imagen {
-  aspect-ratio: 16/9;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -476,6 +521,11 @@ function abrirModalCrear() {
   previewSec.className = 'preview sin-imagen';
   document.getElementById('imagenSecundariaInput').value = '';
   document.getElementById('btnQuitarImagenSecundaria').style.display = 'none';
+  document.getElementById('paqueteAuditoria').style.display = 'none';
+  document.getElementById('paqueteCreadoPor').textContent = '';
+  document.getElementById('paqueteActualizadoPor').textContent = '';
+  document.getElementById('paqueteFechaCreacion').textContent = '';
+  document.getElementById('paqueteFechaActualizacion').textContent = '';
   document.getElementById('errorValidacion').style.display = 'none';
   document.getElementById('btnGuardarPaquete').textContent = 'Guardar';
   document.getElementById('buscarHoteles').value = '';
@@ -513,7 +563,7 @@ function abrirModalEditar(id) {
 
   const previewSec = document.getElementById('previewImagenSecundaria');
   if (p.imagen_secundaria) {
-    previewSec.innerHTML = '<img src="' + BASE + p.imagen_secundaria + '" alt="Imagen secundaria actual">';
+    previewSec.innerHTML = '<img src="' + resolverImagenSrc(p.imagen_secundaria) + '" alt="Imagen secundaria actual">';
     previewSec.className = 'preview';
   } else {
     previewSec.innerHTML = '<span>+</span>';
@@ -521,6 +571,12 @@ function abrirModalEditar(id) {
   }
   document.getElementById('imagenSecundariaInput').value = '';
   document.getElementById('btnQuitarImagenSecundaria').style.display = 'none';
+
+  document.getElementById('paqueteAuditoria').style.display = 'block';
+  document.getElementById('paqueteCreadoPor').textContent = formatearPersonaAuditoria(p.creado_por);
+  document.getElementById('paqueteActualizadoPor').textContent = formatearPersonaAuditoria(p.actualizado_por, 'Sin modificaciones');
+  document.getElementById('paqueteFechaCreacion').textContent = 'Fecha de creación: ' + formatearFechaAuditoria(p.fecha_creacion);
+  document.getElementById('paqueteFechaActualizacion').textContent = 'Fecha de actualización: ' + formatearFechaAuditoria(p.fecha_actualizacion, '—');
 
   cargarHoteles().then(() => {
     const select = document.getElementById('paqueteHoteles');
@@ -586,8 +642,7 @@ function quitarImagenSecundaria() {
   const p = editandoId ? paquetesData.find(pkg => pkg.id === editandoId) : null;
   const preview = document.getElementById('previewImagenSecundaria');
   if (p && p.imagen_secundaria) {
-    const BASE = API_BASE.replace('/api', '');
-    preview.innerHTML = '<img src="' + BASE + p.imagen_secundaria + '" alt="Imagen secundaria actual">';
+    preview.innerHTML = '<img src="' + resolverImagenSrc(p.imagen_secundaria) + '" alt="Imagen secundaria actual">';
     preview.className = 'preview';
   } else {
     preview.innerHTML = '<span>+</span>';
@@ -695,6 +750,23 @@ function escapeHtml(text) {
   if (text === null || text === undefined) return '';
   const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
   return String(text).replace(/[&<>"']/g, c => map[c]);
+}
+
+function formatearPersonaAuditoria(persona, fallback = '—') {
+  if (!persona) return fallback;
+  const nombre = [persona.nombre, persona.apellido].filter(Boolean).join(' ').trim();
+  const email = persona.email ? ' <' + persona.email + '>' : '';
+  const valor = (nombre + email).trim();
+  return valor || fallback;
+}
+
+function formatearFechaAuditoria(fecha, fallback = 'Sin fecha') {
+  if (!fecha) return fallback;
+  const partes = String(fecha).split(' ');
+  const fechaParte = partes[0] || '';
+  const horaParte = partes[1] || '';
+  if (!fechaParte) return fallback;
+  return horaParte ? fechaParte + ' ' + horaParte : fechaParte;
 }
 
 function resolverImagenSrc(valor) {
