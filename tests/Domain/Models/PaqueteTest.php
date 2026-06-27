@@ -38,6 +38,7 @@ final class PaqueteTest extends TestCase
         $this->hotel = new Hotel(
             nombre: 'Hotel Test',
             ubicacion: 'Centro',
+            descripcion: 'Hotel de prueba',
             destino: $this->destino,
             id: 1,
         );
@@ -61,6 +62,9 @@ final class PaqueteTest extends TestCase
         $this->assertEquals(new \DateTimeImmutable('2026-07-22'), $this->paquete->fechaVuelta());
         $this->assertSame('1500.00', $this->paquete->precio());
         $this->assertTrue($this->paquete->disponible());
+        $this->assertFalse($this->paquete->desayuno());
+        $this->assertFalse($this->paquete->allInclusive());
+        $this->assertFalse($this->paquete->pileta());
         $this->assertSame($this->usuario, $this->paquete->creadoPor());
         $this->assertNull($this->paquete->actualizadoPor());
     }
@@ -86,7 +90,7 @@ final class PaqueteTest extends TestCase
     public function test_syncHoteles_reemplaza_hoteles_existentes(): void
     {
         $destino2 = new Destino('Córdoba', 'Córdoba', 'Argentina', id: 2);
-        $hotel2 = new Hotel('Hotel 2', 'Norte', $destino2, id: 2);
+        $hotel2 = new Hotel('Hotel 2', 'Norte', 'Hotel de prueba 2', $destino2, id: 2);
 
         $this->paquete->syncHoteles([$this->hotel]);
         $this->assertCount(1, $this->paquete->hoteles());
@@ -108,6 +112,9 @@ final class PaqueteTest extends TestCase
             precio: '2000.00',
             disponible: false,
             actualizadoPor: $otroUsuario,
+            desayuno: true,
+            allInclusive: true,
+            pileta: true,
         );
 
         $this->assertSame('Paquete Modificado', $this->paquete->nombre());
@@ -116,6 +123,9 @@ final class PaqueteTest extends TestCase
         $this->assertEquals(new \DateTimeImmutable('2026-08-10'), $this->paquete->fechaVuelta());
         $this->assertSame('2000.00', $this->paquete->precio());
         $this->assertFalse($this->paquete->disponible());
+        $this->assertTrue($this->paquete->desayuno());
+        $this->assertTrue($this->paquete->allInclusive());
+        $this->assertTrue($this->paquete->pileta());
         $this->assertSame($otroUsuario, $this->paquete->actualizadoPor());
     }
 
@@ -132,6 +142,9 @@ final class PaqueteTest extends TestCase
         $this->assertArrayHasKey('imagen_secundaria', $arr);
         $this->assertArrayHasKey('precio', $arr);
         $this->assertArrayHasKey('disponible', $arr);
+        $this->assertArrayHasKey('desayuno', $arr);
+        $this->assertArrayHasKey('all_inclusive', $arr);
+        $this->assertArrayHasKey('pileta', $arr);
         $this->assertArrayHasKey('creado_por', $arr);
         $this->assertArrayHasKey('actualizado_por', $arr);
         $this->assertArrayHasKey('destinos', $arr);
@@ -152,6 +165,9 @@ final class PaqueteTest extends TestCase
         $this->assertSame('2026-07-22', $arr['fecha_vuelta']);
         $this->assertSame('1500.00', $arr['precio']);
         $this->assertTrue($arr['disponible']);
+        $this->assertFalse($arr['desayuno']);
+        $this->assertFalse($arr['all_inclusive']);
+        $this->assertFalse($arr['pileta']);
         $this->assertCount(1, $arr['hoteles']);
         $this->assertCount(1, $arr['destinos']);
     }

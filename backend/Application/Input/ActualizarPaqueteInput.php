@@ -17,6 +17,9 @@ final class ActualizarPaqueteInput
         public readonly bool $disponible,
         public readonly int $usuarioResponsableId,
         public readonly array $hotelesIds,
+        public readonly bool $desayuno = false,
+        public readonly bool $allInclusive = false,
+        public readonly bool $pileta = false,
         public readonly ?string $imagenPrincipal = null,
         public readonly ?string $imagenSecundaria = null,
     ) {
