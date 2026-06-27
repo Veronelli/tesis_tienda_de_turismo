@@ -107,7 +107,7 @@ final class ConsultaDoctrineRepositoryTest extends TestCase
         $qb = $this->createMock(QueryBuilder::class);
         $qb->method('select')->willReturnSelf();
         $qb->method('from')->willReturnSelf();
-        $qb->expects($this->exactly(3))
+        $qb->expects($this->exactly(4))
             ->method('leftJoin')
             ->willReturnCallback(function (string $relation, string $alias) use (&$joins, $qb) {
                 $joins[] = [$relation, $alias];
@@ -128,6 +128,7 @@ final class ConsultaDoctrineRepositoryTest extends TestCase
         $this->assertSame([
             ['c.cliente', 'cli'],
             ['c.paquete', 'p'],
+            ['c.creadoPor', 'cp'],
             ['c.actualizadoPor', 'u'],
         ], $joins);
     }
