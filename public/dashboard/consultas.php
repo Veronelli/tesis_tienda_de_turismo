@@ -2,6 +2,7 @@
 
 $title = 'Consultas';
 $currentPage = 'consultas';
+$showFab = true;
 
 require_once __DIR__ . '/components/layout-start.php';
 require_once __DIR__ . '/components/page-header.php';
