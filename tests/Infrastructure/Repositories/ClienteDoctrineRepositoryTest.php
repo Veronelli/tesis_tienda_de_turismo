@@ -65,6 +65,21 @@ final class ClienteDoctrineRepositoryTest extends TestCase
         $this->assertNull($this->repo->findById(999));
     }
 
+    public function test_findByDni_retorna_cliente_por_dni(): void
+    {
+        $cliente = ClienteFixtures::clienteValido();
+
+        $this->entityRepository
+            ->expects($this->once())
+            ->method('findOneBy')
+            ->with(['dni' => '12345678'])
+            ->willReturn($cliente);
+
+        $resultado = $this->repo->findByDni('12345678');
+
+        $this->assertSame($cliente, $resultado);
+    }
+
     public function test_findAll_retorna_lista_de_clientes(): void
     {
         $clientes = [$this->cliente];

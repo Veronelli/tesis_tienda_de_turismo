@@ -6,7 +6,9 @@ namespace TiendaTurismo\GestionDatos\Tests\Application\UseCases\Cliente;
 use PHPUnit\Framework\TestCase;
 use TiendaTurismo\GestionDatos\Application\Input\CrearClienteInput;
 use TiendaTurismo\GestionDatos\Application\UseCases\Cliente\CrearClienteUseCase;
+use TiendaTurismo\GestionDatos\Domain\Exceptions\DuplicadoException;
 use TiendaTurismo\GestionDatos\Domain\Repositories\ClienteRepositoryInterface;
+use TiendaTurismo\GestionDatos\Tests\Shared\Fixtures\ClienteFixtures;
 use TiendaTurismo\GestionDatos\Tests\Shared\Mocks\ClienteRepositoryMockTrait;
 
 final class CrearClienteUseCaseTest extends TestCase
@@ -35,6 +37,70 @@ final class CrearClienteUseCaseTest extends TestCase
         $this->assertSame('123456789', $cliente->telefono());
         $this->assertSame('12345678', $cliente->dni());
         $this->assertSame('Buenos Aires', $cliente->ubicacion());
+    }
+
+    public function test_execute_lanza_excepcion_si_email_duplicado(): void
+    {
+        $existente = ClienteFixtures::clienteValido();
+
+        $this->clienteRepo
+            ->method('findByEmail')
+            ->with('juan@example.com')
+            ->willReturn($existente);
+
+        $this->clienteRepo->expects($this->never())->method('save');
+
+        $this->expectException(DuplicadoException::class);
+        $this->expectExceptionMessage('Ya existe un cliente con ese email.');
+
+        $input = new CrearClienteInput('Juan', 'Pérez', 'JUAN@EXAMPLE.COM', '123456789', '12345678', 'Buenos Aires');
+        $this->useCase->execute($input);
+    }
+
+    public function test_execute_lanza_excepcion_si_dni_duplicado(): void
+    {
+        $existente = ClienteFixtures::clienteValido();
+
+        $this->clienteRepo
+            ->method('findByEmail')
+            ->willReturn(null);
+
+        $this->clienteRepo
+            ->method('findByDni')
+            ->with('12345678')
+            ->willReturn($existente);
+
+        $this->clienteRepo->expects($this->never())->method('save');
+
+        $this->expectException(DuplicadoException::class);
+        $this->expectExceptionMessage('Ya existe un cliente con ese DNI.');
+
+        $input = new CrearClienteInput('Juan', 'Pérez', 'otro@example.com', '123456789', '12.345.678', 'Buenos Aires');
+        $this->useCase->execute($input);
+    }
+
+    public function test_execute_lanza_excepcion_si_email_y_dni_pertenecen_a_clientes_distintos(): void
+    {
+        $clienteA = ClienteFixtures::clienteValido();
+        $clienteB = ClienteFixtures::otroClienteValido();
+
+        $this->clienteRepo
+            ->method('findByEmail')
+            ->with('juan@example.com')
+            ->willReturn($clienteA);
+
+        $this->clienteRepo
+            ->method('findByDni')
+            ->with('87654321')
+            ->willReturn($clienteB);
+
+        $this->clienteRepo->expects($this->never())->method('save');
+
+        $this->expectException(DuplicadoException::class);
+        $this->expectExceptionMessage('El email y el DNI pertenecen a clientes distintos.');
+
+        $input = new CrearClienteInput('Juan', 'Pérez', 'juan@example.com', '123456789', '87654321', 'Buenos Aires');
+        $this->useCase->execute($input);
     }
 
     public function test_execute_lanza_excepcion_si_nombre_vacio(): void

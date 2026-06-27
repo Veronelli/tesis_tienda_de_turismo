@@ -90,6 +90,50 @@ final class ClienteControllerTest extends TestCase
         $this->assertSame('Cliente no encontrado.', $content['error']);
     }
 
+    public function test_crear_con_email_duplicado_retorna_409(): void
+    {
+        $this->clienteService
+            ->method('crear')
+            ->willThrowException(new \TiendaTurismo\GestionDatos\Domain\Exceptions\DuplicadoException('Ya existe un cliente con ese email.'));
+
+        $request = new Request([], [], [], [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
+            'nombre' => 'Juan',
+            'apellido' => 'Pérez',
+            'email' => 'juan@example.com',
+            'telefono' => '123456789',
+            'dni' => '12345678',
+            'ubicacion' => 'Buenos Aires',
+        ]));
+
+        $response = $this->controller->crear($request);
+
+        $this->assertSame(409, $response->getStatusCode());
+        $content = json_decode($response->getContent(), true);
+        $this->assertSame('Ya existe un cliente con ese email.', $content['error']);
+    }
+
+    public function test_actualizar_con_email_duplicado_retorna_409(): void
+    {
+        $this->clienteService
+            ->method('actualizar')
+            ->willThrowException(new \TiendaTurismo\GestionDatos\Domain\Exceptions\DuplicadoException('Ya existe un cliente con ese email.'));
+
+        $request = new Request([], [], [], [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
+            'nombre' => 'Juan',
+            'apellido' => 'Pérez',
+            'email' => 'duplicado@example.com',
+            'telefono' => '123456789',
+            'dni' => '12345678',
+            'ubicacion' => 'Buenos Aires',
+        ]));
+
+        $response = $this->controller->actualizar($request, ['id' => '2']);
+
+        $this->assertSame(409, $response->getStatusCode());
+        $content = json_decode($response->getContent(), true);
+        $this->assertSame('Ya existe un cliente con ese email.', $content['error']);
+    }
+
     public function test_actualizar_retorna_200(): void
     {
         $this->clienteService
