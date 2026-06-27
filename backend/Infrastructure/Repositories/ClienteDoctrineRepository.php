@@ -27,6 +27,13 @@ final class ClienteDoctrineRepository extends BaseRepository implements ClienteR
             ->findOneBy(['email' => $email]);
     }
 
+    public function findByDni(string $dni): ?Cliente
+    {
+        return $this->entityManager
+            ->getRepository(Cliente::class)
+            ->findOneBy(['dni' => $dni]);
+    }
+
     public function update(Cliente $cliente): void
     {
         $this->flush();
