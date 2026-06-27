@@ -33,6 +33,15 @@ final class Paquete
     #[ORM\Column(type: 'boolean')]
     private bool $disponible;
 
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $desayuno;
+
+    #[ORM\Column(name: 'all_inclusive', type: 'boolean', options: ['default' => false])]
+    private bool $allInclusive;
+
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $pileta;
+
     #[ORM\Column(name: 'imagen_principal', type: 'text', nullable: true, columnDefinition: 'MEDIUMTEXT NULL')]
     private ?string $imagenPrincipal = null;
 
@@ -60,6 +69,9 @@ final class Paquete
         string $precio,
         bool $disponible,
         Usuario $creadoPor,
+        bool $desayuno = false,
+        bool $allInclusive = false,
+        bool $pileta = false,
         ?string $imagenPrincipal = null,
         ?string $imagenSecundaria = null,
         ?int $id = null,
@@ -75,6 +87,9 @@ final class Paquete
         $this->fechaVuelta = $fechaVuelta;
         $this->precio = $precio;
         $this->disponible = $disponible;
+        $this->desayuno = $desayuno;
+        $this->allInclusive = $allInclusive;
+        $this->pileta = $pileta;
         $this->imagenPrincipal = $imagenPrincipal;
         $this->imagenSecundaria = $imagenSecundaria;
         $this->creadoPor = $creadoPor;
@@ -113,6 +128,21 @@ final class Paquete
         return $this->disponible;
     }
 
+    public function desayuno(): bool
+    {
+        return $this->desayuno;
+    }
+
+    public function allInclusive(): bool
+    {
+        return $this->allInclusive;
+    }
+
+    public function pileta(): bool
+    {
+        return $this->pileta;
+    }
+
     public function imagenPrincipal(): ?string
     {
         return $this->imagenPrincipal;
@@ -147,6 +177,9 @@ final class Paquete
         string $precio,
         bool $disponible,
         Usuario $actualizadoPor,
+        bool $desayuno = false,
+        bool $allInclusive = false,
+        bool $pileta = false,
         ?string $imagenPrincipal = null,
         ?string $imagenSecundaria = null,
     ): void {
@@ -159,6 +192,9 @@ final class Paquete
         $this->fechaVuelta = $fechaVuelta;
         $this->precio = $precio;
         $this->disponible = $disponible;
+        $this->desayuno = $desayuno;
+        $this->allInclusive = $allInclusive;
+        $this->pileta = $pileta;
         $this->imagenPrincipal = $imagenPrincipal;
         if ($imagenSecundaria !== null) {
             $this->imagenSecundaria = $imagenSecundaria;
@@ -211,6 +247,9 @@ final class Paquete
             'fecha_vuelta' => $this->fechaVuelta?->format('Y-m-d'),
             'precio' => $this->precio,
             'disponible' => $this->disponible,
+            'desayuno' => $this->desayuno,
+            'all_inclusive' => $this->allInclusive,
+            'pileta' => $this->pileta,
             'creado_por' => [
                 'id' => $this->creadoPor->id(),
                 'nombre' => $this->creadoPor->nombre(),

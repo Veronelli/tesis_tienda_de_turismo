@@ -48,6 +48,9 @@ final class CrearPaqueteUseCase
             precio: $input->precio,
             disponible: $input->disponible,
             creadoPor: $usuario,
+            desayuno: $input->desayuno,
+            allInclusive: $input->allInclusive,
+            pileta: $input->pileta,
             imagenPrincipal: $input->imagenPrincipal,
             imagenSecundaria: $input->imagenSecundaria,
         );

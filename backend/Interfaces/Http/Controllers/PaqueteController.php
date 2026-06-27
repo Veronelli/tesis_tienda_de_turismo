@@ -194,7 +194,7 @@ final class PaqueteController
     {
         $data = $request->request->all();
 
-        $camposBooleano = ['disponible'];
+        $camposBooleano = ['disponible', 'desayuno', 'all_inclusive', 'pileta'];
         foreach ($camposBooleano as $campo) {
             if (isset($data[$campo])) {
                 $data[$campo] = filter_var($data[$campo], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;

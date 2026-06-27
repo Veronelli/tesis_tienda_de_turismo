@@ -54,6 +54,9 @@ final class ActualizarPaqueteUseCase
             precio: $input->precio,
             disponible: $input->disponible,
             actualizadoPor: $usuario,
+            desayuno: $input->desayuno,
+            allInclusive: $input->allInclusive,
+            pileta: $input->pileta,
             imagenPrincipal: $input->imagenPrincipal,
             imagenSecundaria: $input->imagenSecundaria,
         );

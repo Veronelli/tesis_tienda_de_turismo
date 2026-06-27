@@ -99,6 +99,23 @@ require_once __DIR__ . '/components/page-header.php';
         </div>
       </div>
       <div class="form-group">
+        <label>Servicios incluidos</label>
+        <div class="services-checks">
+          <label class="check-option" for="paqueteDesayuno">
+            <input type="checkbox" id="paqueteDesayuno">
+            <span>Desayuno</span>
+          </label>
+          <label class="check-option" for="paqueteAllInclusive">
+            <input type="checkbox" id="paqueteAllInclusive">
+            <span>All inclusive</span>
+          </label>
+          <label class="check-option" for="paquetePileta">
+            <input type="checkbox" id="paquetePileta">
+            <span>Pileta</span>
+          </label>
+        </div>
+      </div>
+      <div class="form-group">
         <label for="paqueteHoteles">Hoteles asociados *</label>
         <input type="text" id="buscarHoteles" class="form-control" placeholder="Buscar hoteles por nombre, ubicación o destino..." style="margin-bottom:6px;font-size:0.82rem;" oninput="filtrarHoteles(this.value)">
         <select id="paqueteHoteles" class="form-control" multiple style="height:auto;min-height:100px;appearance:auto;background-image:none;padding-right:12px;">
@@ -193,6 +210,21 @@ require_once __DIR__ . '/components/page-header.php';
 .pkg-card__desc { font-size: 0.78rem; color: var(--text-muted); margin-top: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .pkg-card__meta { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 8px; font-size: 0.78rem; color: var(--text-muted); }
 .pkg-card__meta span { display: inline-flex; align-items: center; gap: 4px; }
+.pkg-card__services {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.pkg-service {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(255,124,0,0.1);
+  color: #9a4a00;
+  border: 1px solid rgba(255,124,0,0.22);
+}
 .pkg-card__footer { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-light); }
 .pkg-card__price { font-size: 1.05rem; font-weight: 700; color: var(--accent); }
 .badge-available { font-size: 0.7rem; font-weight: 600; padding: 3px 10px; border-radius: 100px; }
@@ -224,6 +256,30 @@ require_once __DIR__ . '/components/page-header.php';
   margin-top: 6px;
   font-size: 0.8rem;
   color: var(--text-muted);
+}
+.services-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.check-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 8px 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 0.84rem;
+  cursor: pointer;
+  user-select: none;
+}
+.check-option input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
 }
 .btn-icon {
   display: inline-flex;
@@ -434,6 +490,16 @@ function renderHotelesConDestinos(hoteles, maxMostrar) {
   return html;
 }
 
+function renderServiciosPaquete(p) {
+  const servicios = [];
+  if (p.desayuno) servicios.push('Desayuno');
+  if (p.all_inclusive) servicios.push('All inclusive');
+  if (p.pileta) servicios.push('Pileta');
+  if (servicios.length === 0) return '';
+
+  return '<div class="pkg-card__services">' + servicios.map(s => '<span class="pkg-service">' + s + '</span>').join('') + '</div>';
+}
+
 function renderizarPaquetes(paquetes) {
   const grid = document.getElementById('paquetesGrid');
   const empty = document.getElementById('emptyPaquetes');
@@ -470,6 +536,7 @@ function renderizarPaquetes(paquetes) {
             ${renderHotelesConDestinos(p.hoteles)}
             <span>Fechas: ${escapeHtml(fechas)}</span>
           </div>
+          ${renderServiciosPaquete(p)}
           <div class="pkg-card__footer">
             <span class="pkg-card__price">$${precio}</span>
             <span class="badge-available ${disponible ? 'si' : 'no'}">${disponible ? 'Disponible' : 'No disponible'}</span>
@@ -511,6 +578,9 @@ function abrirModalCrear() {
   document.getElementById('paqueteFechaVuelta').value = '';
   document.getElementById('paquetePrecio').value = '';
   document.getElementById('paqueteDisponible').checked = true;
+  document.getElementById('paqueteDesayuno').checked = false;
+  document.getElementById('paqueteAllInclusive').checked = false;
+  document.getElementById('paquetePileta').checked = false;
   const preview = document.getElementById('previewImagen');
   preview.innerHTML = '<span>+</span>';
   preview.className = 'preview sin-imagen';
@@ -546,6 +616,9 @@ function abrirModalEditar(id) {
   document.getElementById('paqueteFechaVuelta').value = p.fecha_vuelta || '';
   document.getElementById('paquetePrecio').value = p.precio;
   document.getElementById('paqueteDisponible').checked = p.disponible;
+  document.getElementById('paqueteDesayuno').checked = Boolean(p.desayuno);
+  document.getElementById('paqueteAllInclusive').checked = Boolean(p.all_inclusive);
+  document.getElementById('paquetePileta').checked = Boolean(p.pileta);
   document.getElementById('errorValidacion').style.display = 'none';
   document.getElementById('btnGuardarPaquete').textContent = 'Actualizar';
   document.getElementById('buscarHoteles').value = '';
@@ -667,6 +740,9 @@ async function guardarPaquete() {
   const fechaVuelta = document.getElementById('paqueteFechaVuelta').value;
   const precio = document.getElementById('paquetePrecio').value.trim();
   const disponible = document.getElementById('paqueteDisponible').checked;
+  const desayuno = document.getElementById('paqueteDesayuno').checked;
+  const allInclusive = document.getElementById('paqueteAllInclusive').checked;
+  const pileta = document.getElementById('paquetePileta').checked;
   const selectHoteles = document.getElementById('paqueteHoteles');
   const hotelesIds = Array.from(selectHoteles.selectedOptions).map(o => parseInt(o.value, 10)).filter(id => !isNaN(id));
   const imagenInput = document.getElementById('imagenInput');
@@ -693,6 +769,9 @@ async function guardarPaquete() {
   if (fechaVuelta) formData.append('fecha_vuelta', fechaVuelta);
   formData.append('precio', precio);
   formData.append('disponible', disponible ? '1' : '0');
+  formData.append('desayuno', desayuno ? '1' : '0');
+  formData.append('all_inclusive', allInclusive ? '1' : '0');
+  formData.append('pileta', pileta ? '1' : '0');
   formData.append('hoteles_ids', JSON.stringify(hotelesIds));
   if (imagenInput.files && imagenInput.files[0]) {
     formData.append('imagen_principal', imagenInput.files[0]);
