@@ -37,6 +37,7 @@ final class ConsultaTest extends TestCase
             paquete: $this->paquete,
             mensaje: 'Quiero información sobre este paquete.',
             calificacion: Consulta::CALIFICACION_CALIENTE,
+            creadoPor: $usuario,
         );
     }
 
@@ -47,6 +48,7 @@ final class ConsultaTest extends TestCase
         $this->assertSame('Quiero información sobre este paquete.', $this->consulta->mensaje());
         $this->assertSame(Consulta::ESTADO_PENDIENTE, $this->consulta->estado());
         $this->assertSame(Consulta::CALIFICACION_CALIENTE, $this->consulta->calificacion());
+        $this->assertSame('admin@test.com', $this->consulta->creadoPor()?->email());
         $this->assertNotNull($this->consulta->fechaConsulta());
     }
 
@@ -104,9 +106,12 @@ final class ConsultaTest extends TestCase
 
         $this->consulta->update(actualizadoPor: $usuarioEditor);
 
+        $this->assertSame('admin@test.com', $this->consulta->creadoPor()?->email());
         $this->assertSame($usuarioEditor, $this->consulta->actualizadoPor());
 
         $arr = $this->consulta->toArray();
+        $this->assertSame(1, $arr['creado_por']['id']);
+        $this->assertSame('admin@test.com', $arr['creado_por']['email']);
         $this->assertSame(2, $arr['actualizado_por']['id']);
         $this->assertSame('editor@test.com', $arr['actualizado_por']['email']);
     }
@@ -148,8 +153,7 @@ final class ConsultaTest extends TestCase
         $this->assertSame('Quiero información sobre este paquete.', $arr['mensaje']);
         $this->assertSame(Consulta::ESTADO_PENDIENTE, $arr['estado']);
         $this->assertSame(Consulta::CALIFICACION_CALIENTE, $arr['calificacion']);
-        $this->assertSame('cliente', $arr['creado_por']['tipo']);
-        $this->assertSame($this->cliente->nombre(), $arr['creado_por']['nombre']);
+        $this->assertSame('admin@test.com', $arr['creado_por']['email']);
         $this->assertNull($arr['actualizado_por']);
         $this->assertSame($this->cliente->id(), $arr['cliente']['id']);
         $this->assertSame($this->paquete->nombre(), $arr['paquete']['nombre']);

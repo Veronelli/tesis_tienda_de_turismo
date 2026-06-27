@@ -56,6 +56,10 @@ final class Consulta
     private ?\DateTimeImmutable $fechaConsulta;
 
     #[ORM\ManyToOne(targetEntity: Usuario::class)]
+    #[ORM\JoinColumn(name: 'creado_por_usuario_id', referencedColumnName: 'id', nullable: true)]
+    private ?Usuario $creadoPor = null;
+
+    #[ORM\ManyToOne(targetEntity: Usuario::class)]
     #[ORM\JoinColumn(name: 'actualizado_por_usuario_id', referencedColumnName: 'id', nullable: true)]
     private ?Usuario $actualizadoPor = null;
 
@@ -65,6 +69,7 @@ final class Consulta
         string $mensaje,
         ?string $calificacion = null,
         ?\DateTimeImmutable $fechaConsulta = null,
+        ?Usuario $creadoPor = null,
         ?Usuario $actualizadoPor = null,
         ?int $id = null,
         ?\DateTimeImmutable $fechaCreacion = null,
@@ -78,6 +83,7 @@ final class Consulta
         $this->estado = self::ESTADO_PENDIENTE;
         $this->calificacion = $calificacion !== null ? $this->normalizarCalificacion($calificacion) : null;
         $this->fechaConsulta = $fechaConsulta ?? new \DateTimeImmutable();
+        $this->creadoPor = $creadoPor;
         $this->actualizadoPor = $actualizadoPor;
         $this->inicializarAtributosBase($id, $fechaCreacion, $fechaActualizacion);
     }
@@ -110,6 +116,11 @@ final class Consulta
     public function fechaConsulta(): ?\DateTimeImmutable
     {
         return $this->fechaConsulta;
+    }
+
+    public function creadoPor(): ?Usuario
+    {
+        return $this->creadoPor;
     }
 
     public function actualizadoPor(): ?Usuario
@@ -175,12 +186,12 @@ final class Consulta
             'mensaje' => $this->mensaje,
             'estado' => $this->estado,
             'calificacion' => $this->calificacion,
-            'creado_por' => [
-                'tipo' => 'cliente',
-                'nombre' => $this->cliente->nombre(),
-                'apellido' => $this->cliente->apellido(),
-                'email' => $this->cliente->email(),
-            ],
+            'creado_por' => $this->creadoPor !== null ? [
+                'id' => $this->creadoPor->id(),
+                'nombre' => $this->creadoPor->nombre(),
+                'apellido' => $this->creadoPor->apellido(),
+                'email' => $this->creadoPor->email(),
+            ] : null,
             'actualizado_por' => $this->actualizadoPor !== null ? [
                 'id' => $this->actualizadoPor->id(),
                 'nombre' => $this->actualizadoPor->nombre(),

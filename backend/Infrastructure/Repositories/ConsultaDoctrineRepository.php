@@ -20,10 +20,11 @@ final class ConsultaDoctrineRepository extends BaseRepository implements Consult
     {
         return $this->entityManager
             ->createQueryBuilder()
-            ->select('c, cli, p, u')
+            ->select('c, cli, p, cp, u')
             ->from(Consulta::class, 'c')
             ->leftJoin('c.cliente', 'cli')
             ->leftJoin('c.paquete', 'p')
+            ->leftJoin('c.creadoPor', 'cp')
             ->leftJoin('c.actualizadoPor', 'u')
             ->where('c.id = :id')
             ->setParameter('id', $id)
@@ -41,10 +42,11 @@ final class ConsultaDoctrineRepository extends BaseRepository implements Consult
     {
         $qb = $this->entityManager
             ->createQueryBuilder()
-            ->select('c, cli, p, u')
+            ->select('c, cli, p, cp, u')
             ->from(Consulta::class, 'c')
             ->leftJoin('c.cliente', 'cli')
             ->leftJoin('c.paquete', 'p')
+            ->leftJoin('c.creadoPor', 'cp')
             ->leftJoin('c.actualizadoPor', 'u');
 
         $this->applyFilters($qb, $filtros);

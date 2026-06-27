@@ -412,7 +412,7 @@ function renderizarTabla(consultas) {
     const estado = String(c.estado || 'pendiente').trim().toLowerCase();
     const estadoLabel = formatearEstado(estado);
     const fecha = c.fecha_creacion ? c.fecha_creacion.split(' ')[0] : '—';
-    const creadoPor = c.creado_por ? formatearPersonaAuditoria(c.creado_por, 'Cliente') : clienteNombre;
+    const creadoPor = c.creado_por ? formatearPersonaAuditoria(c.creado_por, 'Desde la web') : 'Desde la web';
     const actualizadoPor = c.actualizado_por ? formatearPersonaAuditoria(c.actualizado_por, 'Sin modificaciones') : 'Sin modificaciones';
     const fechaCreacion = formatearFechaAuditoria(c.fecha_creacion);
     const fechaActualizacion = formatearFechaAuditoria(c.fecha_actualizacion, '—');
@@ -465,7 +465,7 @@ function abrirModalConsulta(id) {
   document.getElementById('consultaCalificacion').textContent = formatearCalificacion(consulta.calificacion);
   document.getElementById('consultaEstado').value = String(consulta.estado || 'pendiente').trim().toLowerCase();
   document.getElementById('consultaAuditoria').style.display = 'grid';
-  document.getElementById('consultaCreadoPor').textContent = formatearPersonaAuditoria(consulta.creado_por, 'Cliente');
+  document.getElementById('consultaCreadoPor').textContent = consulta.creado_por ? formatearPersonaAuditoria(consulta.creado_por, 'Desde la web') : 'Desde la web';
   document.getElementById('consultaFechaCreacion').textContent = formatearFechaAuditoria(consulta.fecha_creacion);
   document.getElementById('consultaActualizadoPor').textContent = formatearPersonaAuditoria(consulta.actualizado_por, 'Sin modificaciones');
   document.getElementById('consultaFechaActualizacion').textContent = formatearFechaAuditoria(consulta.fecha_actualizacion, '—');
