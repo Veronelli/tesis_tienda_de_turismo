@@ -109,9 +109,12 @@ require_once __DIR__ . '/components/page-header.php';
         </div>
       </div>
       <div class="form-group">
-        <label>Paquete consultado</label>
-        <p class="form-value" id="consultaPaquete"></p>
+        <label for="buscarConsultaPaqueteEditar">Paquete consultado *</label>
+        <input type="text" id="buscarConsultaPaqueteEditar" class="form-control" placeholder="Buscar por nombre, destino o fecha..." oninput="filtrarPaquetesConsultaEdicion(this.value)">
+        <div id="listaConsultaPaquetesEditar" class="lookup-list"></div>
       </div>
+      <?php $paqueteResumenPrefix = 'consultaEditarPaquete'; $paqueteResumenToggleAction = 'toggleDetallesConsultaEdicion()'; require __DIR__ . '/components/paquete-resumen.php'; ?>
+      <input type="hidden" id="consultaPaqueteIdSeleccionado">
       <div class="form-group">
         <label>Mensaje</label>
         <textarea id="consultaMensaje" class="form-control" rows="4"></textarea>
@@ -308,6 +311,161 @@ require_once __DIR__ . '/components/page-header.php';
   display: inline-flex;
   gap: 4px;
 }
+.lookup-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+.lookup-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  background: var(--card);
+  padding: 10px 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+.lookup-item:hover {
+  border-color: var(--accent);
+  box-shadow: 0 4px 14px rgba(255,124,0,0.12);
+}
+.lookup-item.is-selected {
+  border-color: var(--accent);
+  background: rgba(255,124,0,0.06);
+}
+.lookup-item__content {
+  min-width: 0;
+}
+.lookup-item__title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.lookup-item__meta {
+  margin-top: 3px;
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+.lookup-item__badge {
+  flex: 0 0 auto;
+  align-self: center;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+.lookup-empty {
+  padding: 10px 12px;
+  border: 1px dashed var(--border-light);
+  border-radius: 8px;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  background: rgba(255,255,255,0.6);
+}
+.consulta-paquete-seleccionado-info {
+  display: none;
+}
+.paquete-resumen {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 14px;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  background: rgba(255, 124, 0, 0.04);
+}
+.paquete-resumen__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.paquete-resumen__eyebrow {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+}
+.paquete-resumen__title {
+  margin: 4px 0 0;
+  font-size: 1rem;
+  color: var(--text);
+}
+.paquete-resumen__place {
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+.paquete-resumen__id {
+  flex: 0 0 auto;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.paquete-resumen__meta,
+.paquete-resumen__details {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.paquete-resumen__meta-item,
+.paquete-resumen__detail-item {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #fff;
+  border: 1px solid var(--border-light);
+}
+.paquete-resumen__meta-item span,
+.paquete-resumen__detail-item span {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+.paquete-resumen__meta-item strong,
+.paquete-resumen__detail-item strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.88rem;
+  color: var(--text);
+}
+.paquete-resumen__toggle {
+  width: fit-content;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+.paquete-resumen__detail-item--full {
+  grid-column: 1 / -1;
+}
+.paquete-resumen__hoteles {
+  margin-top: 6px;
+  display: grid;
+  gap: 6px;
+}
+.paquete-resumen__hotel {
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: rgba(255, 124, 0, 0.06);
+  border: 1px solid rgba(255, 124, 0, 0.12);
+  font-size: 0.82rem;
+  color: var(--text);
+}
 
 @media (max-width: 768px) {
   .consultas-filters { flex-direction: column; align-items: stretch; }
@@ -316,12 +474,17 @@ require_once __DIR__ . '/components/page-header.php';
   .data-table { font-size: 0.78rem; }
   .data-table tbody td { padding: 8px 6px; }
   .mensaje-truncate { max-width: 80px; }
+  .paquete-resumen__meta,
+  .paquete-resumen__details { grid-template-columns: 1fr; }
 }
 </style>
 
 <script src="js/auth.js"></script>
 <script>
 let consultasData = [];
+let paquetesConsultaData = [];
+let consultaEdicionPaqueteSeleccionadoId = null;
+let consultaEdicionPaqueteDetallesAbiertos = false;
 
 document.addEventListener('DOMContentLoaded', () => {
   cargarConsultas();
@@ -388,6 +551,133 @@ function limpiarFiltros() {
   cargarConsultas();
 }
 
+async function cargarPaquetesConsulta() {
+  if (paquetesConsultaData.length === 0) {
+    paquetesConsultaData = await api('GET', '/paquetes');
+  }
+  return paquetesConsultaData;
+}
+
+function normalizarTexto(valor) {
+  return String(valor || '').trim().toLowerCase();
+}
+
+function formatearLugarPaquete(paquete) {
+  if (!paquete) return '—';
+
+  if (paquete.destino_nombre) {
+    return paquete.destino_nombre;
+  }
+
+  const hoteles = Array.isArray(paquete.hoteles) ? paquete.hoteles : [];
+  const hotel = hoteles[0] || null;
+  const destino = hotel && hotel.destino ? hotel.destino : null;
+
+  if (!destino) return '—';
+
+  return [destino.ciudad, destino.estado_provincia, destino.pais].filter(Boolean).join(', ') || '—';
+}
+
+function formatearHotelesPaquete(paquete) {
+  const hoteles = Array.isArray(paquete?.hoteles) ? paquete.hoteles : [];
+
+  if (hoteles.length === 0) {
+    return '<div class="paquete-resumen__hotel">Sin hoteles asociados</div>';
+  }
+
+  return hoteles.map(hotel => {
+    const destino = hotel.destino ? [hotel.destino.ciudad, hotel.destino.estado_provincia, hotel.destino.pais].filter(Boolean).join(', ') : '';
+    return `<div class="paquete-resumen__hotel"><strong>${escapeHtml(hotel.nombre || 'Sin nombre')}</strong>${destino ? '<div style="color:var(--text-muted);font-size:0.75rem;">' + escapeHtml(destino) + '</div>' : ''}</div>`;
+  }).join('');
+}
+
+function renderizarPaquetesConsultaEdicion(filtro = '') {
+  const contenedor = document.getElementById('listaConsultaPaquetesEditar');
+  const textoFiltro = normalizarTexto(filtro);
+  const paquetes = paquetesConsultaData.filter(paquete => {
+    const destino = formatearLugarPaquete(paquete);
+    const fechas = `${paquete.fecha_partida || ''} ${paquete.fecha_vuelta || ''}`;
+    const buscable = `${paquete.id} ${paquete.nombre || ''} ${destino} ${fechas}`;
+    return textoFiltro === '' || normalizarTexto(buscable).includes(textoFiltro);
+  });
+
+  if (paquetes.length === 0) {
+    contenedor.innerHTML = '<div class="lookup-empty">No hay paquetes que coincidan con la búsqueda.</div>';
+    return;
+  }
+
+  contenedor.innerHTML = paquetes.map(paquete => {
+    const selected = consultaEdicionPaqueteSeleccionadoId === paquete.id ? ' is-selected' : '';
+    const lugar = formatearLugarPaquete(paquete);
+    const fechas = `${paquete.fecha_partida || '—'}${paquete.fecha_vuelta ? ' → ' + paquete.fecha_vuelta : ''}`;
+    return `
+      <button type="button" class="lookup-item${selected}" onclick="seleccionarConsultaEdicionPaquete(${paquete.id})">
+        <div class="lookup-item__content">
+          <div class="lookup-item__title">${escapeHtml(paquete.nombre || 'Sin nombre')}</div>
+          <div class="lookup-item__meta">Lugar: ${escapeHtml(lugar)}<br>Fechas: ${escapeHtml(fechas)}</div>
+        </div>
+        <div class="lookup-item__badge">$${escapeHtml(parseFloat(paquete.precio || 0).toFixed(2))}</div>
+      </button>
+    `;
+  }).join('');
+}
+
+function seleccionarConsultaEdicionPaquete(id) {
+  consultaEdicionPaqueteSeleccionadoId = id;
+  document.getElementById('consultaPaqueteIdSeleccionado').value = String(id);
+  renderizarPaquetesConsultaEdicion(document.getElementById('buscarConsultaPaqueteEditar').value);
+  actualizarResumenConsultaEdicion();
+}
+
+function toggleDetallesConsultaEdicion() {
+  consultaEdicionPaqueteDetallesAbiertos = !consultaEdicionPaqueteDetallesAbiertos;
+  const detalles = document.getElementById('consultaEditarPaqueteDetalles');
+  const toggle = document.getElementById('consultaEditarPaqueteToggle');
+  if (detalles && toggle) {
+    detalles.style.display = consultaEdicionPaqueteDetallesAbiertos ? 'grid' : 'none';
+    toggle.textContent = consultaEdicionPaqueteDetallesAbiertos ? 'Ocultar detalles' : 'Ver más detalles';
+  }
+}
+
+function actualizarResumenConsultaEdicion(paqueteReferencia = null) {
+  const panel = document.getElementById('consultaEditarPaquetePanel');
+  const paquete = paqueteReferencia || paquetesConsultaData.find(item => item.id === consultaEdicionPaqueteSeleccionadoId) || null;
+
+  if (!paquete) {
+    panel.style.display = 'none';
+    return;
+  }
+
+  const lugar = formatearLugarPaquete(paquete);
+  const fechas = `${paquete.fecha_partida || '—'}${paquete.fecha_vuelta ? ' → ' + paquete.fecha_vuelta : ''}`;
+  const precio = '$' + parseFloat(paquete.precio || 0).toFixed(2);
+  const disponibilidad = paquete.disponible ? 'Disponible' : 'No disponible';
+  const pileta = paquete.pileta ? 'Sí' : 'No';
+  const allInclusive = paquete.all_inclusive ? 'Sí' : 'No';
+
+  document.getElementById('consultaEditarPaqueteId').textContent = 'ID ' + paquete.id;
+  document.getElementById('consultaEditarPaqueteTitulo').textContent = paquete.nombre || 'Sin nombre';
+  document.getElementById('consultaEditarPaqueteLugar').textContent = lugar;
+  document.getElementById('consultaEditarPaqueteFechas').textContent = fechas;
+  document.getElementById('consultaEditarPaquetePrecio').textContent = precio;
+  document.getElementById('consultaEditarPaqueteDisponibilidad').textContent = disponibilidad;
+  document.getElementById('consultaEditarPaquetePileta').textContent = pileta;
+  document.getElementById('consultaEditarPaqueteAllInclusive').textContent = allInclusive;
+  document.getElementById('consultaEditarPaqueteHoteles').innerHTML = formatearHotelesPaquete(paquete);
+
+  panel.style.display = 'grid';
+  const detalles = document.getElementById('consultaEditarPaqueteDetalles');
+  const toggle = document.getElementById('consultaEditarPaqueteToggle');
+  if (detalles && toggle) {
+    detalles.style.display = consultaEdicionPaqueteDetallesAbiertos ? 'grid' : 'none';
+    toggle.textContent = consultaEdicionPaqueteDetallesAbiertos ? 'Ocultar detalles' : 'Ver más detalles';
+  }
+}
+
+function filtrarPaquetesConsultaEdicion(valor) {
+  renderizarPaquetesConsultaEdicion(valor);
+}
+
 function renderizarTabla(consultas) {
   const tbody = document.getElementById('consultasTbody');
   const empty = document.getElementById('emptyConsultas');
@@ -450,7 +740,6 @@ function renderizarTabla(consultas) {
 function abrirModalConsulta(id) {
   const consulta = consultasData.find(c => c.id === id);
   if (!consulta) return;
-
   document.getElementById('modalConsultaTitulo').textContent = 'Editar Consulta #' + id;
   document.getElementById('consultaId').value = id;
 
@@ -459,8 +748,6 @@ function abrirModalConsulta(id) {
   document.getElementById('consultaDni').textContent = cliente.dni || '—';
   document.getElementById('consultaEmail').textContent = cliente.email || '—';
   document.getElementById('consultaTelefono').textContent = cliente.telefono || '—';
-  const paquete = consulta.paquete || {};
-  document.getElementById('consultaPaquete').textContent = paquete.nombre || '—';
   document.getElementById('consultaMensaje').value = consulta.mensaje || '';
   document.getElementById('consultaCalificacion').textContent = formatearCalificacion(consulta.calificacion);
   document.getElementById('consultaEstado').value = String(consulta.estado || 'pendiente').trim().toLowerCase();
@@ -469,6 +756,17 @@ function abrirModalConsulta(id) {
   document.getElementById('consultaFechaCreacion').textContent = formatearFechaAuditoria(consulta.fecha_creacion);
   document.getElementById('consultaActualizadoPor').textContent = formatearPersonaAuditoria(consulta.actualizado_por, 'Sin modificaciones');
   document.getElementById('consultaFechaActualizacion').textContent = formatearFechaAuditoria(consulta.fecha_actualizacion, '—');
+
+  consultaEdicionPaqueteDetallesAbiertos = false;
+  consultaEdicionPaqueteSeleccionadoId = consulta.paquete ? consulta.paquete.id : null;
+  document.getElementById('consultaPaqueteIdSeleccionado').value = consultaEdicionPaqueteSeleccionadoId ? String(consultaEdicionPaqueteSeleccionadoId) : '';
+
+  actualizarResumenConsultaEdicion(consulta.paquete || null);
+  cargarPaquetesConsulta().then(() => {
+    renderizarPaquetesConsultaEdicion(document.getElementById('buscarConsultaPaqueteEditar').value || '');
+    actualizarResumenConsultaEdicion();
+  });
+
   document.getElementById('modalConsulta').classList.add('open');
 }
 
@@ -498,6 +796,9 @@ async function guardarConsulta() {
   }
 
   const body = { mensaje, estado };
+  if (consultaEdicionPaqueteSeleccionadoId) {
+    body.paquete_id = parseInt(String(consultaEdicionPaqueteSeleccionadoId), 10);
+  }
   const btn = document.getElementById('btnGuardarConsulta');
   btn.disabled = true;
   btn.textContent = 'Guardando...';
