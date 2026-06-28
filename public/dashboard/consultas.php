@@ -2,6 +2,8 @@
 
 $title = 'Consultas';
 $currentPage = 'consultas';
+$showFab = true;
+$fabAction = 'abrirModalCrear()';
 
 require_once __DIR__ . '/components/layout-start.php';
 require_once __DIR__ . '/components/page-header.php';
@@ -75,6 +77,38 @@ require_once __DIR__ . '/components/page-header.php';
         <tbody id="consultasTbody"></tbody>
       </table>
       <div class="empty-state" id="emptyConsultas" style="display:none;">No hay consultas registradas.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal crear consulta -->
+<div class="modal-overlay" id="modalNuevaConsulta">
+  <div class="modal" style="max-width:620px;">
+    <div class="modal-header">
+      <h3 id="modalNuevaConsultaTitulo">Nueva Consulta</h3>
+      <button class="modal-close" type="button" onclick="cerrarModalNuevaConsulta()" aria-label="Cerrar">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label for="buscarConsultaCliente">Cliente interesado *</label>
+        <input type="text" id="buscarConsultaCliente" class="form-control" placeholder="Buscar por DNI, nombre o apellido..." oninput="filtrarClientesConsulta(this.value)">
+        <div id="listaConsultaClientes" class="lookup-list"></div>
+      </div>
+      <div class="form-group">
+        <label for="buscarConsultaPaquete">Paquete interesado *</label>
+        <input type="text" id="buscarConsultaPaquete" class="form-control" placeholder="Buscar por nombre del paquete..." oninput="filtrarPaquetesConsulta(this.value)">
+        <div id="listaConsultaPaquetes" class="lookup-list"></div>
+      </div>
+      <div class="form-group">
+        <label for="consultaMensajeNuevo">Mensaje *</label>
+        <textarea id="consultaMensajeNuevo" class="form-control" rows="4" placeholder="Escribí el mensaje de la consulta..."></textarea>
+      </div>
+      <div id="consultaResumenSeleccion" class="consulta-resumen-seleccion" style="display:none;"></div>
+      <div id="errorValidacionNuevaConsulta" class="error-message" style="display:none;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" type="button" onclick="cerrarModalNuevaConsulta()">Cancelar</button>
+      <button class="btn btn-primary" type="button" id="btnGuardarNuevaConsulta" onclick="guardarNuevaConsulta()">Guardar</button>
     </div>
   </div>
 </div>
@@ -463,6 +497,19 @@ require_once __DIR__ . '/components/page-header.php';
   border: 1px solid rgba(255, 124, 0, 0.12);
   font-size: 0.82rem;
   color: var(--text);
+.consulta-resumen-seleccion {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 12px;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  background: rgba(255,124,0,0.04);
+  color: var(--text);
+  font-size: 0.82rem;
+}
+.consulta-resumen-seleccion strong {
+  color: var(--accent);
 }
 
 @media (max-width: 768px) {
@@ -481,10 +528,18 @@ require_once __DIR__ . '/components/page-header.php';
 <script>
 let consultasData = [];
 let consultaEdicionPaqueteDetallesAbiertos = false;
+let clientesConsultaData = [];
+let paquetesConsultaData = [];
+let consultaClienteSeleccionadoId = null;
+let consultaPaqueteSeleccionadoId = null;
 
 document.addEventListener('DOMContentLoaded', () => {
   cargarConsultas();
 });
+
+function normalizarTexto(valor) {
+  return String(valor || '').trim().toLowerCase();
+}
 
 function getFiltros() {
   const cliente = document.getElementById('filtroCliente').value.trim();
@@ -621,6 +676,146 @@ function actualizarResumenConsultaEdicion(paqueteReferencia = null) {
   }
 }
 
+async function cargarClientesConsulta() {
+  if (clientesConsultaData.length === 0) {
+    clientesConsultaData = await api('GET', '/clientes');
+  }
+  return clientesConsultaData;
+}
+
+async function cargarPaquetesConsulta() {
+  if (paquetesConsultaData.length === 0) {
+    paquetesConsultaData = await api('GET', '/paquetes');
+  }
+  return paquetesConsultaData;
+}
+
+function renderizarClientesConsulta(filtro = '') {
+  const contenedor = document.getElementById('listaConsultaClientes');
+  const textoFiltro = normalizarTexto(filtro);
+  const opciones = clientesConsultaData.filter(cliente => {
+    const etiqueta = `${cliente.dni || ''} ${cliente.nombre || ''} ${cliente.apellido || ''}`;
+    return textoFiltro === '' || normalizarTexto(etiqueta).includes(textoFiltro);
+  });
+
+  if (opciones.length === 0) {
+    contenedor.innerHTML = '<div class="lookup-empty">No hay clientes que coincidan con la búsqueda.</div>';
+    return;
+  }
+
+  contenedor.innerHTML = opciones.map(cliente => {
+    const etiqueta = `${cliente.dni || '—'} - ${cliente.nombre || ''} ${cliente.apellido || ''}`.trim();
+    const selected = consultaClienteSeleccionadoId === cliente.id ? ' is-selected' : '';
+    return `
+      <button type="button" class="lookup-item${selected}" onclick="seleccionarConsultaCliente(${cliente.id})">
+        <div class="lookup-item__content">
+          <div class="lookup-item__title">${escapeHtml(cliente.nombre || '')} ${escapeHtml(cliente.apellido || '')}</div>
+          <div class="lookup-item__meta">DNI: ${escapeHtml(cliente.dni || '—')}<br>Email: ${escapeHtml(cliente.email || '—')}</div>
+        </div>
+        <div class="lookup-item__badge">${escapeHtml(etiqueta)}</div>
+      </button>
+    `;
+  }).join('');
+}
+
+function renderizarPaquetesConsulta(filtro = '') {
+  const contenedor = document.getElementById('listaConsultaPaquetes');
+  const textoFiltro = normalizarTexto(filtro);
+  const opciones = paquetesConsultaData.filter(paquete => {
+    return textoFiltro === '' || normalizarTexto(paquete.nombre).includes(textoFiltro);
+  });
+
+  if (opciones.length === 0) {
+    contenedor.innerHTML = '<div class="lookup-empty">No hay paquetes que coincidan con la búsqueda.</div>';
+    return;
+  }
+
+  contenedor.innerHTML = opciones.map(paquete => {
+    const selected = consultaPaqueteSeleccionadoId === paquete.id ? ' is-selected' : '';
+    const destino = paquete.destino_nombre ? paquete.destino_nombre : (paquete.destino ? [paquete.destino.ciudad, paquete.destino.estado_provincia, paquete.destino.pais].filter(Boolean).join(', ') : '');
+    return `
+      <button type="button" class="lookup-item${selected}" onclick="seleccionarConsultaPaquete(${paquete.id})">
+        <div class="lookup-item__content">
+          <div class="lookup-item__title">${escapeHtml(paquete.nombre || 'Sin nombre')}</div>
+          <div class="lookup-item__meta">${destino ? 'Destino: ' + escapeHtml(destino) + '<br>' : ''}Fechas: ${escapeHtml(paquete.fecha_partida || '—')}${paquete.fecha_vuelta ? ' → ' + escapeHtml(paquete.fecha_vuelta) : ''}</div>
+        </div>
+        <div class="lookup-item__badge">ID ${paquete.id}</div>
+      </button>
+    `;
+  }).join('');
+}
+
+function filtrarClientesConsulta(valor) {
+  renderizarClientesConsulta(valor);
+}
+
+function filtrarPaquetesConsulta(valor) {
+  renderizarPaquetesConsulta(valor);
+}
+
+function seleccionarConsultaCliente(id) {
+  consultaClienteSeleccionadoId = id;
+  renderizarClientesConsulta(document.getElementById('buscarConsultaCliente').value);
+  actualizarResumenConsulta();
+}
+
+function seleccionarConsultaPaquete(id) {
+  consultaPaqueteSeleccionadoId = id;
+  renderizarPaquetesConsulta(document.getElementById('buscarConsultaPaquete').value);
+  actualizarResumenConsulta();
+}
+
+function actualizarResumenConsulta() {
+  const resumen = document.getElementById('consultaResumenSeleccion');
+  const cliente = clientesConsultaData.find(item => item.id === consultaClienteSeleccionadoId) || null;
+  const paquete = paquetesConsultaData.find(item => item.id === consultaPaqueteSeleccionadoId) || null;
+
+  if (!cliente && !paquete) {
+    resumen.style.display = 'none';
+    resumen.innerHTML = '';
+    return;
+  }
+
+  const clienteTexto = cliente ? `${cliente.dni || '—'} - ${cliente.nombre || ''} ${cliente.apellido || ''}`.trim() : 'Sin cliente seleccionado';
+  const paqueteTexto = paquete ? paquete.nombre || 'Sin nombre' : 'Sin paquete seleccionado';
+
+  resumen.innerHTML = `
+    <div><strong>Cliente:</strong> ${escapeHtml(clienteTexto)}</div>
+    <div><strong>Paquete:</strong> ${escapeHtml(paqueteTexto)}</div>
+  `;
+  resumen.style.display = 'grid';
+}
+
+async function abrirModalCrear() {
+  const titulo = document.getElementById('modalNuevaConsultaTitulo');
+  const error = document.getElementById('errorValidacionNuevaConsulta');
+  const btn = document.getElementById('btnGuardarNuevaConsulta');
+
+  titulo.textContent = 'Nueva Consulta';
+  document.getElementById('buscarConsultaCliente').value = '';
+  document.getElementById('buscarConsultaPaquete').value = '';
+  document.getElementById('consultaMensajeNuevo').value = '';
+  consultaClienteSeleccionadoId = null;
+  consultaPaqueteSeleccionadoId = null;
+  error.style.display = 'none';
+  btn.textContent = 'Guardar';
+
+  await Promise.all([
+    cargarClientesConsulta(),
+    cargarPaquetesConsulta(),
+  ]);
+
+  renderizarClientesConsulta('');
+  renderizarPaquetesConsulta('');
+  actualizarResumenConsulta();
+
+  document.getElementById('modalNuevaConsulta').classList.add('open');
+}
+
+function cerrarModalNuevaConsulta() {
+  document.getElementById('modalNuevaConsulta').classList.remove('open');
+}
+
 function renderizarTabla(consultas) {
   const tbody = document.getElementById('consultasTbody');
   const empty = document.getElementById('emptyConsultas');
@@ -657,12 +852,6 @@ function renderizarTabla(consultas) {
         <strong>${clienteNombre}</strong>
         <div style="font-size:0.75rem;color:var(--text-muted)">${clienteEmail}</div>
         <div style="font-size:0.75rem;color:var(--text-muted)">DNI: ${escapeHtml(c.cliente ? c.cliente.dni || '—' : '—')}</div>
-        <div class="consulta-audit">
-          <div class="consulta-audit-row"><span class="consulta-audit-label">Creado por:</span><span class="consulta-audit-value">${escapeHtml(creadoPor)}</span></div>
-          <div class="consulta-audit-row"><span class="consulta-audit-label">Fecha de creación:</span><span class="consulta-audit-value">${escapeHtml(fechaCreacion)}</span></div>
-          <div class="consulta-audit-row"><span class="consulta-audit-label">Modificado por:</span><span class="consulta-audit-value">${escapeHtml(actualizadoPor)}</span></div>
-          <div class="consulta-audit-row"><span class="consulta-audit-label">Fecha de modificación:</span><span class="consulta-audit-value">${escapeHtml(fechaActualizacion)}</span></div>
-        </div>
       </td>
       <td>${paqueteNombre}</td>
       <td><span class="mensaje-truncate" title="${escapeHtml(mensaje)}">${mensaje}</span></td>
@@ -748,6 +937,44 @@ async function guardarConsulta() {
   } finally {
     btn.disabled = false;
     btn.textContent = 'Guardar cambios';
+  }
+}
+
+async function guardarNuevaConsulta() {
+  const mensaje = document.getElementById('consultaMensajeNuevo').value.trim();
+  const errorEl = document.getElementById('errorValidacionNuevaConsulta');
+  const btn = document.getElementById('btnGuardarNuevaConsulta');
+
+  const errores = [];
+  if (!consultaClienteSeleccionadoId) errores.push('Debes seleccionar el cliente interesado.');
+  if (!consultaPaqueteSeleccionadoId) errores.push('Debes seleccionar el paquete interesado.');
+  if (!mensaje) errores.push('El mensaje es obligatorio.');
+
+  if (errores.length > 0) {
+    errorEl.textContent = errores.join(' ');
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  errorEl.style.display = 'none';
+  btn.disabled = true;
+  btn.textContent = 'Guardando...';
+
+  try {
+    await api('POST', '/consultas', {
+      cliente_id: parseInt(String(consultaClienteSeleccionadoId), 10),
+      paquete_id: parseInt(String(consultaPaqueteSeleccionadoId), 10),
+      mensaje,
+    });
+
+    mostrarToast('Consulta creada correctamente.', 'success');
+    cerrarModalNuevaConsulta();
+    await cargarConsultas();
+  } catch (e) {
+    mostrarToast(e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Guardar';
   }
 }
 
