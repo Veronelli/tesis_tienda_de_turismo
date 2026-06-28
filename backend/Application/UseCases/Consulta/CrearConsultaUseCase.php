@@ -6,6 +6,7 @@ namespace TiendaTurismo\GestionDatos\Application\UseCases\Consulta;
 
 use TiendaTurismo\GestionDatos\Application\Input\CrearConsultaInput;
 use TiendaTurismo\GestionDatos\Application\AI\Contracts\ProspectoCalificadorInterface;
+use TiendaTurismo\GestionDatos\Domain\Exceptions\DuplicadoException;
 use TiendaTurismo\GestionDatos\Domain\Models\Cliente;
 use TiendaTurismo\GestionDatos\Domain\Models\Consulta;
 use TiendaTurismo\GestionDatos\Domain\Repositories\ClienteRepositoryInterface;
@@ -61,18 +62,33 @@ final class CrearConsultaUseCase
 
         $this->validarDatosCliente($input->datosCliente);
 
-        $email = $input->datosCliente['email'];
-        $existente = $this->clientes->findByEmail($email);
-        if ($existente !== null) {
-            return $existente;
+        $email = Cliente::normalizarEmail($input->datosCliente['email']);
+        $dni = Cliente::normalizarDni($input->datosCliente['dni']);
+
+        $porEmail = $this->clientes->findByEmail($email);
+        $porDni = $this->clientes->findByDni($dni);
+
+        if ($porEmail !== null && $porDni !== null) {
+            if ($porEmail->id() !== null && $porDni->id() !== null && $porEmail->id() === $porDni->id()) {
+                return $porEmail;
+            }
+            throw new DuplicadoException('El email y el DNI pertenecen a clientes distintos.');
+        }
+
+        if ($porEmail !== null) {
+            return $porEmail;
+        }
+
+        if ($porDni !== null) {
+            return $porDni;
         }
 
         $cliente = new Cliente(
             nombre: $input->datosCliente['nombre'],
             apellido: $input->datosCliente['apellido'],
-            email: $input->datosCliente['email'],
+            email: $email,
             telefono: $input->datosCliente['telefono'],
-            dni: $input->datosCliente['dni'],
+            dni: $dni,
             ubicacion: $input->datosCliente['ubicacion'],
         );
 

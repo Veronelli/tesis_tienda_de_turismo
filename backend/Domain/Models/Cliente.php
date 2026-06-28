@@ -9,6 +9,8 @@ use TiendaTurismo\GestionDatos\Domain\Models\Traits\AtributosBase;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'clientes')]
+#[ORM\UniqueConstraint(name: 'uq_clientes_email', columns: ['email'])]
+#[ORM\UniqueConstraint(name: 'uq_clientes_dni', columns: ['dni'])]
 final class Cliente
 {
     use AtributosBase;
@@ -67,6 +69,16 @@ final class Cliente
     public function ubicacion(): string
     {
         return $this->ubicacion;
+    }
+
+    public static function normalizarEmail(string $email): string
+    {
+        return strtolower(trim($email));
+    }
+
+    public static function normalizarDni(string $dni): string
+    {
+        return str_replace(['.', ' ', '-'], '', trim($dni));
     }
 
     public function update(string $nombre, string $apellido, string $email, string $telefono, string $dni, string $ubicacion): void

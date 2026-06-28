@@ -14,6 +14,8 @@ interface ClienteRepositoryInterface
 
     public function findByEmail(string $email): ?Cliente;
 
+    public function findByDni(string $dni): ?Cliente;
+
     public function update(Cliente $cliente): void;
 
     /** @return list<Cliente> */
