@@ -144,8 +144,9 @@ require_once __DIR__ . '/components/page-header.php';
       </div>
       <div class="form-group">
         <label>Paquete consultado</label>
-        <p class="form-value" id="consultaPaquete"></p>
+        <input type="text" id="consultaPaqueteNombre" class="form-control" readonly>
       </div>
+      <?php $paqueteResumenPrefix = 'consultaEditarPaquete'; $paqueteResumenToggleAction = 'toggleDetallesConsultaEdicion()'; require __DIR__ . '/components/paquete-resumen.php'; ?>
       <div class="form-group">
         <label>Mensaje</label>
         <textarea id="consultaMensaje" class="form-control" rows="4"></textarea>
@@ -401,6 +402,101 @@ require_once __DIR__ . '/components/page-header.php';
   font-size: 0.82rem;
   background: rgba(255,255,255,0.6);
 }
+.consulta-paquete-seleccionado-info {
+  display: none;
+}
+.paquete-resumen {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 14px;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  background: rgba(255, 124, 0, 0.04);
+}
+.paquete-resumen__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.paquete-resumen__eyebrow {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+}
+.paquete-resumen__title {
+  margin: 4px 0 0;
+  font-size: 1rem;
+  color: var(--text);
+}
+.paquete-resumen__place {
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+.paquete-resumen__id {
+  flex: 0 0 auto;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.paquete-resumen__meta,
+.paquete-resumen__details {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.paquete-resumen__meta-item,
+.paquete-resumen__detail-item {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #fff;
+  border: 1px solid var(--border-light);
+}
+.paquete-resumen__meta-item span,
+.paquete-resumen__detail-item span {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+.paquete-resumen__meta-item strong,
+.paquete-resumen__detail-item strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.88rem;
+  color: var(--text);
+}
+.paquete-resumen__toggle {
+  width: fit-content;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+.paquete-resumen__detail-item--full {
+  grid-column: 1 / -1;
+}
+.paquete-resumen__hoteles {
+  margin-top: 6px;
+  display: grid;
+  gap: 6px;
+}
+.paquete-resumen__hotel {
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: rgba(255, 124, 0, 0.06);
+  border: 1px solid rgba(255, 124, 0, 0.12);
+  font-size: 0.82rem;
+  color: var(--text);
 .consulta-resumen-seleccion {
   display: grid;
   gap: 8px;
@@ -423,12 +519,15 @@ require_once __DIR__ . '/components/page-header.php';
   .data-table { font-size: 0.78rem; }
   .data-table tbody td { padding: 8px 6px; }
   .mensaje-truncate { max-width: 80px; }
+  .paquete-resumen__meta,
+  .paquete-resumen__details { grid-template-columns: 1fr; }
 }
 </style>
 
 <script src="js/auth.js"></script>
 <script>
 let consultasData = [];
+let consultaEdicionPaqueteDetallesAbiertos = false;
 let clientesConsultaData = [];
 let paquetesConsultaData = [];
 let consultaClienteSeleccionadoId = null;
@@ -501,6 +600,80 @@ function limpiarFiltros() {
   document.getElementById('filtroFechaDesde').value = '';
   document.getElementById('filtroFechaHasta').value = '';
   cargarConsultas();
+}
+
+function formatearLugarPaquete(paquete) {
+  if (!paquete) return '—';
+
+  if (paquete.destino_nombre) {
+    return paquete.destino_nombre;
+  }
+
+  const hoteles = Array.isArray(paquete.hoteles) ? paquete.hoteles : [];
+  const hotel = hoteles[0] || null;
+  const destino = hotel && hotel.destino ? hotel.destino : null;
+
+  if (!destino) return '—';
+
+  return [destino.ciudad, destino.estado_provincia, destino.pais].filter(Boolean).join(', ') || '—';
+}
+
+function formatearHotelesPaquete(paquete) {
+  const hoteles = Array.isArray(paquete?.hoteles) ? paquete.hoteles : [];
+
+  if (hoteles.length === 0) {
+    return '<div class="paquete-resumen__hotel">Sin hoteles asociados</div>';
+  }
+
+  return hoteles.map(hotel => {
+    const destino = hotel.destino ? [hotel.destino.ciudad, hotel.destino.estado_provincia, hotel.destino.pais].filter(Boolean).join(', ') : '';
+    return `<div class="paquete-resumen__hotel"><strong>${escapeHtml(hotel.nombre || 'Sin nombre')}</strong>${destino ? '<div style="color:var(--text-muted);font-size:0.75rem;">' + escapeHtml(destino) + '</div>' : ''}</div>`;
+  }).join('');
+}
+
+function toggleDetallesConsultaEdicion() {
+  consultaEdicionPaqueteDetallesAbiertos = !consultaEdicionPaqueteDetallesAbiertos;
+  const detalles = document.getElementById('consultaEditarPaqueteDetalles');
+  const toggle = document.getElementById('consultaEditarPaqueteToggle');
+  if (detalles && toggle) {
+    detalles.style.display = consultaEdicionPaqueteDetallesAbiertos ? 'grid' : 'none';
+    toggle.textContent = consultaEdicionPaqueteDetallesAbiertos ? 'Ocultar detalles' : 'Ver más detalles';
+  }
+}
+
+function actualizarResumenConsultaEdicion(paqueteReferencia = null) {
+  const panel = document.getElementById('consultaEditarPaquetePanel');
+  const paquete = paqueteReferencia || null;
+
+  if (!paquete) {
+    panel.style.display = 'none';
+    return;
+  }
+
+  const lugar = formatearLugarPaquete(paquete);
+  const fechas = `${paquete.fecha_partida || '—'}${paquete.fecha_vuelta ? ' → ' + paquete.fecha_vuelta : ''}`;
+  const precio = '$' + parseFloat(paquete.precio || 0).toFixed(2);
+  const disponibilidad = paquete.disponible ? 'Disponible' : 'No disponible';
+  const pileta = paquete.pileta ? 'Sí' : 'No';
+  const allInclusive = paquete.all_inclusive ? 'Sí' : 'No';
+
+  document.getElementById('consultaEditarPaqueteId').textContent = 'ID ' + paquete.id;
+  document.getElementById('consultaEditarPaqueteTitulo').textContent = paquete.nombre || 'Sin nombre';
+  document.getElementById('consultaEditarPaqueteLugar').textContent = lugar;
+  document.getElementById('consultaEditarPaqueteFechas').textContent = fechas;
+  document.getElementById('consultaEditarPaquetePrecio').textContent = precio;
+  document.getElementById('consultaEditarPaqueteDisponibilidad').textContent = disponibilidad;
+  document.getElementById('consultaEditarPaquetePileta').textContent = pileta;
+  document.getElementById('consultaEditarPaqueteAllInclusive').textContent = allInclusive;
+  document.getElementById('consultaEditarPaqueteHoteles').innerHTML = formatearHotelesPaquete(paquete);
+
+  panel.style.display = 'grid';
+  const detalles = document.getElementById('consultaEditarPaqueteDetalles');
+  const toggle = document.getElementById('consultaEditarPaqueteToggle');
+  if (detalles && toggle) {
+    detalles.style.display = consultaEdicionPaqueteDetallesAbiertos ? 'grid' : 'none';
+    toggle.textContent = consultaEdicionPaqueteDetallesAbiertos ? 'Ocultar detalles' : 'Ver más detalles';
+  }
 }
 
 async function cargarClientesConsulta() {
@@ -699,7 +872,6 @@ function renderizarTabla(consultas) {
 function abrirModalConsulta(id) {
   const consulta = consultasData.find(c => c.id === id);
   if (!consulta) return;
-
   document.getElementById('modalConsultaTitulo').textContent = 'Editar Consulta #' + id;
   document.getElementById('consultaId').value = id;
 
@@ -708,16 +880,20 @@ function abrirModalConsulta(id) {
   document.getElementById('consultaDni').textContent = cliente.dni || '—';
   document.getElementById('consultaEmail').textContent = cliente.email || '—';
   document.getElementById('consultaTelefono').textContent = cliente.telefono || '—';
-  const paquete = consulta.paquete || {};
-  document.getElementById('consultaPaquete').textContent = paquete.nombre || '—';
   document.getElementById('consultaMensaje').value = consulta.mensaje || '';
   document.getElementById('consultaCalificacion').textContent = formatearCalificacion(consulta.calificacion);
   document.getElementById('consultaEstado').value = String(consulta.estado || 'pendiente').trim().toLowerCase();
+  document.getElementById('consultaPaqueteNombre').value = consulta.paquete ? consulta.paquete.nombre || 'Sin nombre' : 'Sin paquete';
   document.getElementById('consultaAuditoria').style.display = 'grid';
   document.getElementById('consultaCreadoPor').textContent = consulta.creado_por ? formatearPersonaAuditoria(consulta.creado_por, 'Desde la web') : 'Desde la web';
   document.getElementById('consultaFechaCreacion').textContent = formatearFechaAuditoria(consulta.fecha_creacion);
   document.getElementById('consultaActualizadoPor').textContent = formatearPersonaAuditoria(consulta.actualizado_por, 'Sin modificaciones');
   document.getElementById('consultaFechaActualizacion').textContent = formatearFechaAuditoria(consulta.fecha_actualizacion, '—');
+
+  consultaEdicionPaqueteDetallesAbiertos = false;
+
+  actualizarResumenConsultaEdicion(consulta.paquete || null);
+
   document.getElementById('modalConsulta').classList.add('open');
 }
 
