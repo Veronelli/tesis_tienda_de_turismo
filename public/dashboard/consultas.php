@@ -109,12 +109,10 @@ require_once __DIR__ . '/components/page-header.php';
         </div>
       </div>
       <div class="form-group">
-        <label for="buscarConsultaPaqueteEditar">Paquete consultado *</label>
-        <input type="text" id="buscarConsultaPaqueteEditar" class="form-control" placeholder="Buscar por nombre, destino o fecha..." oninput="filtrarPaquetesConsultaEdicion(this.value)">
-        <div id="listaConsultaPaquetesEditar" class="lookup-list"></div>
+        <label>Paquete consultado</label>
+        <input type="text" id="consultaPaqueteNombre" class="form-control" readonly>
       </div>
       <?php $paqueteResumenPrefix = 'consultaEditarPaquete'; $paqueteResumenToggleAction = 'toggleDetallesConsultaEdicion()'; require __DIR__ . '/components/paquete-resumen.php'; ?>
-      <input type="hidden" id="consultaPaqueteIdSeleccionado">
       <div class="form-group">
         <label>Mensaje</label>
         <textarea id="consultaMensaje" class="form-control" rows="4"></textarea>
@@ -482,8 +480,6 @@ require_once __DIR__ . '/components/page-header.php';
 <script src="js/auth.js"></script>
 <script>
 let consultasData = [];
-let paquetesConsultaData = [];
-let consultaEdicionPaqueteSeleccionadoId = null;
 let consultaEdicionPaqueteDetallesAbiertos = false;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -551,17 +547,6 @@ function limpiarFiltros() {
   cargarConsultas();
 }
 
-async function cargarPaquetesConsulta() {
-  if (paquetesConsultaData.length === 0) {
-    paquetesConsultaData = await api('GET', '/paquetes');
-  }
-  return paquetesConsultaData;
-}
-
-function normalizarTexto(valor) {
-  return String(valor || '').trim().toLowerCase();
-}
-
 function formatearLugarPaquete(paquete) {
   if (!paquete) return '—';
 
@@ -591,44 +576,6 @@ function formatearHotelesPaquete(paquete) {
   }).join('');
 }
 
-function renderizarPaquetesConsultaEdicion(filtro = '') {
-  const contenedor = document.getElementById('listaConsultaPaquetesEditar');
-  const textoFiltro = normalizarTexto(filtro);
-  const paquetes = paquetesConsultaData.filter(paquete => {
-    const destino = formatearLugarPaquete(paquete);
-    const fechas = `${paquete.fecha_partida || ''} ${paquete.fecha_vuelta || ''}`;
-    const buscable = `${paquete.id} ${paquete.nombre || ''} ${destino} ${fechas}`;
-    return textoFiltro === '' || normalizarTexto(buscable).includes(textoFiltro);
-  });
-
-  if (paquetes.length === 0) {
-    contenedor.innerHTML = '<div class="lookup-empty">No hay paquetes que coincidan con la búsqueda.</div>';
-    return;
-  }
-
-  contenedor.innerHTML = paquetes.map(paquete => {
-    const selected = consultaEdicionPaqueteSeleccionadoId === paquete.id ? ' is-selected' : '';
-    const lugar = formatearLugarPaquete(paquete);
-    const fechas = `${paquete.fecha_partida || '—'}${paquete.fecha_vuelta ? ' → ' + paquete.fecha_vuelta : ''}`;
-    return `
-      <button type="button" class="lookup-item${selected}" onclick="seleccionarConsultaEdicionPaquete(${paquete.id})">
-        <div class="lookup-item__content">
-          <div class="lookup-item__title">${escapeHtml(paquete.nombre || 'Sin nombre')}</div>
-          <div class="lookup-item__meta">Lugar: ${escapeHtml(lugar)}<br>Fechas: ${escapeHtml(fechas)}</div>
-        </div>
-        <div class="lookup-item__badge">$${escapeHtml(parseFloat(paquete.precio || 0).toFixed(2))}</div>
-      </button>
-    `;
-  }).join('');
-}
-
-function seleccionarConsultaEdicionPaquete(id) {
-  consultaEdicionPaqueteSeleccionadoId = id;
-  document.getElementById('consultaPaqueteIdSeleccionado').value = String(id);
-  renderizarPaquetesConsultaEdicion(document.getElementById('buscarConsultaPaqueteEditar').value);
-  actualizarResumenConsultaEdicion();
-}
-
 function toggleDetallesConsultaEdicion() {
   consultaEdicionPaqueteDetallesAbiertos = !consultaEdicionPaqueteDetallesAbiertos;
   const detalles = document.getElementById('consultaEditarPaqueteDetalles');
@@ -641,7 +588,7 @@ function toggleDetallesConsultaEdicion() {
 
 function actualizarResumenConsultaEdicion(paqueteReferencia = null) {
   const panel = document.getElementById('consultaEditarPaquetePanel');
-  const paquete = paqueteReferencia || paquetesConsultaData.find(item => item.id === consultaEdicionPaqueteSeleccionadoId) || null;
+  const paquete = paqueteReferencia || null;
 
   if (!paquete) {
     panel.style.display = 'none';
@@ -672,10 +619,6 @@ function actualizarResumenConsultaEdicion(paqueteReferencia = null) {
     detalles.style.display = consultaEdicionPaqueteDetallesAbiertos ? 'grid' : 'none';
     toggle.textContent = consultaEdicionPaqueteDetallesAbiertos ? 'Ocultar detalles' : 'Ver más detalles';
   }
-}
-
-function filtrarPaquetesConsultaEdicion(valor) {
-  renderizarPaquetesConsultaEdicion(valor);
 }
 
 function renderizarTabla(consultas) {
@@ -751,6 +694,7 @@ function abrirModalConsulta(id) {
   document.getElementById('consultaMensaje').value = consulta.mensaje || '';
   document.getElementById('consultaCalificacion').textContent = formatearCalificacion(consulta.calificacion);
   document.getElementById('consultaEstado').value = String(consulta.estado || 'pendiente').trim().toLowerCase();
+  document.getElementById('consultaPaqueteNombre').value = consulta.paquete ? consulta.paquete.nombre || 'Sin nombre' : 'Sin paquete';
   document.getElementById('consultaAuditoria').style.display = 'grid';
   document.getElementById('consultaCreadoPor').textContent = consulta.creado_por ? formatearPersonaAuditoria(consulta.creado_por, 'Desde la web') : 'Desde la web';
   document.getElementById('consultaFechaCreacion').textContent = formatearFechaAuditoria(consulta.fecha_creacion);
@@ -758,14 +702,8 @@ function abrirModalConsulta(id) {
   document.getElementById('consultaFechaActualizacion').textContent = formatearFechaAuditoria(consulta.fecha_actualizacion, '—');
 
   consultaEdicionPaqueteDetallesAbiertos = false;
-  consultaEdicionPaqueteSeleccionadoId = consulta.paquete ? consulta.paquete.id : null;
-  document.getElementById('consultaPaqueteIdSeleccionado').value = consultaEdicionPaqueteSeleccionadoId ? String(consultaEdicionPaqueteSeleccionadoId) : '';
 
   actualizarResumenConsultaEdicion(consulta.paquete || null);
-  cargarPaquetesConsulta().then(() => {
-    renderizarPaquetesConsultaEdicion(document.getElementById('buscarConsultaPaqueteEditar').value || '');
-    actualizarResumenConsultaEdicion();
-  });
 
   document.getElementById('modalConsulta').classList.add('open');
 }
@@ -796,9 +734,6 @@ async function guardarConsulta() {
   }
 
   const body = { mensaje, estado };
-  if (consultaEdicionPaqueteSeleccionadoId) {
-    body.paquete_id = parseInt(String(consultaEdicionPaqueteSeleccionadoId), 10);
-  }
   const btn = document.getElementById('btnGuardarConsulta');
   btn.disabled = true;
   btn.textContent = 'Guardando...';
