@@ -22,6 +22,7 @@ final class OpenAiTextProviderTest extends TestCase
             instructions: 'Eres un agente de turismo.',
             input: 'Responde con una recomendacion breve.',
             temperature: 0.3,
+            context: 'consulta_id=12',
         );
 
         $transport
@@ -35,7 +36,7 @@ final class OpenAiTextProviderTest extends TestCase
                 $body = json_decode($request->body, true);
                 $this->assertSame('gpt-5.5', $body['model']);
                 $this->assertSame('Eres un agente de turismo.', $body['instructions']);
-                $this->assertSame('Responde con una recomendacion breve.', $body['input']);
+                $this->assertSame("Contexto de ejecucion:\nconsulta_id=12\n\nMensaje:\nResponde con una recomendacion breve.", $body['input']);
                 $this->assertSame(0.3, $body['temperature']);
 
                 return true;

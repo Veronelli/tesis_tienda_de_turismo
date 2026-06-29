@@ -23,6 +23,7 @@ final class GeminiTextProviderTest extends TestCase
             instructions: 'Eres un agente de turismo.',
             input: 'Dame una respuesta breve.',
             temperature: 0.6,
+            context: 'consulta_id=12',
         );
 
         $transport
@@ -37,7 +38,7 @@ final class GeminiTextProviderTest extends TestCase
 
                 $body = json_decode($request->body, true);
                 $this->assertSame('Eres un agente de turismo.', $body['systemInstruction']['parts'][0]['text']);
-                $this->assertSame('Dame una respuesta breve.', $body['contents'][0]['parts'][0]['text']);
+                $this->assertSame("Contexto de ejecucion:\nconsulta_id=12\n\nMensaje:\nDame una respuesta breve.", $body['contents'][0]['parts'][0]['text']);
                 $this->assertSame(0.6, $body['generationConfig']['temperature']);
 
                 return true;
@@ -70,6 +71,7 @@ final class GeminiTextProviderTest extends TestCase
         $prompt = new AiPrompt(
             instructions: 'Eres un agente de turismo.',
             input: 'Dame una respuesta breve.',
+            context: 'consulta_id=12',
         );
 
         $transport
@@ -97,6 +99,7 @@ final class GeminiTextProviderTest extends TestCase
         $prompt = new AiPrompt(
             instructions: 'Eres un agente de turismo.',
             input: 'Dame una respuesta breve.',
+            context: 'consulta_id=12',
         );
 
         $transport

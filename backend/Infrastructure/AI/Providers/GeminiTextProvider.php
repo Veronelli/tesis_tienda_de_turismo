@@ -26,6 +26,8 @@ final class GeminiTextProvider implements GenerativeTextProviderInterface
 
     public function generate(AiPrompt $prompt): AiResponse
     {
+        $input = $this->buildInput($prompt);
+
         $payload = [
             'systemInstruction' => [
                 'parts' => [
@@ -36,7 +38,7 @@ final class GeminiTextProvider implements GenerativeTextProviderInterface
                 [
                     'role' => 'user',
                     'parts' => [
-                        ['text' => $prompt->input],
+                        ['text' => $input],
                     ],
                 ],
             ],
@@ -70,6 +72,15 @@ final class GeminiTextProvider implements GenerativeTextProviderInterface
             model: $this->model,
             raw: $data,
         );
+    }
+
+    private function buildInput(AiPrompt $prompt): string
+    {
+        if (trim($prompt->context) === '') {
+            return $prompt->input;
+        }
+
+        return "Contexto de ejecucion:\n{$prompt->context}\n\nMensaje:\n{$prompt->input}";
     }
 
     private function sendWithRetry(HttpRequest $request): HttpResponse
