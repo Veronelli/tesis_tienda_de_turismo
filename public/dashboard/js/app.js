@@ -15,7 +15,6 @@ async function handleLogin(e) {
   const btn = e.target.querySelector('button[type="submit"]');
   const email = e.target.email.value.trim();
   const pass = e.target.contrasena.value.trim();
-  debugger;
   if (!email || !pass) {
     if (el) { el.textContent = 'Ingrese email y contraseña'; el.classList.add('visible'); }
     return;
