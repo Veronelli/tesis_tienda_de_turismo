@@ -64,7 +64,10 @@ final class CrearConsultaUseCaseTest extends TestCase
         $this->enviarProspecto
             ->expects($this->once())
             ->method('execute')
-            ->with('Quiero más información.')
+            ->with(
+                'Quiero más información.',
+                $this->callback(static fn (string $context): bool => str_contains($context, 'paquete_id=1') && str_contains($context, 'cliente_id=1')),
+            )
             ->willReturn(['calificacion' => 'CALIENTE']);
 
         $this->consultaRepo->expects($this->once())->method('save');
@@ -101,7 +104,10 @@ final class CrearConsultaUseCaseTest extends TestCase
         $this->enviarProspecto
             ->expects($this->once())
             ->method('execute')
-            ->with('Consulta desde nuevo cliente.')
+            ->with(
+                'Consulta desde nuevo cliente.',
+                $this->callback(static fn (string $context): bool => str_contains($context, 'paquete_id=1') && str_contains($context, 'cliente_id=nuevo') && str_contains($context, 'datos_cliente=Nuevo Cliente nuevo@example.com La Plata')),
+            )
             ->willReturn(['calificacion' => 'TIBIO']);
 
         $this->clienteRepo->expects($this->once())->method('save');
@@ -145,7 +151,10 @@ final class CrearConsultaUseCaseTest extends TestCase
         $this->enviarProspecto
             ->expects($this->once())
             ->method('execute')
-            ->with('Consulta reusando cliente.')
+            ->with(
+                'Consulta reusando cliente.',
+                $this->callback(static fn (string $context): bool => str_contains($context, 'paquete_id=1') && str_contains($context, 'cliente_id=1') && str_contains($context, 'datos_cliente=Juan Pérez juan@example.com Buenos Aires')),
+            )
             ->willReturn(['calificacion' => 'FRIO']);
 
         $this->clienteRepo->expects($this->never())->method('save');
@@ -194,7 +203,10 @@ final class CrearConsultaUseCaseTest extends TestCase
         $this->enviarProspecto
             ->expects($this->once())
             ->method('execute')
-            ->with('Consulta reusando por DNI.')
+            ->with(
+                'Consulta reusando por DNI.',
+                $this->callback(static fn (string $context): bool => str_contains($context, 'paquete_id=1') && str_contains($context, 'cliente_id=1') && str_contains($context, 'datos_cliente=Nuevo Cliente nuevo@example.com La Plata')),
+            )
             ->willReturn(['calificacion' => 'CALIENTE']);
 
         $this->clienteRepo->expects($this->never())->method('save');
@@ -242,7 +254,10 @@ final class CrearConsultaUseCaseTest extends TestCase
         $this->enviarProspecto
             ->expects($this->once())
             ->method('execute')
-            ->with('Consulta mismo cliente.')
+            ->with(
+                'Consulta mismo cliente.',
+                $this->callback(static fn (string $context): bool => str_contains($context, 'paquete_id=1') && str_contains($context, 'cliente_id=1') && str_contains($context, 'datos_cliente=Juan Pérez juan@example.com Buenos Aires')),
+            )
             ->willReturn(['calificacion' => 'TIBIO']);
 
         $this->clienteRepo->expects($this->never())->method('save');

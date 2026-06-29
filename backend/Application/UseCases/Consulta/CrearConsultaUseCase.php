@@ -31,7 +31,7 @@ final class CrearConsultaUseCase
         }
 
         $cliente = $this->resolveCliente($input);
-        $prospecto = $this->enviarProspecto->execute($input->mensaje);
+        $prospecto = $this->enviarProspecto->execute($input->mensaje, $this->buildContext($input, $cliente->id()));
 
         $consulta = new Consulta(
             cliente: $cliente,
@@ -95,6 +95,30 @@ final class CrearConsultaUseCase
         $this->clientes->save($cliente);
 
         return $cliente;
+    }
+
+    private function buildContext(CrearConsultaInput $input, ?int $clienteId): string
+    {
+        $partes = [
+            'Ejecucion de crear consulta',
+            'paquete_id=' . $input->paqueteId,
+            'cliente_id=' . ($clienteId !== null ? (string) $clienteId : 'nuevo'),
+        ];
+
+        if ($input->fechaConsulta instanceof \DateTimeImmutable) {
+            $partes[] = 'fecha_consulta=' . $input->fechaConsulta->format(DATE_ATOM);
+        }
+
+        if ($input->datosCliente !== null) {
+            $partes[] = 'datos_cliente=' . implode(' ', array_filter([
+                $input->datosCliente['nombre'] ?? null,
+                $input->datosCliente['apellido'] ?? null,
+                $input->datosCliente['email'] ?? null,
+                $input->datosCliente['ubicacion'] ?? null,
+            ], static fn (?string $valor): bool => is_string($valor) && trim($valor) !== ''));
+        }
+
+        return implode("\n", $partes);
     }
 
     /** @param array<string, string> $datos */

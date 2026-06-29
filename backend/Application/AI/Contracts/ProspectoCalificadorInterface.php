@@ -7,5 +7,5 @@ namespace TiendaTurismo\GestionDatos\Application\AI\Contracts;
 interface ProspectoCalificadorInterface
 {
     /** @return array{calificacion:string} */
-    public function execute(string $mensaje): array;
+    public function execute(string $mensaje, string $context = ''): array;
 }

@@ -24,6 +24,7 @@ final class EnviarProspectoUseCaseTest extends TestCase
         $prompt = new AiPrompt(
             instructions: 'Actua como agente de ventas.',
             input: 'Hola, quiero viajar a Brasil.',
+            context: 'Ejecucion de prueba',
         );
 
         $response = new AiResponse(
@@ -35,7 +36,7 @@ final class EnviarProspectoUseCaseTest extends TestCase
         $promptBuilder
             ->expects($this->once())
             ->method('build')
-            ->with('Hola, quiero viajar a Brasil.')
+            ->with('Hola, quiero viajar a Brasil.', 'Ejecucion de prueba')
             ->willReturn($prompt);
 
         $provider
@@ -50,7 +51,7 @@ final class EnviarProspectoUseCaseTest extends TestCase
             ->with('{"calificacion":"CALIENTE"}')
             ->willReturn(['calificacion' => 'CALIENTE']);
 
-        $result = $useCase->execute('Hola, quiero viajar a Brasil.');
+        $result = $useCase->execute('Hola, quiero viajar a Brasil.', 'Ejecucion de prueba');
 
         $this->assertSame(['calificacion' => 'CALIENTE'], $result);
     }
