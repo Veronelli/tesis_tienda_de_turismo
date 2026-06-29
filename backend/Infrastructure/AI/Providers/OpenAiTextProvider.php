@@ -23,10 +23,12 @@ final class OpenAiTextProvider implements GenerativeTextProviderInterface
 
     public function generate(AiPrompt $prompt): AiResponse
     {
+        $input = $this->buildInput($prompt);
+
         $payload = [
             'model' => $this->model,
             'instructions' => $prompt->instructions,
-            'input' => $prompt->input,
+            'input' => $input,
         ];
 
         if ($prompt->temperature !== null) {
@@ -62,6 +64,15 @@ final class OpenAiTextProvider implements GenerativeTextProviderInterface
             model: $this->model,
             raw: $data,
         );
+    }
+
+    private function buildInput(AiPrompt $prompt): string
+    {
+        if (trim($prompt->context) === '') {
+            return $prompt->input;
+        }
+
+        return "Contexto de ejecucion:\n{$prompt->context}\n\nMensaje:\n{$prompt->input}";
     }
 
     /** @param array<int, mixed> $output */

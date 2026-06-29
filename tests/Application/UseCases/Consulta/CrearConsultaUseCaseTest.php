@@ -32,6 +32,19 @@ final class CrearConsultaUseCaseTest extends TestCase
     private ProspectoCalificadorInterface $enviarProspecto;
     private CrearConsultaUseCase $useCase;
 
+    private function assertPaqueteContext(string $context): bool
+    {
+        return str_contains($context, 'Nombre: Paquete Test')
+            && str_contains($context, 'Descripcion: Descripción del paquete')
+            && str_contains($context, 'Fecha De Ida: 2026-07-15')
+            && str_contains($context, 'Fecha De Vuelta: 2026-07-22')
+            && str_contains($context, 'Precio: 1500.00')
+            && str_contains($context, 'Desayuno: No')
+            && str_contains($context, 'Pileta: No')
+            && str_contains($context, 'Heteles: Hotel Sheraton')
+            && str_contains($context, 'Destino: Buenos Aires, CABA, Argentina');
+    }
+
     protected function setUp(): void
     {
         $this->consultaRepo = $this->createConsultaRepositoryMock();
@@ -64,7 +77,10 @@ final class CrearConsultaUseCaseTest extends TestCase
         $this->enviarProspecto
             ->expects($this->once())
             ->method('execute')
-            ->with('Quiero más información.')
+            ->with(
+                'Quiero más información.',
+                $this->callback(fn (string $context): bool => $this->assertPaqueteContext($context)),
+            )
             ->willReturn(['calificacion' => 'CALIENTE']);
 
         $this->consultaRepo->expects($this->once())->method('save');
@@ -101,7 +117,10 @@ final class CrearConsultaUseCaseTest extends TestCase
         $this->enviarProspecto
             ->expects($this->once())
             ->method('execute')
-            ->with('Consulta desde nuevo cliente.')
+            ->with(
+                'Consulta desde nuevo cliente.',
+                $this->callback(fn (string $context): bool => $this->assertPaqueteContext($context)),
+            )
             ->willReturn(['calificacion' => 'TIBIO']);
 
         $this->clienteRepo->expects($this->once())->method('save');
@@ -145,7 +164,10 @@ final class CrearConsultaUseCaseTest extends TestCase
         $this->enviarProspecto
             ->expects($this->once())
             ->method('execute')
-            ->with('Consulta reusando cliente.')
+            ->with(
+                'Consulta reusando cliente.',
+                $this->callback(fn (string $context): bool => $this->assertPaqueteContext($context)),
+            )
             ->willReturn(['calificacion' => 'FRIO']);
 
         $this->clienteRepo->expects($this->never())->method('save');
@@ -194,7 +216,10 @@ final class CrearConsultaUseCaseTest extends TestCase
         $this->enviarProspecto
             ->expects($this->once())
             ->method('execute')
-            ->with('Consulta reusando por DNI.')
+            ->with(
+                'Consulta reusando por DNI.',
+                $this->callback(fn (string $context): bool => $this->assertPaqueteContext($context)),
+            )
             ->willReturn(['calificacion' => 'CALIENTE']);
 
         $this->clienteRepo->expects($this->never())->method('save');
@@ -242,7 +267,10 @@ final class CrearConsultaUseCaseTest extends TestCase
         $this->enviarProspecto
             ->expects($this->once())
             ->method('execute')
-            ->with('Consulta mismo cliente.')
+            ->with(
+                'Consulta mismo cliente.',
+                $this->callback(fn (string $context): bool => $this->assertPaqueteContext($context)),
+            )
             ->willReturn(['calificacion' => 'TIBIO']);
 
         $this->clienteRepo->expects($this->never())->method('save');

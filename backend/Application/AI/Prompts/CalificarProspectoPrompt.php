@@ -27,17 +27,18 @@ Reglas de salida:
 - CALIENTE: interes alto, hay intencion clara de compra o consulta concreta para cerrar.
 TXT;
 
-    public function build(string $input): AiPrompt
+    public function build(string $input, string $context = ''): AiPrompt
     {
         return new AiPrompt(
             instructions: self::SYSTEM_PROMPT,
             input: trim($input),
+            context: trim($context),
         );
     }
 
-    public static function fromMensaje(string $mensaje): AiPrompt
+    public static function fromMensaje(string $mensaje, string $context = ''): AiPrompt
     {
-        return (new self())->build($mensaje);
+        return (new self())->build($mensaje, $context);
     }
 
     public static function systemPrompt(): string

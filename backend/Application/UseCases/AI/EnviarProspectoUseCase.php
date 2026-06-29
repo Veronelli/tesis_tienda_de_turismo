@@ -19,9 +19,9 @@ final class EnviarProspectoUseCase implements ProspectoCalificadorInterface
     }
 
     /** @return array{calificacion:string} */
-    public function execute(string $mensaje): array
+    public function execute(string $mensaje, string $context = ''): array
     {
-        $prompt = $this->promptBuilder->build($mensaje);
+        $prompt = $this->promptBuilder->build($mensaje, $context);
         $response = $this->provider->generate($prompt);
 
         return $this->validator->validate($response->text);

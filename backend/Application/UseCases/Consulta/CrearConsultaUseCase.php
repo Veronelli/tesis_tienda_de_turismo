@@ -9,6 +9,7 @@ use TiendaTurismo\GestionDatos\Application\AI\Contracts\ProspectoCalificadorInte
 use TiendaTurismo\GestionDatos\Domain\Exceptions\DuplicadoException;
 use TiendaTurismo\GestionDatos\Domain\Models\Cliente;
 use TiendaTurismo\GestionDatos\Domain\Models\Consulta;
+use TiendaTurismo\GestionDatos\Domain\Models\Paquete;
 use TiendaTurismo\GestionDatos\Domain\Repositories\ClienteRepositoryInterface;
 use TiendaTurismo\GestionDatos\Domain\Repositories\ConsultaRepositoryInterface;
 use TiendaTurismo\GestionDatos\Domain\Repositories\PaqueteRepositoryInterface;
@@ -31,7 +32,7 @@ final class CrearConsultaUseCase
         }
 
         $cliente = $this->resolveCliente($input);
-        $prospecto = $this->enviarProspecto->execute($input->mensaje);
+        $prospecto = $this->enviarProspecto->execute($input->mensaje, $this->buildContext($paquete));
 
         $consulta = new Consulta(
             cliente: $cliente,
@@ -95,6 +96,37 @@ final class CrearConsultaUseCase
         $this->clientes->save($cliente);
 
         return $cliente;
+    }
+
+    private function buildContext(Paquete $paquete): string
+    {
+        $hoteles = [];
+        $destinos = [];
+
+        foreach ($paquete->hoteles() as $hotel) {
+            $hoteles[] = $hotel->nombre();
+
+            $destino = $hotel->destino();
+            $destinos[] = implode(', ', array_filter([
+                $destino->ciudad(),
+                $destino->estadoProvincia(),
+                $destino->pais(),
+            ]));
+        }
+
+        $partes = [
+            'Nombre: ' . $paquete->nombre(),
+            'Descripcion: ' . ($paquete->descripcion() ?? ''),
+            'Fecha De Ida: ' . $paquete->fechaPartida()->format('Y-m-d'),
+            'Fecha De Vuelta: ' . ($paquete->fechaVuelta()?->format('Y-m-d') ?? ''),
+            'Precio: ' . $paquete->precio(),
+            'Desayuno: ' . ($paquete->desayuno() ? 'Si' : 'No'),
+            'Pileta: ' . ($paquete->pileta() ? 'Si' : 'No'),
+            'Heteles: ' . ($hoteles !== [] ? implode(', ', array_values(array_unique($hoteles))) : ''),
+            'Destino: ' . ($destinos !== [] ? implode(', ', array_values(array_unique($destinos))) : ''),
+        ];
+
+        return implode("\n", $partes);
     }
 
     /** @param array<string, string> $datos */
