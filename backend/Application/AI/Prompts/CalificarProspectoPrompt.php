@@ -25,6 +25,8 @@ Reglas de salida:
 - FRIO: interes bajo, exploratorio o sin intencion de compra clara.
 - TIBIO: interes medio, hay curiosidad o comparacion, pero sin cierre inmediato.
 - CALIENTE: interes alto, hay intencion clara de compra o consulta concreta para cerrar.
+
+Esto debe ser basado en el paquete seleccionado en el contexto:
 TXT;
 
     public function build(string $input, string $context = ''): AiPrompt
