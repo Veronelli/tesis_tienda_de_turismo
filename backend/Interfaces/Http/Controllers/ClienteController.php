@@ -10,6 +10,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
 use TiendaTurismo\GestionDatos\Application\Services\ClienteService;
+use TiendaTurismo\GestionDatos\Domain\Exceptions\DuplicadoException;
 use TiendaTurismo\GestionDatos\Infrastructure\Persistence\Doctrine\EntityManagerFactory;
 use TiendaTurismo\GestionDatos\Infrastructure\Repositories\ClienteDoctrineRepository;
 
@@ -46,6 +47,8 @@ final class ClienteController
         try {
             $cliente = $this->clienteService->crear($data);
             return new JsonResponse($cliente, 201);
+        } catch (DuplicadoException $e) {
+            return new JsonResponse(['error' => $e->getMessage()], 409);
         } catch (\RuntimeException $e) {
             return new JsonResponse(['error' => $e->getMessage()], 404);
         } catch (\Throwable $e) {
@@ -66,6 +69,8 @@ final class ClienteController
         try {
             $cliente = $this->clienteService->actualizar($data);
             return new JsonResponse($cliente);
+        } catch (DuplicadoException $e) {
+            return new JsonResponse(['error' => $e->getMessage()], 409);
         } catch (\RuntimeException $e) {
             return new JsonResponse(['error' => $e->getMessage()], 404);
         } catch (\Throwable $e) {

@@ -8,10 +8,12 @@ use PHPUnit\Framework\TestCase;
 use TiendaTurismo\GestionDatos\Application\Input\CrearConsultaInput;
 use TiendaTurismo\GestionDatos\Application\AI\Contracts\ProspectoCalificadorInterface;
 use TiendaTurismo\GestionDatos\Application\UseCases\Consulta\CrearConsultaUseCase;
+use TiendaTurismo\GestionDatos\Domain\Exceptions\DuplicadoException;
 use TiendaTurismo\GestionDatos\Domain\Models\Consulta;
 use TiendaTurismo\GestionDatos\Domain\Repositories\ClienteRepositoryInterface;
 use TiendaTurismo\GestionDatos\Domain\Repositories\ConsultaRepositoryInterface;
 use TiendaTurismo\GestionDatos\Domain\Repositories\PaqueteRepositoryInterface;
+use TiendaTurismo\GestionDatos\Tests\Shared\Fixtures\ClienteFixtures;
 use TiendaTurismo\GestionDatos\Tests\Shared\Fixtures\ConsultaFixtures;
 use TiendaTurismo\GestionDatos\Tests\Shared\Fixtures\PaqueteFixtures;
 use TiendaTurismo\GestionDatos\Tests\Shared\Mocks\ClienteRepositoryMockTrait;
@@ -167,6 +169,146 @@ final class CrearConsultaUseCaseTest extends TestCase
         $this->assertSame($clienteExistente, $consulta->cliente());
         $this->assertSame('juan@example.com', $consulta->cliente()->email());
         $this->assertSame(Consulta::CALIFICACION_FRIO, $consulta->calificacion());
+    }
+
+    public function test_execute_reusa_cliente_existente_por_dni(): void
+    {
+        $paquete = PaqueteFixtures::paqueteValido();
+        $clienteExistente = ConsultaFixtures::clienteValido();
+
+        $this->paqueteRepo
+            ->method('findById')
+            ->with(1)
+            ->willReturn($paquete);
+
+        $this->clienteRepo
+            ->method('findByEmail')
+            ->with('nuevo@example.com')
+            ->willReturn(null);
+
+        $this->clienteRepo
+            ->method('findByDni')
+            ->with('12345678')
+            ->willReturn($clienteExistente);
+
+        $this->enviarProspecto
+            ->expects($this->once())
+            ->method('execute')
+            ->with('Consulta reusando por DNI.')
+            ->willReturn(['calificacion' => 'CALIENTE']);
+
+        $this->clienteRepo->expects($this->never())->method('save');
+        $this->consultaRepo->expects($this->once())->method('save');
+
+        $input = new CrearConsultaInput(
+            paqueteId: 1,
+            mensaje: 'Consulta reusando por DNI.',
+            datosCliente: [
+                'nombre' => 'Nuevo',
+                'apellido' => 'Cliente',
+                'email' => 'nuevo@example.com',
+                'telefono' => '111111111',
+                'dni' => '12345678',
+                'ubicacion' => 'La Plata',
+            ],
+        );
+
+        $consulta = $this->useCase->execute($input);
+
+        $this->assertSame($clienteExistente, $consulta->cliente());
+        $this->assertSame('juan@example.com', $consulta->cliente()->email());
+    }
+
+    public function test_execute_reusa_cliente_cuando_email_y_dni_coinciden_mismo_cliente(): void
+    {
+        $paquete = PaqueteFixtures::paqueteValido();
+        $clienteExistente = ConsultaFixtures::clienteValido();
+
+        $this->paqueteRepo
+            ->method('findById')
+            ->with(1)
+            ->willReturn($paquete);
+
+        $this->clienteRepo
+            ->method('findByEmail')
+            ->with('juan@example.com')
+            ->willReturn($clienteExistente);
+
+        $this->clienteRepo
+            ->method('findByDni')
+            ->with('12345678')
+            ->willReturn($clienteExistente);
+
+        $this->enviarProspecto
+            ->expects($this->once())
+            ->method('execute')
+            ->with('Consulta mismo cliente.')
+            ->willReturn(['calificacion' => 'TIBIO']);
+
+        $this->clienteRepo->expects($this->never())->method('save');
+        $this->consultaRepo->expects($this->once())->method('save');
+
+        $input = new CrearConsultaInput(
+            paqueteId: 1,
+            mensaje: 'Consulta mismo cliente.',
+            datosCliente: [
+                'nombre' => 'Juan',
+                'apellido' => 'Pérez',
+                'email' => 'juan@example.com',
+                'telefono' => '123456789',
+                'dni' => '12345678',
+                'ubicacion' => 'Buenos Aires',
+            ],
+        );
+
+        $consulta = $this->useCase->execute($input);
+
+        $this->assertSame($clienteExistente, $consulta->cliente());
+        $this->assertSame('juan@example.com', $consulta->cliente()->email());
+    }
+
+    public function test_execute_lanza_excepcion_si_email_y_dni_pertenecen_a_clientes_distintos(): void
+    {
+        $paquete = PaqueteFixtures::paqueteValido();
+        $clienteA = ClienteFixtures::clienteValido();
+        $clienteB = ClienteFixtures::otroClienteValido();
+
+        $this->paqueteRepo
+            ->method('findById')
+            ->with(1)
+            ->willReturn($paquete);
+
+        $this->clienteRepo
+            ->method('findByEmail')
+            ->with('juan@example.com')
+            ->willReturn($clienteA);
+
+        $this->clienteRepo
+            ->method('findByDni')
+            ->with('87654321')
+            ->willReturn($clienteB);
+
+        $this->enviarProspecto->expects($this->never())->method('execute');
+        $this->clienteRepo->expects($this->never())->method('save');
+        $this->consultaRepo->expects($this->never())->method('save');
+
+        $this->expectException(DuplicadoException::class);
+        $this->expectExceptionMessage('El email y el DNI pertenecen a clientes distintos.');
+
+        $input = new CrearConsultaInput(
+            paqueteId: 1,
+            mensaje: 'Consulta con conflicto.',
+            datosCliente: [
+                'nombre' => 'Juan',
+                'apellido' => 'Pérez',
+                'email' => 'juan@example.com',
+                'telefono' => '123456789',
+                'dni' => '87654321',
+                'ubicacion' => 'Buenos Aires',
+            ],
+        );
+
+        $this->useCase->execute($input);
     }
 
     public function test_execute_lanza_excepcion_si_paquete_no_existe(): void

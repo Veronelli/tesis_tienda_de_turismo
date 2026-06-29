@@ -33,4 +33,19 @@ final class ClienteFixtures
             ubicacion: 'Córdoba',
         );
     }
+
+    public static function otroClienteValido(): Cliente
+    {
+        return new Cliente(
+            nombre: 'María',
+            apellido: 'García',
+            email: 'maria@example.com',
+            telefono: '987654321',
+            dni: '87654321',
+            ubicacion: 'Córdoba',
+            id: 2,
+            fechaCreacion: new \DateTimeImmutable('2024-02-01 10:00:00'),
+            fechaActualizacion: new \DateTimeImmutable('2024-07-15 14:30:00'),
+        );
+    }
 }

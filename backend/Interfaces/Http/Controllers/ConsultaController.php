@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
 use TiendaTurismo\GestionDatos\Application\Services\ConsultaService;
+use TiendaTurismo\GestionDatos\Domain\Exceptions\DuplicadoException;
 use TiendaTurismo\GestionDatos\Infrastructure\Persistence\Doctrine\EntityManagerFactory;
 use TiendaTurismo\GestionDatos\Infrastructure\Repositories\ClienteDoctrineRepository;
 use TiendaTurismo\GestionDatos\Infrastructure\Repositories\ConsultaDoctrineRepository;
@@ -119,6 +120,8 @@ final class ConsultaController
             $consulta = $this->consultaService->crear($data);
 
             return new JsonResponse($consulta, 201);
+        } catch (DuplicadoException $e) {
+            return new JsonResponse(['error' => $e->getMessage()], 409);
         } catch (\InvalidArgumentException $e) {
             return new JsonResponse(['error' => $e->getMessage()], 422);
         } catch (\RuntimeException $e) {
