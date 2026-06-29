@@ -9,6 +9,7 @@ use TiendaTurismo\GestionDatos\Application\AI\Contracts\ProspectoCalificadorInte
 use TiendaTurismo\GestionDatos\Domain\Exceptions\DuplicadoException;
 use TiendaTurismo\GestionDatos\Domain\Models\Cliente;
 use TiendaTurismo\GestionDatos\Domain\Models\Consulta;
+use TiendaTurismo\GestionDatos\Domain\Models\Paquete;
 use TiendaTurismo\GestionDatos\Domain\Repositories\ClienteRepositoryInterface;
 use TiendaTurismo\GestionDatos\Domain\Repositories\ConsultaRepositoryInterface;
 use TiendaTurismo\GestionDatos\Domain\Repositories\PaqueteRepositoryInterface;
@@ -31,7 +32,7 @@ final class CrearConsultaUseCase
         }
 
         $cliente = $this->resolveCliente($input);
-        $prospecto = $this->enviarProspecto->execute($input->mensaje, $this->buildContext($input, $cliente->id()));
+        $prospecto = $this->enviarProspecto->execute($input->mensaje, $this->buildContext($paquete));
 
         $consulta = new Consulta(
             cliente: $cliente,
@@ -97,26 +98,33 @@ final class CrearConsultaUseCase
         return $cliente;
     }
 
-    private function buildContext(CrearConsultaInput $input, ?int $clienteId): string
+    private function buildContext(Paquete $paquete): string
     {
+        $hoteles = [];
+        $destinos = [];
+
+        foreach ($paquete->hoteles() as $hotel) {
+            $hoteles[] = $hotel->nombre();
+
+            $destino = $hotel->destino();
+            $destinos[] = implode(', ', array_filter([
+                $destino->ciudad(),
+                $destino->estadoProvincia(),
+                $destino->pais(),
+            ]));
+        }
+
         $partes = [
-            'Ejecucion de crear consulta',
-            'paquete_id=' . $input->paqueteId,
-            'cliente_id=' . ($clienteId !== null ? (string) $clienteId : 'nuevo'),
+            'Nombre: ' . $paquete->nombre(),
+            'Descripcion: ' . ($paquete->descripcion() ?? ''),
+            'Fecha De Ida: ' . $paquete->fechaPartida()->format('Y-m-d'),
+            'Fecha De Vuelta: ' . ($paquete->fechaVuelta()?->format('Y-m-d') ?? ''),
+            'Precio: ' . $paquete->precio(),
+            'Desayuno: ' . ($paquete->desayuno() ? 'Si' : 'No'),
+            'Pileta: ' . ($paquete->pileta() ? 'Si' : 'No'),
+            'Heteles: ' . ($hoteles !== [] ? implode(', ', array_values(array_unique($hoteles))) : ''),
+            'Destino: ' . ($destinos !== [] ? implode(', ', array_values(array_unique($destinos))) : ''),
         ];
-
-        if ($input->fechaConsulta instanceof \DateTimeImmutable) {
-            $partes[] = 'fecha_consulta=' . $input->fechaConsulta->format(DATE_ATOM);
-        }
-
-        if ($input->datosCliente !== null) {
-            $partes[] = 'datos_cliente=' . implode(' ', array_filter([
-                $input->datosCliente['nombre'] ?? null,
-                $input->datosCliente['apellido'] ?? null,
-                $input->datosCliente['email'] ?? null,
-                $input->datosCliente['ubicacion'] ?? null,
-            ], static fn (?string $valor): bool => is_string($valor) && trim($valor) !== ''));
-        }
 
         return implode("\n", $partes);
     }

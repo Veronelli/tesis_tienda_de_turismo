@@ -32,6 +32,19 @@ final class CrearConsultaUseCaseTest extends TestCase
     private ProspectoCalificadorInterface $enviarProspecto;
     private CrearConsultaUseCase $useCase;
 
+    private function assertPaqueteContext(string $context): bool
+    {
+        return str_contains($context, 'Nombre: Paquete Test')
+            && str_contains($context, 'Descripcion: Descripción del paquete')
+            && str_contains($context, 'Fecha De Ida: 2026-07-15')
+            && str_contains($context, 'Fecha De Vuelta: 2026-07-22')
+            && str_contains($context, 'Precio: 1500.00')
+            && str_contains($context, 'Desayuno: No')
+            && str_contains($context, 'Pileta: No')
+            && str_contains($context, 'Heteles: Hotel Sheraton')
+            && str_contains($context, 'Destino: Buenos Aires, CABA, Argentina');
+    }
+
     protected function setUp(): void
     {
         $this->consultaRepo = $this->createConsultaRepositoryMock();
@@ -66,7 +79,7 @@ final class CrearConsultaUseCaseTest extends TestCase
             ->method('execute')
             ->with(
                 'Quiero más información.',
-                $this->callback(static fn (string $context): bool => str_contains($context, 'paquete_id=1') && str_contains($context, 'cliente_id=1')),
+                $this->callback(fn (string $context): bool => $this->assertPaqueteContext($context)),
             )
             ->willReturn(['calificacion' => 'CALIENTE']);
 
@@ -106,7 +119,7 @@ final class CrearConsultaUseCaseTest extends TestCase
             ->method('execute')
             ->with(
                 'Consulta desde nuevo cliente.',
-                $this->callback(static fn (string $context): bool => str_contains($context, 'paquete_id=1') && str_contains($context, 'cliente_id=nuevo') && str_contains($context, 'datos_cliente=Nuevo Cliente nuevo@example.com La Plata')),
+                $this->callback(fn (string $context): bool => $this->assertPaqueteContext($context)),
             )
             ->willReturn(['calificacion' => 'TIBIO']);
 
@@ -153,7 +166,7 @@ final class CrearConsultaUseCaseTest extends TestCase
             ->method('execute')
             ->with(
                 'Consulta reusando cliente.',
-                $this->callback(static fn (string $context): bool => str_contains($context, 'paquete_id=1') && str_contains($context, 'cliente_id=1') && str_contains($context, 'datos_cliente=Juan Pérez juan@example.com Buenos Aires')),
+                $this->callback(fn (string $context): bool => $this->assertPaqueteContext($context)),
             )
             ->willReturn(['calificacion' => 'FRIO']);
 
@@ -205,7 +218,7 @@ final class CrearConsultaUseCaseTest extends TestCase
             ->method('execute')
             ->with(
                 'Consulta reusando por DNI.',
-                $this->callback(static fn (string $context): bool => str_contains($context, 'paquete_id=1') && str_contains($context, 'cliente_id=1') && str_contains($context, 'datos_cliente=Nuevo Cliente nuevo@example.com La Plata')),
+                $this->callback(fn (string $context): bool => $this->assertPaqueteContext($context)),
             )
             ->willReturn(['calificacion' => 'CALIENTE']);
 
@@ -256,7 +269,7 @@ final class CrearConsultaUseCaseTest extends TestCase
             ->method('execute')
             ->with(
                 'Consulta mismo cliente.',
-                $this->callback(static fn (string $context): bool => str_contains($context, 'paquete_id=1') && str_contains($context, 'cliente_id=1') && str_contains($context, 'datos_cliente=Juan Pérez juan@example.com Buenos Aires')),
+                $this->callback(fn (string $context): bool => $this->assertPaqueteContext($context)),
             )
             ->willReturn(['calificacion' => 'TIBIO']);
 
