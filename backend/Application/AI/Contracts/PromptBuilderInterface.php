@@ -8,5 +8,5 @@ use TiendaTurismo\GestionDatos\Application\AI\DTO\AiPrompt;
 
 interface PromptBuilderInterface
 {
-    public function build(string $input): AiPrompt;
+    public function build(string $input, string $context = ''): AiPrompt;
 }
