@@ -10,16 +10,25 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
 use TiendaTurismo\GestionDatos\Application\Services\HotelService;
+use TiendaTurismo\GestionDatos\Application\UseCases\Usuario\ObtenerUsuarioPorIdUseCase;
 use TiendaTurismo\GestionDatos\Infrastructure\Persistence\Doctrine\EntityManagerFactory;
 use TiendaTurismo\GestionDatos\Infrastructure\Repositories\DestinoDoctrineRepository;
 use TiendaTurismo\GestionDatos\Infrastructure\Repositories\HotelDoctrineRepository;
 
-final class HotelController
+final class HotelController extends BaseController
 {
     private HotelService $hotelService;
 
-    public function __construct(?HotelService $hotelService = null, ?EntityManagerInterface $em = null)
+    public function __construct(
+        ?HotelService $hotelService = null,
+        ?ObtenerUsuarioPorIdUseCase $obtenerUsuarioPorIdUseCase = null,
+        ?EntityManagerInterface $em = null,
+    )
     {
+        parent::__construct($obtenerUsuarioPorIdUseCase, null, [
+            [$this, 'middlewareSoloLectura'],
+        ]);
+
         $em ??= EntityManagerFactory::createFromEnv();
         $this->hotelService = $hotelService ?? new HotelService(
             new HotelDoctrineRepository($em),
@@ -39,6 +48,10 @@ final class HotelController
 
     public function crear(Request $request): JsonResponse
     {
+        if ($response = $this->ejecutarMiddlewares($request)) {
+            return $response;
+        }
+
         $data = json_decode((string) $request->getContent(), true);
 
         if (!is_array($data)) {
@@ -57,6 +70,10 @@ final class HotelController
 
     public function actualizar(Request $request, array $params): JsonResponse
     {
+        if ($response = $this->ejecutarMiddlewares($request)) {
+            return $response;
+        }
+
         $data = json_decode((string) $request->getContent(), true);
 
         if (!is_array($data)) {
