@@ -12,7 +12,7 @@ use TiendaTurismo\GestionDatos\Infrastructure\Security\JwtService;
 
 abstract class BaseController
 {
-    private JwtService $jwtService;
+    protected JwtService $jwtService;
     private ObtenerUsuarioPorIdUseCase $obtenerUsuarioPorIdUseCase;
 
     /** @var list<callable(Request): ?JsonResponse> */

@@ -9,24 +9,28 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
 use TiendaTurismo\GestionDatos\Application\Services\PaqueteService;
+use TiendaTurismo\GestionDatos\Application\UseCases\Usuario\ObtenerUsuarioPorIdUseCase;
 use TiendaTurismo\GestionDatos\Infrastructure\Persistence\Doctrine\EntityManagerFactory;
 use TiendaTurismo\GestionDatos\Infrastructure\Repositories\HotelDoctrineRepository;
 use TiendaTurismo\GestionDatos\Infrastructure\Repositories\PaqueteDoctrineRepository;
 use TiendaTurismo\GestionDatos\Infrastructure\Repositories\UsuarioDoctrineRepository;
-use TiendaTurismo\GestionDatos\Infrastructure\Security\JwtService;
 use TiendaTurismo\GestionDatos\Infrastructure\Services\SubirImagenService;
 
-final class PaqueteController
+final class PaqueteController extends BaseController
 {
     private PaqueteService $paqueteService;
-    private JwtService $jwt;
     private SubirImagenService $subirImagen;
 
     public function __construct(
         ?PaqueteService $paqueteService = null,
-        ?JwtService $jwt = null,
+        ?ObtenerUsuarioPorIdUseCase $obtenerUsuarioPorIdUseCase = null,
+        ?\TiendaTurismo\GestionDatos\Infrastructure\Security\JwtService $jwt = null,
         ?SubirImagenService $subirImagen = null,
     ) {
+        parent::__construct($obtenerUsuarioPorIdUseCase, $jwt, [
+            [$this, 'middlewareSoloLecturaPaquetes'],
+        ]);
+
         if ($paqueteService === null) {
             $entityManager = EntityManagerFactory::createFromEnv();
             $this->paqueteService = new PaqueteService(
@@ -37,7 +41,6 @@ final class PaqueteController
         } else {
             $this->paqueteService = $paqueteService;
         }
-        $this->jwt = $jwt ?? new JwtService();
         $this->subirImagen = $subirImagen ?? new SubirImagenService();
     }
 
@@ -92,6 +95,10 @@ final class PaqueteController
     public function crear(Request $request): JsonResponse
     {
         try {
+            if ($response = $this->ejecutarMiddlewares($request)) {
+                return $response;
+            }
+
             $data = $this->extraerDatos($request, 'crear');
 
             if (!is_array($data)) {
@@ -118,6 +125,10 @@ final class PaqueteController
     public function actualizar(Request $request, array $params): JsonResponse
     {
         try {
+            if ($response = $this->ejecutarMiddlewares($request)) {
+                return $response;
+            }
+
             $data = $this->extraerDatos($request, 'actualizar');
 
             if (!is_array($data)) {
@@ -238,6 +249,16 @@ final class PaqueteController
 
     private function obtenerUsuarioDesdeToken(Request $request): int
     {
+        return $this->obtenerUsuarioIdDesdeToken($request);
+    }
+
+    protected function middlewareSoloLecturaPaquetes(Request $request): ?JsonResponse
+    {
+        return $this->validarRolVendedor($request, 'Los usuarios de tipo lector no pueden modificar paquetes.');
+    }
+
+    private function obtenerUsuarioIdDesdeToken(Request $request): int
+    {
         $header = $request->headers->get('Authorization', '');
 
         if (!str_starts_with($header, 'Bearer ')) {
@@ -245,7 +266,7 @@ final class PaqueteController
         }
 
         $token = substr($header, 7);
-        $payload = $this->jwt->decode($token);
+        $payload = $this->jwtService->decode($token);
 
         if ($payload === null || !isset($payload['sub'])) {
             throw new \RuntimeException('Token inválido o expirado.');

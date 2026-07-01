@@ -6,7 +6,10 @@ namespace TiendaTurismo\GestionDatos\Tests\Interfaces\Http\Controllers;
 
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
+use TiendaTurismo\GestionDatos\Application\UseCases\Usuario\ObtenerUsuarioPorIdUseCase;
 use TiendaTurismo\GestionDatos\Application\Services\PaqueteService;
+use TiendaTurismo\GestionDatos\Domain\Models\Usuario;
+use TiendaTurismo\GestionDatos\Domain\Repositories\UsuarioRepositoryInterface;
 use TiendaTurismo\GestionDatos\Infrastructure\Security\JwtService;
 use TiendaTurismo\GestionDatos\Interfaces\Http\Controllers\PaqueteController;
 use TiendaTurismo\GestionDatos\Tests\Shared\Mocks\PaqueteServiceMockTrait;
@@ -18,6 +21,7 @@ final class PaqueteControllerTest extends TestCase
     private PaqueteService $paqueteService;
     private PaqueteController $controller;
     private string $tokenValido;
+    private string $tokenLector;
 
     protected function setUp(): void
     {
@@ -26,10 +30,24 @@ final class PaqueteControllerTest extends TestCase
 
         $this->paqueteService = $this->createPaqueteServiceMock();
 
-        $jwt = new JwtService();
-        $this->tokenValido = $jwt->encode(['sub' => 1, 'email' => 'admin@test.com', 'rol' => 'admin']);
+        $usuarioRepository = $this->createMock(UsuarioRepositoryInterface::class);
+        $usuarioRepository->method('findById')->willReturnCallback(static function (int $id): ?Usuario {
+            return match ($id) {
+                1 => new Usuario('Juan', 'Vendedor', 'vendedor@test.com', 'secret123', 'vendedor', 1),
+                2 => new Usuario('Ana', 'Lector', 'lector@test.com', 'secret123', 'lector', 2),
+                default => null,
+            };
+        });
 
-        $this->controller = new PaqueteController($this->paqueteService, $jwt);
+        $jwt = new JwtService();
+        $this->tokenValido = $jwt->encode(['sub' => 1, 'email' => 'vendedor@test.com', 'rol' => 'vendedor']);
+        $this->tokenLector = $jwt->encode(['sub' => 2, 'email' => 'lector@test.com', 'rol' => 'lector']);
+
+        $this->controller = new PaqueteController(
+            $this->paqueteService,
+            new ObtenerUsuarioPorIdUseCase($usuarioRepository),
+            $jwt,
+        );
     }
 
     public function test_listar_retorna_paquetes(): void
@@ -205,6 +223,36 @@ final class PaqueteControllerTest extends TestCase
         $this->assertSame(400, $response->getStatusCode());
     }
 
+    public function test_crear_como_lector_retorna_403(): void
+    {
+        $request = new Request(
+            [],
+            [],
+            [],
+            [],
+            [],
+            [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_AUTHORIZATION' => 'Bearer ' . $this->tokenLector,
+            ],
+            json_encode([
+                'nombre' => 'Paquete Nuevo',
+                'descripcion' => 'Descripción',
+                'fecha_partida' => '2026-07-15',
+                'fecha_vuelta' => '2026-07-22',
+                'precio' => 1500.00,
+                'disponible' => true,
+                'hoteles_ids' => [1],
+            ]),
+        );
+
+        $response = $this->controller->crear($request);
+
+        $this->assertSame(403, $response->getStatusCode());
+        $content = json_decode((string) $response->getContent(), true);
+        $this->assertSame('Los usuarios de tipo lector no pueden modificar paquetes.', $content['error']);
+    }
+
     public function test_crear_sin_nombre_retorna_422(): void
     {
         $request = new Request(
@@ -281,7 +329,7 @@ final class PaqueteControllerTest extends TestCase
         $this->assertSame(422, $response->getStatusCode());
     }
 
-    public function test_crear_sin_token_retorna_404(): void
+    public function test_crear_sin_token_retorna_401(): void
     {
         $request = new Request(
             [],
@@ -300,9 +348,9 @@ final class PaqueteControllerTest extends TestCase
 
         $response = $this->controller->crear($request);
 
-        $this->assertSame(404, $response->getStatusCode());
+        $this->assertSame(401, $response->getStatusCode());
         $content = json_decode((string) $response->getContent(), true);
-        $this->assertSame('Token de autenticación requerido.', $content['error']);
+        $this->assertSame('No autorizado.', $content['error']);
     }
 
     public function test_actualizar_retorna_200(): void
@@ -334,6 +382,33 @@ final class PaqueteControllerTest extends TestCase
         $this->assertSame(200, $response->getStatusCode());
         $content = json_decode((string) $response->getContent(), true);
         $this->assertSame('Paquete Actualizado', $content['nombre']);
+    }
+
+    public function test_actualizar_como_lector_retorna_403(): void
+    {
+        $request = new Request(
+            [],
+            [],
+            [],
+            [],
+            [],
+            [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_AUTHORIZATION' => 'Bearer ' . $this->tokenLector,
+            ],
+            json_encode([
+                'nombre' => 'Paquete Actualizado',
+                'fecha_partida' => '2026-08-01',
+                'precio' => 2000.00,
+                'hoteles_ids' => [1],
+            ]),
+        );
+
+        $response = $this->controller->actualizar($request, ['id' => '1']);
+
+        $this->assertSame(403, $response->getStatusCode());
+        $content = json_decode((string) $response->getContent(), true);
+        $this->assertSame('Los usuarios de tipo lector no pueden modificar paquetes.', $content['error']);
     }
 
     public function test_actualizar_paquete_inexistente_retorna_404(): void
