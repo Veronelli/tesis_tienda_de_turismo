@@ -10,16 +10,24 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
 use TiendaTurismo\GestionDatos\Application\Services\ClienteService;
+use TiendaTurismo\GestionDatos\Application\UseCases\Usuario\ObtenerUsuarioPorIdUseCase;
 use TiendaTurismo\GestionDatos\Domain\Exceptions\DuplicadoException;
 use TiendaTurismo\GestionDatos\Infrastructure\Persistence\Doctrine\EntityManagerFactory;
 use TiendaTurismo\GestionDatos\Infrastructure\Repositories\ClienteDoctrineRepository;
 
-final class ClienteController
+final class ClienteController extends BaseController
 {
     private ClienteService $clienteService;
 
-    public function __construct(?ClienteService $clienteService = null, ?EntityManagerInterface $em = null)
-    {
+    public function __construct(
+        ?ClienteService $clienteService = null,
+        ?ObtenerUsuarioPorIdUseCase $obtenerUsuarioPorIdUseCase = null,
+        ?EntityManagerInterface $em = null,
+    ) {
+        parent::__construct($obtenerUsuarioPorIdUseCase, null, [
+            [$this, 'middlewareSoloLecturaClientes'],
+        ]);
+
         $em ??= EntityManagerFactory::createFromEnv();
         $this->clienteService = $clienteService ?? new ClienteService(
             new ClienteDoctrineRepository($em),
@@ -38,6 +46,10 @@ final class ClienteController
 
     public function crear(Request $request): JsonResponse
     {
+        if ($response = $this->ejecutarMiddlewares($request)) {
+            return $response;
+        }
+
         $data = json_decode((string) $request->getContent(), true);
 
         if (!is_array($data)) {
@@ -58,6 +70,10 @@ final class ClienteController
 
     public function actualizar(Request $request, array $params): JsonResponse
     {
+        if ($response = $this->ejecutarMiddlewares($request)) {
+            return $response;
+        }
+
         $data = json_decode((string) $request->getContent(), true);
 
         if (!is_array($data)) {
@@ -95,8 +111,13 @@ final class ClienteController
         $routes->add('clientes.actualizar', new Route('/api/clientes/{id}', [
             '_controller' => self::class,
             '_action' => 'actualizar',
-        ], methods: ['PUT'], requirements: ['id' => '\d+']));
+        ], methods: ['PUT'], requirements: ['id' => '\\d+']));
 
         return $routes;
+    }
+
+    protected function middlewareSoloLecturaClientes(Request $request): ?JsonResponse
+    {
+        return $this->validarRolVendedor($request, 'Los usuarios de tipo lector no pueden modificar clientes.');
     }
 }
