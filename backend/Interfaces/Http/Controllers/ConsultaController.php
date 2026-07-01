@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
 use TiendaTurismo\GestionDatos\Application\Services\ConsultaService;
+use TiendaTurismo\GestionDatos\Application\UseCases\Usuario\ObtenerUsuarioPorIdUseCase;
 use TiendaTurismo\GestionDatos\Domain\Exceptions\DuplicadoException;
 use TiendaTurismo\GestionDatos\Infrastructure\Persistence\Doctrine\EntityManagerFactory;
 use TiendaTurismo\GestionDatos\Infrastructure\Repositories\ClienteDoctrineRepository;
@@ -17,13 +18,13 @@ use TiendaTurismo\GestionDatos\Infrastructure\Repositories\PaqueteDoctrineReposi
 use TiendaTurismo\GestionDatos\Infrastructure\Repositories\UsuarioDoctrineRepository;
 use TiendaTurismo\GestionDatos\Infrastructure\Security\JwtService;
 
-final class ConsultaController
+final class ConsultaController extends BaseController
 {
     private ConsultaService $consultaService;
-    private JwtService $jwt;
 
     public function __construct(
         ?ConsultaService $consultaService = null,
+        ?ObtenerUsuarioPorIdUseCase $obtenerUsuarioPorIdUseCase = null,
         ?JwtService $jwt = null,
     ) {
         if ($consultaService === null) {
@@ -37,7 +38,17 @@ final class ConsultaController
         } else {
             $this->consultaService = $consultaService;
         }
-        $this->jwt = $jwt ?? new JwtService();
+
+        if ($obtenerUsuarioPorIdUseCase === null) {
+            $entityManager = EntityManagerFactory::createFromEnv();
+            $obtenerUsuarioPorIdUseCase = new ObtenerUsuarioPorIdUseCase(
+                new UsuarioDoctrineRepository($entityManager),
+            );
+        }
+
+        parent::__construct($obtenerUsuarioPorIdUseCase, $jwt, [
+            [$this, 'middlewareSoloLecturaConsultas'],
+        ]);
     }
 
     public function listar(Request $request): JsonResponse
@@ -108,6 +119,10 @@ final class ConsultaController
 
     public function crear(Request $request): JsonResponse
     {
+        if ($response = $this->ejecutarMiddlewares($request)) {
+            return $response;
+        }
+
         $data = json_decode((string) $request->getContent(), true);
 
         if (!is_array($data)) {
@@ -134,6 +149,10 @@ final class ConsultaController
     public function actualizar(Request $request, array $params): JsonResponse
     {
         try {
+            if ($response = $this->ejecutarMiddlewares($request)) {
+                return $response;
+            }
+
             $this->requerirAutenticacion($request);
 
             $data = json_decode((string) $request->getContent(), true);
@@ -204,13 +223,18 @@ final class ConsultaController
         }
 
         $token = substr($header, 7);
-        $payload = $this->jwt->decode($token);
+        $payload = $this->jwtService->decode($token);
 
         if ($payload === null || !isset($payload['sub'])) {
             throw new \RuntimeException('Token inválido o expirado.');
         }
 
         return (int) $payload['sub'];
+    }
+
+    protected function middlewareSoloLecturaConsultas(Request $request): ?JsonResponse
+    {
+        return $this->validarRolVendedor($request, 'Los usuarios de tipo lector no pueden modificar consultas.');
     }
 
     public static function rutas(): RouteCollection

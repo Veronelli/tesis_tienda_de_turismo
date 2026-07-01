@@ -122,6 +122,10 @@ La raíz redirige a la página pública de búsqueda de paquetes.
 - `/public/dashboard/hoteles.php`
 - `/public/dashboard/destinos.php`
 
+## Modo lectura
+
+Sugerencia para revisar el sistema sin permisos de edición: usar el usuario `guest@guest.com` con contraseña `guest`.
+
 ## Endpoints API
 
 El front controller está en `public/index.php` y expone las rutas definidas en `config/routes.php`.

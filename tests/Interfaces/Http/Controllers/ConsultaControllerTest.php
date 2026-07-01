@@ -7,6 +7,9 @@ namespace TiendaTurismo\GestionDatos\Tests\Interfaces\Http\Controllers;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use TiendaTurismo\GestionDatos\Application\Services\ConsultaService;
+use TiendaTurismo\GestionDatos\Application\UseCases\Usuario\ObtenerUsuarioPorIdUseCase;
+use TiendaTurismo\GestionDatos\Domain\Models\Usuario;
+use TiendaTurismo\GestionDatos\Domain\Repositories\UsuarioRepositoryInterface;
 use TiendaTurismo\GestionDatos\Infrastructure\Security\JwtService;
 use TiendaTurismo\GestionDatos\Interfaces\Http\Controllers\ConsultaController;
 use TiendaTurismo\GestionDatos\Tests\Shared\Mocks\ConsultaServiceMockTrait;
@@ -17,7 +20,8 @@ final class ConsultaControllerTest extends TestCase
 
     private ConsultaService $consultaService;
     private ConsultaController $controller;
-    private string $tokenValido;
+    private string $tokenVendedor;
+    private string $tokenLector;
 
     protected function setUp(): void
     {
@@ -26,10 +30,24 @@ final class ConsultaControllerTest extends TestCase
 
         $this->consultaService = $this->createConsultaServiceMock();
 
-        $jwt = new JwtService();
-        $this->tokenValido = $jwt->encode(['sub' => 1, 'email' => 'admin@test.com', 'rol' => 'admin']);
+        $usuarioRepository = $this->createMock(UsuarioRepositoryInterface::class);
+        $usuarioRepository->method('findById')->willReturnCallback(static function (int $id): ?Usuario {
+            return match ($id) {
+                1 => new Usuario('Juan', 'Vendedor', 'vendedor@test.com', 'secret123', 'vendedor', 1),
+                2 => new Usuario('Ana', 'Lector', 'lector@test.com', 'secret123', 'lector', 2),
+                default => null,
+            };
+        });
 
-        $this->controller = new ConsultaController($this->consultaService, $jwt);
+        $jwt = new JwtService();
+        $this->tokenVendedor = $jwt->encode(['sub' => 1, 'email' => 'vendedor@test.com', 'rol' => 'vendedor']);
+        $this->tokenLector = $jwt->encode(['sub' => 2, 'email' => 'lector@test.com', 'rol' => 'lector']);
+
+        $this->controller = new ConsultaController(
+            $this->consultaService,
+            new ObtenerUsuarioPorIdUseCase($usuarioRepository),
+            $jwt,
+        );
     }
 
     public function test_crear_retorna_201(): void
@@ -44,24 +62,16 @@ final class ConsultaControllerTest extends TestCase
                 'estado' => 'pendiente',
             ]);
 
-        $request = new Request(
-            [],
-            [],
-            [],
-            [],
-            [],
-            ['CONTENT_TYPE' => 'application/json'],
-            json_encode([
-                'paquete_id' => 1,
-                'mensaje' => 'Quiero información.',
-                'nombre' => 'Juan',
-                'apellido' => 'Pérez',
-                'email' => 'juan@test.com',
-                'telefono' => '123456789',
-                'dni' => '12345678',
-                'ubicacion' => 'Buenos Aires',
-            ]),
-        );
+        $request = $this->requestConToken([
+            'paquete_id' => 1,
+            'mensaje' => 'Quiero información.',
+            'nombre' => 'Juan',
+            'apellido' => 'Pérez',
+            'email' => 'juan@test.com',
+            'telefono' => '123456789',
+            'dni' => '12345678',
+            'ubicacion' => 'Buenos Aires',
+        ]);
 
         $response = $this->controller->crear($request);
 
@@ -71,19 +81,29 @@ final class ConsultaControllerTest extends TestCase
         $this->assertSame('pendiente', $content['estado']);
     }
 
+    public function test_crear_como_lector_retorna_403(): void
+    {
+        $request = $this->requestConToken([
+            'paquete_id' => 1,
+            'mensaje' => 'Quiero información.',
+            'nombre' => 'Juan',
+            'apellido' => 'Pérez',
+            'email' => 'juan@test.com',
+            'telefono' => '123456789',
+            'dni' => '12345678',
+            'ubicacion' => 'Buenos Aires',
+        ], false);
+
+        $response = $this->controller->crear($request);
+
+        $this->assertSame(403, $response->getStatusCode());
+        $content = json_decode((string) $response->getContent(), true);
+        $this->assertSame('Los usuarios de tipo lector no pueden modificar consultas.', $content['error']);
+    }
+
     public function test_crear_con_datos_invalidos_retorna_422(): void
     {
-        $request = new Request(
-            [],
-            [],
-            [],
-            [],
-            [],
-            ['CONTENT_TYPE' => 'application/json'],
-            json_encode([
-                'paquete_id' => 1,
-            ]),
-        );
+        $request = $this->requestConToken(['paquete_id' => 1]);
 
         $response = $this->controller->crear($request);
 
@@ -94,20 +114,12 @@ final class ConsultaControllerTest extends TestCase
 
     public function test_crear_con_calificacion_retorna_422(): void
     {
-        $request = new Request(
-            [],
-            [],
-            [],
-            [],
-            [],
-            ['CONTENT_TYPE' => 'application/json'],
-            json_encode([
-                'paquete_id' => 1,
-                'mensaje' => 'Mensaje de prueba',
-                'calificacion' => 'Frio',
-                'cliente_id' => 1,
-            ]),
-        );
+        $request = $this->requestConToken([
+            'paquete_id' => 1,
+            'mensaje' => 'Mensaje de prueba',
+            'calificacion' => 'Frio',
+            'cliente_id' => 1,
+        ]);
 
         $response = $this->controller->crear($request);
 
@@ -118,18 +130,10 @@ final class ConsultaControllerTest extends TestCase
 
     public function test_crear_sin_paquete_id_retorna_422(): void
     {
-        $request = new Request(
-            [],
-            [],
-            [],
-            [],
-            [],
-            ['CONTENT_TYPE' => 'application/json'],
-            json_encode([
-                'mensaje' => 'Mensaje de prueba',
-                'cliente_id' => 1,
-            ]),
-        );
+        $request = $this->requestConToken([
+            'mensaje' => 'Mensaje de prueba',
+            'cliente_id' => 1,
+        ]);
 
         $response = $this->controller->crear($request);
 
@@ -140,18 +144,10 @@ final class ConsultaControllerTest extends TestCase
 
     public function test_crear_sin_cliente_ni_datos_retorna_422(): void
     {
-        $request = new Request(
-            [],
-            [],
-            [],
-            [],
-            [],
-            ['CONTENT_TYPE' => 'application/json'],
-            json_encode([
-                'paquete_id' => 1,
-                'mensaje' => 'Mensaje sin cliente',
-            ]),
-        );
+        $request = $this->requestConToken([
+            'paquete_id' => 1,
+            'mensaje' => 'Mensaje sin cliente',
+        ]);
 
         $response = $this->controller->crear($request);
 
@@ -162,15 +158,7 @@ final class ConsultaControllerTest extends TestCase
 
     public function test_crear_con_json_invalido_retorna_400(): void
     {
-        $request = new Request(
-            [],
-            [],
-            [],
-            [],
-            [],
-            ['CONTENT_TYPE' => 'application/json'],
-            'invalid json',
-        );
+        $request = $this->requestConToken('invalid json');
 
         $response = $this->controller->crear($request);
 
@@ -192,15 +180,7 @@ final class ConsultaControllerTest extends TestCase
                 'estado' => 'pendiente',
             ]]);
 
-        $request = new Request(
-            [],
-            [],
-            [],
-            [],
-            [],
-            ['HTTP_AUTHORIZATION' => 'Bearer ' . $this->tokenValido],
-        );
-
+        $request = $this->requestConToken([], true, false);
         $response = $this->controller->listar($request);
 
         $this->assertSame(200, $response->getStatusCode());
@@ -217,14 +197,8 @@ final class ConsultaControllerTest extends TestCase
             ->with(['calificacion' => 'caliente'])
             ->willReturn([]);
 
-        $request = new Request(
-            ['calificacion' => 'Caliente'],
-            [],
-            [],
-            [],
-            [],
-            ['HTTP_AUTHORIZATION' => 'Bearer ' . $this->tokenValido],
-        );
+        $request = $this->requestConToken([], true, false);
+        $request->query->set('calificacion', 'Caliente');
 
         $response = $this->controller->listar($request);
 
@@ -254,15 +228,7 @@ final class ConsultaControllerTest extends TestCase
                 'estado' => 'pendiente',
             ]);
 
-        $request = new Request(
-            [],
-            [],
-            [],
-            [],
-            [],
-            ['HTTP_AUTHORIZATION' => 'Bearer ' . $this->tokenValido],
-        );
-
+        $request = $this->requestConToken([], true, false);
         $response = $this->controller->obtenerPorId($request, ['id' => '1']);
 
         $this->assertSame(200, $response->getStatusCode());
@@ -277,15 +243,7 @@ final class ConsultaControllerTest extends TestCase
             ->with(999)
             ->willReturn(null);
 
-        $request = new Request(
-            [],
-            [],
-            [],
-            [],
-            [],
-            ['HTTP_AUTHORIZATION' => 'Bearer ' . $this->tokenValido],
-        );
-
+        $request = $this->requestConToken([], true, false);
         $response = $this->controller->obtenerPorId($request, ['id' => '999']);
 
         $this->assertSame(404, $response->getStatusCode());
@@ -312,19 +270,7 @@ final class ConsultaControllerTest extends TestCase
                 'estado' => 'procesando',
             ]);
 
-        $request = new Request(
-            [],
-            [],
-            [],
-            [],
-            [],
-            [
-                'CONTENT_TYPE' => 'application/json',
-                'HTTP_AUTHORIZATION' => 'Bearer ' . $this->tokenValido,
-            ],
-            json_encode(['estado' => 'procesando']),
-        );
-
+        $request = $this->requestConToken(['estado' => 'procesando']);
         $response = $this->controller->actualizar($request, ['id' => '1']);
 
         $this->assertSame(200, $response->getStatusCode());
@@ -332,20 +278,20 @@ final class ConsultaControllerTest extends TestCase
         $this->assertSame('procesando', $content['estado']);
     }
 
+    public function test_actualizar_como_lector_retorna_403(): void
+    {
+        $request = $this->requestConToken(['estado' => 'procesando'], false);
+
+        $response = $this->controller->actualizar($request, ['id' => '1']);
+
+        $this->assertSame(403, $response->getStatusCode());
+        $content = json_decode((string) $response->getContent(), true);
+        $this->assertSame('Los usuarios de tipo lector no pueden modificar consultas.', $content['error']);
+    }
+
     public function test_actualizar_con_calificacion_retorna_422(): void
     {
-        $request = new Request(
-            [],
-            [],
-            [],
-            [],
-            [],
-            [
-                'CONTENT_TYPE' => 'application/json',
-                'HTTP_AUTHORIZATION' => 'Bearer ' . $this->tokenValido,
-            ],
-            json_encode(['estado' => 'procesando', 'calificacion' => 'Caliente']),
-        );
+        $request = $this->requestConToken(['estado' => 'procesando', 'calificacion' => 'Caliente']);
 
         $response = $this->controller->actualizar($request, ['id' => '1']);
 
@@ -354,4 +300,16 @@ final class ConsultaControllerTest extends TestCase
         $this->assertSame('La calificación del lead no puede ser enviada por el cliente.', $content['error']);
     }
 
+    /** @param array<string, mixed>|string $data */
+    private function requestConToken(array|string $data, bool $vendedor = true, bool $withContentType = true): Request
+    {
+        $content = is_array($data) ? json_encode($data) : $data;
+        $server = ['HTTP_AUTHORIZATION' => 'Bearer ' . ($vendedor ? $this->tokenVendedor : $this->tokenLector)];
+
+        if ($withContentType) {
+            $server['CONTENT_TYPE'] = 'application/json';
+        }
+
+        return new Request([], [], [], [], [], $server, $content);
+    }
 }
