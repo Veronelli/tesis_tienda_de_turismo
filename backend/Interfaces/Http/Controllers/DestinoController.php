@@ -9,14 +9,23 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
 use TiendaTurismo\GestionDatos\Application\Services\DestinoService;
+use TiendaTurismo\GestionDatos\Application\UseCases\Usuario\ObtenerUsuarioPorIdUseCase;
 use TiendaTurismo\GestionDatos\Infrastructure\Repositories\DestinoDoctrineRepository;
 
-final class DestinoController
+final class DestinoController extends BaseController
 {
     private DestinoService $destinoService;
-
-    public function __construct(?DestinoService $destinoService = null)
+    public function __construct(
+        ?DestinoService $destinoService = null,
+        ?ObtenerUsuarioPorIdUseCase $obtenerUsuarioPorIdUseCase = null,
+        array $middleware = [],
+    )
     {
+        parent::__construct($obtenerUsuarioPorIdUseCase, null, [
+            [$this, 'middlewareSoloLectura'],
+            ...$middleware,
+        ]);
+
         $this->destinoService = $destinoService ?? new DestinoService(
             new DestinoDoctrineRepository(),
         );
@@ -35,6 +44,10 @@ final class DestinoController
 
     public function crear(Request $request): JsonResponse
     {
+        if ($response = $this->ejecutarMiddlewares($request)) {
+            return $response;
+        }
+
         $data = json_decode((string) $request->getContent(), true);
 
         if (!is_array($data)) {
@@ -52,6 +65,10 @@ final class DestinoController
 
     public function actualizar(Request $request, array $params): JsonResponse
     {
+        if ($response = $this->ejecutarMiddlewares($request)) {
+            return $response;
+        }
+
         $data = json_decode((string) $request->getContent(), true);
 
         if (!is_array($data)) {
